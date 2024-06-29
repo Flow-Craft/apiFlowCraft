@@ -12,9 +12,9 @@ namespace ApiNet8.Controllers
     [ApiController]
     public class PartidosController : ControllerBase
     {
-        private readonly PartidosServices partidosServices;
+        private readonly PartidoServices partidosServices;
 
-        public PartidosController(PartidosServices partidosServices)
+        public PartidosController(PartidoServices partidosServices)
         {
             this.partidosServices = partidosServices;
         }
@@ -23,7 +23,7 @@ namespace ApiNet8.Controllers
         [HttpGet]
         public IActionResult GetPartidos()
         {
-            List<Partidos> partidos = partidosServices.GetPartidos();
+            List<Partido> partidos = partidosServices.GetPartidos();
             return Ok(partidos);
         }
 
@@ -31,7 +31,7 @@ namespace ApiNet8.Controllers
         [HttpGet("{id}")]
         public IActionResult GetPartido(int id)
         {
-            Partidos partido = partidosServices.GetPartidos(id);
+            Partido partido = partidosServices.GetPartidos(id);
 
             if (partido == null)
             {
@@ -44,41 +44,41 @@ namespace ApiNet8.Controllers
         }
 
         // POST api/<PartidosController>
-        [HttpPost]
-        public IActionResult CreatePartido([FromBody] Partidos partido)
-        {
-            if (partido == null)
-            {
-                var problemDetails = new ValidationProblemDetails() { Status = StatusCodes.Status404NotFound, Title = "Partido no encontrado" };
+        //[HttpPost]
+        //public IActionResult CreatePartido([FromBody] Partido partido)
+        //{
+        //    if (partido == null)
+        //    {
+        //        var problemDetails = new ValidationProblemDetails() { Status = StatusCodes.Status404NotFound, Title = "Partido no encontrado" };
 
-                return new NotFoundObjectResult(problemDetails);
-            }
+        //        return new NotFoundObjectResult(problemDetails);
+        //    }
 
-            if (partidosServices.PartidoExist(partido)) {
+        //    if (partidosServices.PartidoExist(partido)) {
 
-                var problemDetails = new ValidationProblemDetails() { Status = StatusCodes.Status400BadRequest, Title = "Partido ya existe" };
+        //        var problemDetails = new ValidationProblemDetails() { Status = StatusCodes.Status400BadRequest, Title = "Partido ya existe" };
 
-                return new BadRequestObjectResult(problemDetails);
-            }
+        //        return new BadRequestObjectResult(problemDetails);
+        //    }
 
-            try
-            {
-                partidosServices.CreatePartido(partido);
-                return CreatedAtAction(nameof(GetPartido), 
-                    new { id=partido.Id},
-                    partido);
-            }
-            catch (Exception ex)
-            {
-                var problemDetails = new ValidationProblemDetails() { Status = StatusCodes.Status500InternalServerError,
-                    Title = "Error al crear el partido",
-                    Detail = ex.Message
-                };
+        //    try
+        //    {
+        //        partidosServices.CreatePartido(partido);
+        //        return CreatedAtAction(nameof(GetPartido), 
+        //            new { id=partido.IdPartido},
+        //            partido);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        var problemDetails = new ValidationProblemDetails() { Status = StatusCodes.Status500InternalServerError,
+        //            Title = "Error al crear el partido",
+        //            Detail = ex.Message
+        //        };
 
-                return new ObjectResult(problemDetails) { StatusCode = StatusCodes.Status500InternalServerError };
-            }
+        //        return new ObjectResult(problemDetails) { StatusCode = StatusCodes.Status500InternalServerError };
+        //    }
            
-        }
+        //}
 
      
     }
