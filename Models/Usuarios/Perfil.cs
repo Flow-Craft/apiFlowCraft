@@ -2,7 +2,7 @@
 {
     public class Perfil
     {
-        public int IdPerfil { get; set; }
+        public int Id { get; set; }
         public string NombrePerfil { get; set; } // Simpatizante, Socio, Administrativo, Admin, Arbitro, Planillero, Profesor
         public string DescripcionPerfil { get; set; }
         public DateTime FechaCreacion { get; set; }

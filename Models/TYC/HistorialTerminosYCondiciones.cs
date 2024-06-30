@@ -2,7 +2,7 @@
 {
     public class HistorialTerminosYCondiciones
     {
-        public int IdHistorialTerminosYCondiciones { get; set; }
+        public int Id { get; set; }
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaModificacion { get; set; }
         public DateTime? FechaBaja { get; set; }

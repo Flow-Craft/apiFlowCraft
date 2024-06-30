@@ -2,7 +2,7 @@
 {
     public class TipoEvento
     {
-        public int IdTipoEvento { get; set; }
+        public int Id { get; set; }
         public string NombreTipoEvento { get; set; } // Partido, Recital, Taller, Curso, Feria
         public string Descripcion { get; set; }
         public DateTime FechaCreacion { get; set; }

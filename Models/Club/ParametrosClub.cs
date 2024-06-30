@@ -2,7 +2,7 @@
 {
     public class ParametrosClub
     {
-        public int IdParametrosClub { get; set; }
+        public int Id { get; set; }
         public string Nombre { get; set; }
         public string ColorPrincipal { get; set; }
         public string ColorSecundario { get; set; }

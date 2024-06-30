@@ -5,7 +5,7 @@ namespace ApiNet8.Models.Partidos
 {
     public class Partido : Evento
     {
-        public int IdPartido { get; set; }
+        public int Id { get; set; }
         public string? Resultado { get; set; }
         public int? Periodo { get; set; }
         public string? Set { get; set; }

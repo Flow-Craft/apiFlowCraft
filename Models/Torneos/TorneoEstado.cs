@@ -2,7 +2,7 @@
 {
     public class TorneoEstado
     {
-        public int IdTorneoEstado { get; set; }
+        public int Id { get; set; }
         public string DescripcionEstado { get; set; }
         public string NombreEstado { get; set; } // Abierto, Finalizado, En curso, Completado, Cancelado
         public DateTime FechaCreacion { get; set; }

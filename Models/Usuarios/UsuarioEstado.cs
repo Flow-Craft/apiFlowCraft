@@ -2,7 +2,7 @@
 {
     public class UsuarioEstado
     {
-        public int IdUsuarioEstado { get; set; }
+        public int Id { get; set; }
         public string DescripcionEstado { get; set; }
         public string NombreEstado { get; set; } // Activo, Bloqueado, Desactivado
         public DateTime FechaCreacion { get; set; }

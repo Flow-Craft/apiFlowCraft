@@ -4,7 +4,7 @@ namespace ApiNet8.Models.Partidos
 {
     public class Estadistica
     {
-        public int IdEstadistica { get; set; }
+        public int Id { get; set; }
         public string MarcaEstadistica { get; set; }
         public int PuntajeTipoAccion {  get; set; }
         public string RazonBaja { get; set; }

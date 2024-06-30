@@ -3,7 +3,7 @@ namespace ApiNet8.Models.Eventos
 {
     public class Asistencia
     {
-        public int IdAsistencia { get; set; }
+        public int Id { get; set; }
         public DateTime HoraEntrada { get; set; }
 
         // Relaciones

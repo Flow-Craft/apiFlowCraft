@@ -4,7 +4,7 @@ namespace ApiNet8.Models.Torneos
 {
     public class PartidoFase
     {
-        public int IdPartidoFase { get; set; }
+        public int Id { get; set; }
         public int FasePartido { get; set; }
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaBaja { get; set; }

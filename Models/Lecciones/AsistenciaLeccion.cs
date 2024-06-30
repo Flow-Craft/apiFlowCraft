@@ -2,7 +2,7 @@
 {
     public class AsistenciaLeccion
     {
-        public int IdAsistenciaLeccion {  get; set; }
+        public int Id {  get; set; }
         public bool AsistioAlumno { get; set; }
         public bool ClaseCompleta { get; set; }
         public DateTime FechaCreacion { get; set; }

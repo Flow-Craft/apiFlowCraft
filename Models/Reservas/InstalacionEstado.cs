@@ -2,7 +2,7 @@
 {
     public class InstalacionEstado
     {
-        public int IdInstalacionEstado { get; set; }
+        public int Id { get; set; }
         public string DescripcionEstado { get; set; }
         public string NombreEstado { get; set; } // Activo, Inactivo, Abierta, CerradaReparacion, CerradaRemodelacion
         public DateTime FechaCreacion { get; set; }

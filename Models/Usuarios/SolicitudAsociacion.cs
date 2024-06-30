@@ -2,7 +2,7 @@
 {
     public class SolicitudAsociacion
     {
-        public int IdSolicitudAsociacion { get; set; }
+        public int Id { get; set; }
         public string? MotivoRechazo { get; set; }
 
         // Relaciones

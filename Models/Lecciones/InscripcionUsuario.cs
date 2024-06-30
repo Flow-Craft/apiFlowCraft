@@ -4,7 +4,7 @@ namespace ApiNet8.Models.Lecciones
 {
     public class InscripcionUsuario
     {
-        public int IdInscripcionUsuario { get; set; }
+        public int Id { get; set; }
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaBaja { get; set; }
         public DateTime? FechaModificacion { get; set; }

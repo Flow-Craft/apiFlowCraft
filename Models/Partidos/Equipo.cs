@@ -4,7 +4,7 @@ namespace ApiNet8.Models.Partidos
 {
     public class Equipo
     {
-        public int IdEquipo { get; set; }
+        public int Id { get; set; }
         public string Nombre { get; set; }
         public bool Local {  get; set; }
         public string Descripcion { get; set; }

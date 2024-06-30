@@ -2,7 +2,7 @@
 {
     public class AccionPartido
     {
-        public int IdAccionPartido { get; set; }
+        public int Id { get; set; }
         public int NroJugador { get; set; }
         public int Minuto { get; set; }
         public string Descripcion { get; set; }

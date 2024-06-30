@@ -2,7 +2,7 @@
 {
     public class Instalacion
     {
-        public int IdInstalacion { get; set; }
+        public int Id { get; set; }
         public string Nombre { get; set; }
         public string Ubicacion { get; set; }
         public float Precio { get; set; }

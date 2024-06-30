@@ -4,7 +4,7 @@ namespace ApiNet8.Models.Partidos
 {
     public class EquipoUsuario
     {
-        public int IdEquipoUsuario { get; set; }
+        public int Id { get; set; }
         public int NumCamiseta { get; set; }
         public string Puesto { get; set; }
         public DateTime FechaCreacion { get; set; }

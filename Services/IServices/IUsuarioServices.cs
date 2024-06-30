@@ -1,4 +1,4 @@
-﻿using ApiNet8.Models.Usuario;
+﻿using ApiNet8.Models.Usuarios;
 
 namespace ApiNet8.Services.IServices
 {

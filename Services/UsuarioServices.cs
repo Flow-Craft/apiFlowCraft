@@ -1,4 +1,4 @@
-﻿using ApiNet8.Models.Usuario;
+﻿using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
 using Microsoft.AspNetCore.Identity;
 

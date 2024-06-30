@@ -2,7 +2,7 @@
 {
     public class LeccionEstado
     {
-        public int IdLeccionEstado { get; set; }
+        public int Id { get; set; }
         public string DescripcionEstado { get; set; }
         public string NombreEstado { get; set; } // Vigente, ClaseIniciada, Terminada, Eliminada
         public DateTime FechaCreacion { get; set; }

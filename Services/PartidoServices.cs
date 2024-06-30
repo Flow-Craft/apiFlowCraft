@@ -11,25 +11,25 @@ namespace ApiNet8.Services
                 this.db = db;
         }
 
-        public List<Partido> GetPartidos()
-        {
-            return db.Partidos.ToList();
-        }
+        //public List<Partido> GetPartidos()
+        //{
+        //    return db.Partidos.ToList();
+        //}
 
-        public Partido GetPartidos(int id) 
-        {
-            try
-            {
-                Partido? partido = db.Partidos.Find(id);
+        //public Partido GetPartidos(int id) 
+        //{
+        //    try
+        //    {
+        //        Partido? partido = db.Partidos.Find(id);
 
-                return partido;
-            }
-            catch (Exception)
-            {
+        //        return partido;
+        //    }
+        //    catch (Exception)
+        //    {
 
-                throw;
-            }           
-        }
+        //        throw;
+        //    }           
+        //}
 
         //public void CreatePartido(Partido partido)
         //{

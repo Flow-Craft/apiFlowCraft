@@ -2,7 +2,7 @@
 {
     public class TorneoHistorial
     {
-        public int IdTorneoHistorial { get; set; }
+        public int Id { get; set; }
         public string? DetalleCambioEstado { get; set; }
         public DateTime FechaInicio { get; set; }
         public DateTime? FechaFin { get; set; }

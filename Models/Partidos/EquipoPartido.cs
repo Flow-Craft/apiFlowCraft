@@ -2,7 +2,7 @@
 {
     public class EquipoPartido
     {
-        public int IdEquipoPartido { get; set; }
+        public int Id { get; set; }
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaBaja { get; set; }
         public DateTime? FechaModificacion { get; set; }

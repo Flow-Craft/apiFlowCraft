@@ -2,7 +2,7 @@
 {
     public class GrupoFamiliar
     {
-        public int IdGrupoFamiliar { get; set; }
+        public int Id { get; set; }
         public string NombreGrupoFamiliar { get; set; }
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaModificacion { get; set; }

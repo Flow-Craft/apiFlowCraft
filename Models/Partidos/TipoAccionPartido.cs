@@ -4,7 +4,7 @@ namespace ApiNet8.Models.Partidos
 {
     public class TipoAccionPartido
     {
-        public int IdTipoAccionPartido { get; set; }
+        public int Id { get; set; }
         public string NombreTipoAccion { get; set; }
         public string Descripcion { get; set; }
         public bool ModificaTarjetasAdvertencia { get; set; }

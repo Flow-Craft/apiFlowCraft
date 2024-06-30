@@ -4,7 +4,7 @@ namespace ApiNet8.Models.Lecciones
 {
     public class Leccion
     {
-        public int IdLeccion { get; set; }
+        public int Id { get; set; }
         public string Nombre { get; set; }
         public List<string> Dias {  get; set; }
         public List<string> Horarios { get; set; }

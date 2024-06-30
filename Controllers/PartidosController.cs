@@ -23,24 +23,26 @@ namespace ApiNet8.Controllers
         [HttpGet]
         public IActionResult GetPartidos()
         {
-            List<Partido> partidos = partidosServices.GetPartidos();
-            return Ok(partidos);
+            //List<Partido> partidos = partidosServices.GetPartidos();
+            //return Ok(partidos);
+            return Ok();
         }
 
         // GET api/<PartidosController>/5
         [HttpGet("{id}")]
         public IActionResult GetPartido(int id)
         {
-            Partido partido = partidosServices.GetPartidos(id);
+            //Partido partido = partidosServices.GetPartidos(id);
 
-            if (partido == null)
-            {
-                var problemDetails = new ValidationProblemDetails() { Status = StatusCodes.Status404NotFound, Title="Partido no encontrado" };
+            //if (partido == null)
+            //{
+            //    var problemDetails = new ValidationProblemDetails() { Status = StatusCodes.Status404NotFound, Title="Partido no encontrado" };
               
-                return new NotFoundObjectResult(problemDetails);
-            }
+            //    return new NotFoundObjectResult(problemDetails);
+            //}
 
-            return Ok(partido);
+            //return Ok(partido);
+            return Ok();
         }
 
         // POST api/<PartidosController>

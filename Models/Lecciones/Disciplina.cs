@@ -2,7 +2,7 @@
 {
     public class Disciplina
     {
-        public int IdDisciplina { get; set; }
+        public int Id { get; set; }
         public string Nombre { get; set; }
         public string Descripcion { get; set; }
         public int CantJugadores { get; set; }

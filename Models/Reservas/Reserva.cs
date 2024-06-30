@@ -4,7 +4,7 @@ namespace ApiNet8.Models.Reservas
 {
     public class Reserva
     {
-        public int IdReserva { get; set; }
+        public int Id { get; set; }
         public DateTime FechaReserva { get; set; }
         public DateTime HoraInicio { get; set; }
         public DateTime HoraFin { get; set; }

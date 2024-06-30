@@ -5,7 +5,7 @@ namespace ApiNet8.Models.Eventos
 {
     public class Evento
     {
-        public int IdEvento { get; set; }
+        public int Id { get; set; }
         public string Titulo { get; set; }
         public DateTime? FechaInicio { get; set; }
         public byte[]? Banner { get; set; }

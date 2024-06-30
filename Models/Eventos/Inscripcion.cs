@@ -4,7 +4,7 @@ namespace ApiNet8.Models.Eventos
 {
     public class Inscripcion
     {
-        public int IdInscripcion { get; set; }
+        public int Id { get; set; }
         public DateTime FechaInscripcion { get; set; }
         public DateTime FechaBaja {  get; set; }
 

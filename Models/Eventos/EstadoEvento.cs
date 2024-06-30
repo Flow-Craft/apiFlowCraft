@@ -2,7 +2,7 @@
 {
     public class EstadoEvento
     {
-        public int IdEstadoEvento { get; set; }
+        public int Id { get; set; }
         public string DescripcionEstado { get; set; }
         public string NombreEstado { get; set; } // Creado, Cancelado, Finalizado, Iniciado, Suspendido, Entretiempo
         public DateTime FechaCreacion { get; set; }

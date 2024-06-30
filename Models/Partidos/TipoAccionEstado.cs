@@ -2,7 +2,7 @@
 {
     public class TipoAccionEstado
     {
-        public int IdTipoAccionEstado { get; set; }
+        public int Id { get; set; }
         public string DescripcionEstado { get; set; }
         public string NombreEstado { get; set; } // Activo, Inactivo
         public DateTime FechaCreacion { get; set; }

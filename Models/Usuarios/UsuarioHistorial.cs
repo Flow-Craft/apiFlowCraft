@@ -2,7 +2,7 @@
 {
     public class UsuarioHistorial
     {
-        public int IdUsuarioHistorial { get; set; }
+        public int Id { get; set; }
         public string? DetalleCambioEstado {  get; set; }
         public DateTime FechaInicio { get; set; }
         public DateTime? FechaFin {  get; set; }

@@ -2,7 +2,7 @@
 {
     public class TerminosYCondiciones
     {
-        public int IdTerminosYCondiciones { get; set; }
+        public int Id { get; set; }
         public string TYC { get; set; }
 
         // Relaciones
