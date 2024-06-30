@@ -1,9 +1,10 @@
 ﻿using ApiNet8.Models.Usuario;
+using ApiNet8.Services.IServices;
 using Microsoft.AspNetCore.Identity;
 
-namespace ApiNet8.Services.UsuarioServices
+namespace ApiNet8.Services
 {
-    public class UsuarioServices
+    public class UsuarioServices : IUsuarioServices
     {
         private readonly PasswordHasher<Usuario> _passwordHasher;
 

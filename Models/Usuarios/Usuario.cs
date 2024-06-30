@@ -1,4 +1,4 @@
-﻿namespace ApiNet8.Models.Usuario
+﻿namespace ApiNet8.Models.Usuarios
 {
     public class Usuario
     {
@@ -20,6 +20,10 @@
         public string? Pais {  get; set; }
         public string? Provincia { get; set; }
         public string? Localidad { get; set; }
-        public DateTime? UltimoAcceso { get; set; } 
+        public DateTime? UltimoAcceso { get; set; }
+
+        // Relaciones
+        public List<PerfilUsuario> PerfilesUsuario { get; set; }
+        public List<UsuarioHistorial> UsuarioHistoriales { get; set; }
     }
 }

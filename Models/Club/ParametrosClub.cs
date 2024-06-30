@@ -15,10 +15,8 @@
         public string TextoEmail { get; set; }
         public string QuienesSomos { get; set; }
 
-
-
-
-
-
+        // Relaciones
+        public List<ClubHistorial>? clubHistoriales { get; set; }
+        public PerfilClub? PerfilClub { get; set; }
     }
 }

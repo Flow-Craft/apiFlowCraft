@@ -1,10 +1,10 @@
-﻿namespace ApiNet8.Models.Usuario
+﻿namespace ApiNet8.Models.Torneos
 {
-    public class EstadoSolicitudAsociacion
+    public class TorneoEstado
     {
-        public string IdEstadoSolicitudAsociacion { get; set; }
+        public int IdTorneoEstado { get; set; }
         public string DescripcionEstado { get; set; }
-        public string NombreEstado { get; set; } // Pendiente, Aprobada, Rechazada
+        public string NombreEstado { get; set; } // Abierto, Finalizado, En curso, Completado, Cancelado
         public DateTime FechaCreacion { get; set; }
         public DateTime? FechaBaja { get; set; }
         public DateTime? FechaModificacion { get; set; }

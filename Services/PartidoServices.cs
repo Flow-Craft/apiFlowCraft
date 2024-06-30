@@ -1,5 +1,5 @@
 ﻿using ApiNet8.Data;
-using ApiNet8.Models;
+using ApiNet8.Models.Partidos;
 
 namespace ApiNet8.Services
 {

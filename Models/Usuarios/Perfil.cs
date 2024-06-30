@@ -1,4 +1,4 @@
-﻿namespace ApiNet8.Models.Usuario
+﻿namespace ApiNet8.Models.Usuarios
 {
     public class Perfil
     {
@@ -9,5 +9,8 @@
         public DateTime? FechaModificacion { get; set; }
         public DateTime? FechaBaja { get; set; }
         public int UsuarioEditor {  get; set; }
+
+        // Relaciones
+        public List<Permiso> Permisos { get; set; }
     }
 }

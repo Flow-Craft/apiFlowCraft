@@ -1,4 +1,4 @@
-﻿namespace ApiNet8.Models.Usuario
+﻿namespace ApiNet8.Models.Usuarios
 {
     public class GrupoFamiliar
     {
@@ -10,5 +10,9 @@
         public int duenioGrupoFamiliar { get; set; }
         public string? Observacion { get; set; }
         public List<byte[]> DocumentosGrupoFamiliar { get; set; } = new List<byte[]>();
+
+        // Relaciones
+        public Usuario DuenioGrupoFamiliar { get; set;}
+        public List<Usuario> Integrantes {  get; set; }
     }
 }

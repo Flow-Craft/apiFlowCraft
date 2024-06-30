@@ -1,4 +1,4 @@
-﻿namespace ApiNet8.Models.Usuario
+﻿namespace ApiNet8.Models.Usuarios
 {
     public class UsuarioEstado
     {

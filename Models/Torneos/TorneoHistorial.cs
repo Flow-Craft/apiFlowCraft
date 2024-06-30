@@ -1,11 +1,13 @@
-﻿namespace ApiNet8.Models.Usuario
+﻿namespace ApiNet8.Models.Torneos
 {
-    public class SolicitudAsociacionHistorial
+    public class TorneoHistorial
     {
-        public int IdSolicitudAsociacionHistorial { get; set; }
+        public int IdTorneoHistorial { get; set; }
         public string? DetalleCambioEstado { get; set; }
         public DateTime FechaInicio { get; set; }
         public DateTime? FechaFin { get; set; }
         public int? UsuarioEditor { get; set; }
+
+        public TorneoEstado TorneoEstado { get; set; }
     }
 }

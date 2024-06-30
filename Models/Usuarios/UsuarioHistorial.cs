@@ -1,4 +1,4 @@
-﻿namespace ApiNet8.Models.Usuario
+﻿namespace ApiNet8.Models.Usuarios
 {
     public class UsuarioHistorial
     {
@@ -8,5 +8,7 @@
         public DateTime? FechaFin {  get; set; }
         public int? UsuarioEditor {  get; set; }
 
+        // Relaciones
+        public UsuarioEstado UsuarioEstado { get; set; }
     }
 }

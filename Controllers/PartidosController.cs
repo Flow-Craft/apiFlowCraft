@@ -1,8 +1,8 @@
 ﻿using ApiNet8.Data;
 using ApiNet8.Services;
 using Microsoft.AspNetCore.Mvc;
-using ApiNet8.Models;
 using Microsoft.AspNetCore.Mvc.Filters;
+using ApiNet8.Models.Partidos;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
