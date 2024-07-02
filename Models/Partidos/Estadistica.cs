@@ -1,4 +1,5 @@
 ﻿using ApiNet8.Models.Lecciones;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiNet8.Models.Partidos
 {
@@ -14,9 +15,20 @@ namespace ApiNet8.Models.Partidos
         public int UsuarioEditor { get; set; }
 
         // Relaciones
+        [DeleteBehavior(DeleteBehavior.Restrict)]
         public TipoAccionPartido TipoAccionPartido { get; set; }
+
+
+        [DeleteBehavior(DeleteBehavior.Restrict)]
         public Partido Partido { get; set; }
+
+
+        [DeleteBehavior(DeleteBehavior.Restrict)]
         public AsistenciaLeccion? AsistenciaLeccion { get; set; }
+        
+
+        [DeleteBehavior(DeleteBehavior.Restrict)]
         public Equipo Equipo { get; set; }
+        
     }
 }

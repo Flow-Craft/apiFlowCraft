@@ -1,4 +1,5 @@
 ﻿using ApiNet8.Models.Usuarios;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiNet8.Models.Lecciones
 {
@@ -11,7 +12,9 @@ namespace ApiNet8.Models.Lecciones
         public string? Observacion { get; set; }
 
         // Relaciones
+        [DeleteBehavior(DeleteBehavior.Restrict)]
         public Usuario Usuario { get; set; }
+
         public Leccion Leccion { get; set; }
     }
 }

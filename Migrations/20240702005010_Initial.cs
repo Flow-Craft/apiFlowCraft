@@ -6,14 +6,11 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace ApiNet8.Migrations
 {
     /// <inheritdoc />
-    public partial class Clases : Migration
+    public partial class Initial : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropTable(
-                name: "Partidos");
-
             migrationBuilder.CreateTable(
                 name: "Categoria",
                 columns: table => new
@@ -627,6 +624,42 @@ namespace ApiNet8.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "Estadistica",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "int", nullable: false),
+                    MarcaEstadistica = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PuntajeTipoAccion = table.Column<int>(type: "int", nullable: false),
+                    RazonBaja = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false),
+                    FechaBaja = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    FechaModificacion = table.Column<DateTime>(type: "datetime2", nullable: true),
+                    UsuarioEditor = table.Column<int>(type: "int", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_Estadistica", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_Estadistica_AsistenciaLeccion_Id",
+                        column: x => x.Id,
+                        principalTable: "AsistenciaLeccion",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Estadistica_Equipo_Id",
+                        column: x => x.Id,
+                        principalTable: "Equipo",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_Estadistica_TipoAccionPartido_Id",
+                        column: x => x.Id,
+                        principalTable: "TipoAccionPartido",
+                        principalColumn: "Id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "TipoAccionHistorial",
                 columns: table => new
                 {
@@ -780,52 +813,6 @@ namespace ApiNet8.Migrations
                         name: "FK_Evento_TipoEvento_TipoEventoId",
                         column: x => x.TipoEventoId,
                         principalTable: "TipoEvento",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "Estadistica",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    MarcaEstadistica = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    PuntajeTipoAccion = table.Column<int>(type: "int", nullable: false),
-                    RazonBaja = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false),
-                    FechaBaja = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    FechaModificacion = table.Column<DateTime>(type: "datetime2", nullable: true),
-                    UsuarioEditor = table.Column<int>(type: "int", nullable: false),
-                    TipoAccionPartidoId = table.Column<int>(type: "int", nullable: false),
-                    PartidoId = table.Column<int>(type: "int", nullable: false),
-                    AsistenciaLeccionId = table.Column<int>(type: "int", nullable: true),
-                    EquipoId = table.Column<int>(type: "int", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Estadistica", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_Estadistica_AsistenciaLeccion_AsistenciaLeccionId",
-                        column: x => x.AsistenciaLeccionId,
-                        principalTable: "AsistenciaLeccion",
-                        principalColumn: "Id");
-                    table.ForeignKey(
-                        name: "FK_Estadistica_Equipo_EquipoId",
-                        column: x => x.EquipoId,
-                        principalTable: "Equipo",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Estadistica_Evento_PartidoId",
-                        column: x => x.PartidoId,
-                        principalTable: "Evento",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_Estadistica_TipoAccionPartido_TipoAccionPartidoId",
-                        column: x => x.TipoAccionPartidoId,
-                        principalTable: "TipoAccionPartido",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -1148,13 +1135,11 @@ namespace ApiNet8.Migrations
                 name: "InscripcionUsuario",
                 columns: table => new
                 {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
+                    Id = table.Column<int>(type: "int", nullable: false),
                     FechaCreacion = table.Column<DateTime>(type: "datetime2", nullable: false),
                     FechaBaja = table.Column<DateTime>(type: "datetime2", nullable: true),
                     FechaModificacion = table.Column<DateTime>(type: "datetime2", nullable: true),
                     Observacion = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    UsuarioId = table.Column<int>(type: "int", nullable: false),
                     LeccionId = table.Column<int>(type: "int", nullable: false)
                 },
                 constraints: table =>
@@ -1167,11 +1152,11 @@ namespace ApiNet8.Migrations
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_InscripcionUsuario_Usuario_UsuarioId",
-                        column: x => x.UsuarioId,
+                        name: "FK_InscripcionUsuario_Usuario_Id",
+                        column: x => x.Id,
                         principalTable: "Usuario",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                 });
 
             migrationBuilder.CreateTable(
@@ -1356,26 +1341,6 @@ namespace ApiNet8.Migrations
                 column: "UsuarioId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_Estadistica_AsistenciaLeccionId",
-                table: "Estadistica",
-                column: "AsistenciaLeccionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Estadistica_EquipoId",
-                table: "Estadistica",
-                column: "EquipoId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Estadistica_PartidoId",
-                table: "Estadistica",
-                column: "PartidoId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_Estadistica_TipoAccionPartidoId",
-                table: "Estadistica",
-                column: "TipoAccionPartidoId");
-
-            migrationBuilder.CreateIndex(
                 name: "IX_Evento_CategoriaId",
                 table: "Evento",
                 column: "CategoriaId");
@@ -1444,11 +1409,6 @@ namespace ApiNet8.Migrations
                 name: "IX_InscripcionUsuario_LeccionId",
                 table: "InscripcionUsuario",
                 column: "LeccionId");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_InscripcionUsuario_UsuarioId",
-                table: "InscripcionUsuario",
-                column: "UsuarioId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_InstalacionHistorial_InstalacionEstadoId",
@@ -1841,27 +1801,6 @@ namespace ApiNet8.Migrations
 
             migrationBuilder.DropTable(
                 name: "GrupoFamiliar");
-
-            migrationBuilder.CreateTable(
-                name: "Partidos",
-                columns: table => new
-                {
-                    Id = table.Column<int>(type: "int", nullable: false)
-                        .Annotation("SqlServer:Identity", "1, 1"),
-                    EquipoA = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    EquipoB = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Name = table.Column<string>(type: "nvarchar(max)", nullable: true),
-                    Resultado = table.Column<string>(type: "nvarchar(max)", nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_Partidos", x => x.Id);
-                });
-
-            migrationBuilder.InsertData(
-                table: "Partidos",
-                columns: new[] { "Id", "EquipoA", "EquipoB", "Name", "Resultado" },
-                values: new object[] { 1, "Independiente", "Boca", "Fecha 1 copa de la liga", "2-0" });
         }
     }
 }

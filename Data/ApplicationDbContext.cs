@@ -15,7 +15,7 @@ namespace ApiNet8.Data
     {
         public ApplicationDbContext(DbContextOptions options) : base(options)
         {
-            
+
         }
 
         // agregar clases a la base de datos
@@ -82,9 +82,41 @@ namespace ApiNet8.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            // aquí se pueden modificar nombres de tablas y columnas, cargar data inicial(estados iniciales)
+            // aquí se pueden modificar nombres de tablas y columnas
 
-            // data seeding
+            // Se desactiva la eliminacion en cascada para evitar ciclos de eliminacion
+            modelBuilder.Entity<Estadistica>()
+                 .HasOne(e => e.Partido)
+                 .WithMany()
+                 .HasForeignKey(e => e.Id)
+                 .OnDelete(DeleteBehavior.Restrict); // Desactivar eliminación en cascada
+
+            modelBuilder.Entity<Estadistica>()
+                .HasOne(e => e.TipoAccionPartido)
+                .WithMany()
+                .HasForeignKey(e => e.Id)
+                .OnDelete(DeleteBehavior.Restrict); // Desactivar eliminación en cascada
+
+            modelBuilder.Entity<Estadistica>()
+                .HasOne(e => e.AsistenciaLeccion)
+                .WithMany()
+                .HasForeignKey(e => e.Id)
+                .OnDelete(DeleteBehavior.Restrict); // Desactivar eliminación en cascada
+
+            modelBuilder.Entity<Estadistica>()
+                .HasOne(e => e.Equipo)
+                .WithMany()
+                .HasForeignKey(e => e.Id)
+                .OnDelete(DeleteBehavior.Restrict); // Desactivar eliminación en cascada
+
+            modelBuilder.Entity<InscripcionUsuario>()
+               .HasOne(e => e.Usuario)
+               .WithMany()
+               .HasForeignKey(e => e.Id)
+               .OnDelete(DeleteBehavior.Restrict); // Desactivar eliminación en cascada
+
+
+            // cargar data inicial
             //modelBuilder.Entity<Partidos>().HasData(
             //    new Partidos { Id = 1, EquipoA="Independiente", EquipoB="Boca", Name="Fecha 1 copa de la liga", Resultado="2-0"});
         }

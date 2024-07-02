@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiNet8.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20240630211507_Clases")]
-    partial class Clases
+    [Migration("20240702005010_Initial")]
+    partial class Initial
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -493,10 +493,7 @@ namespace ApiNet8.Migrations
             modelBuilder.Entity("ApiNet8.Models.Lecciones.InscripcionUsuario", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<DateTime?>("FechaBaja")
                         .HasColumnType("datetime2");
@@ -513,14 +510,9 @@ namespace ApiNet8.Migrations
                     b.Property<string>("Observacion")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("LeccionId");
-
-                    b.HasIndex("UsuarioId");
 
                     b.ToTable("InscripcionUsuario");
                 });
@@ -995,15 +987,6 @@ namespace ApiNet8.Migrations
             modelBuilder.Entity("ApiNet8.Models.Partidos.Estadistica", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int?>("AsistenciaLeccionId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("EquipoId")
                         .HasColumnType("int");
 
                     b.Property<DateTime?>("FechaBaja")
@@ -1019,9 +1002,6 @@ namespace ApiNet8.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("PartidoId")
-                        .HasColumnType("int");
-
                     b.Property<int>("PuntajeTipoAccion")
                         .HasColumnType("int");
 
@@ -1029,21 +1009,10 @@ namespace ApiNet8.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("TipoAccionPartidoId")
-                        .HasColumnType("int");
-
                     b.Property<int>("UsuarioEditor")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("AsistenciaLeccionId");
-
-                    b.HasIndex("EquipoId");
-
-                    b.HasIndex("PartidoId");
-
-                    b.HasIndex("TipoAccionPartidoId");
 
                     b.ToTable("Estadistica");
                 });
@@ -2066,15 +2035,15 @@ namespace ApiNet8.Migrations
 
             modelBuilder.Entity("ApiNet8.Models.Lecciones.InscripcionUsuario", b =>
                 {
+                    b.HasOne("ApiNet8.Models.Usuarios.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
                     b.HasOne("ApiNet8.Models.Lecciones.Leccion", "Leccion")
                         .WithMany()
                         .HasForeignKey("LeccionId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ApiNet8.Models.Usuarios.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2227,31 +2196,25 @@ namespace ApiNet8.Migrations
                 {
                     b.HasOne("ApiNet8.Models.Lecciones.AsistenciaLeccion", "AsistenciaLeccion")
                         .WithMany()
-                        .HasForeignKey("AsistenciaLeccionId");
+                        .HasForeignKey("Id")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("ApiNet8.Models.Partidos.Equipo", "Equipo")
                         .WithMany()
-                        .HasForeignKey("EquipoId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("ApiNet8.Models.Partidos.Partido", "Partido")
-                        .WithMany()
-                        .HasForeignKey("PartidoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("Id")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.HasOne("ApiNet8.Models.Partidos.TipoAccionPartido", "TipoAccionPartido")
                         .WithMany()
-                        .HasForeignKey("TipoAccionPartidoId")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .HasForeignKey("Id")
+                        .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
                     b.Navigation("AsistenciaLeccion");
 
                     b.Navigation("Equipo");
-
-                    b.Navigation("Partido");
 
                     b.Navigation("TipoAccionPartido");
                 });
