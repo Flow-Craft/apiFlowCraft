@@ -12,7 +12,7 @@ namespace ApiNet8.Models.Partidos
         public bool secuencial { get; set; }
 
         // Relaciones
-        public List<TipoAccionHistorial> TipoAccionHistoriales { get; set; }
+        public IList<TipoAccionHistorial> TipoAccionHistoriales { get; set; }
         public Disciplina Disciplina { get; set; }
     }
 }

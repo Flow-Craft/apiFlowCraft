@@ -8,6 +8,6 @@
         public DateTime? FechaBaja { get; set; }
 
         // Relaciones
-        public List<Perfil> Perfiles { get; set; }
+        public IList<Perfil> Perfiles { get; set; }
     }
 }

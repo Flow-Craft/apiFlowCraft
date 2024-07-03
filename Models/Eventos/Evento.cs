@@ -16,10 +16,10 @@ namespace ApiNet8.Models.Eventos
         public string? Descripcion { get; set; }
 
         // Relaciones
-        public List<HistorialEvento>? HistorialEventoList { get; set; }
+        public IList<HistorialEvento>? HistorialEventoList { get; set; }
         public TipoEvento TipoEvento { get; set; }
         public Instalacion Instalacion { get; set; }
         public Categoria Categoria { get; set; }
-        public List<Disciplina> Disciplinas { get; set; }
+        public IList<Disciplina> Disciplinas { get; set; }
     }
 }

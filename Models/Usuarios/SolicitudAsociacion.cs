@@ -7,6 +7,6 @@
 
         // Relaciones
         public Usuario Usuario { get; set; }
-        public List<SolicitudAsociacionHistorial> SolicitudAsociacionHistoriales { get; set; }
+        public IList<SolicitudAsociacionHistorial> SolicitudAsociacionHistoriales { get; set; }
     }
 }

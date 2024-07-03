@@ -13,6 +13,6 @@
 
         // Relaciones
         public Usuario DuenioGrupoFamiliar { get; set;}
-        public List<Usuario> Integrantes {  get; set; }
+        public IList<Usuario> Integrantes {  get; set; }
     }
 }

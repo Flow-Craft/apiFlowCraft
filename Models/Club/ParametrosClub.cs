@@ -16,7 +16,7 @@
         public string QuienesSomos { get; set; }
 
         // Relaciones
-        public List<ClubHistorial>? clubHistoriales { get; set; }
+        public IList<ClubHistorial>? clubHistoriales { get; set; }
         public PerfilClub? PerfilClub { get; set; }
     }
 }

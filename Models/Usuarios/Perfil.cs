@@ -11,6 +11,6 @@
         public int UsuarioEditor {  get; set; }
 
         // Relaciones
-        public List<Permiso> Permisos { get; set; }
+        public IList<Permiso> Permisos { get; set; }
     }
 }

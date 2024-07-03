@@ -15,6 +15,6 @@ namespace ApiNet8.Models.Partidos
         public EquipoPartido? Ganador { get; set; }
         public EquipoPartido? Local { get; set; }
         public EquipoPartido? Visitante { get; set; }
-        public List<Usuario>? Usuarios { get; set; }
+        public IList<Usuario>? Usuarios { get; set; }
     }
 }

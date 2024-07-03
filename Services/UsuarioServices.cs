@@ -1,4 +1,5 @@
-﻿using ApiNet8.Models.Usuarios;
+﻿using ApiNet8.Data;
+using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
 using Microsoft.AspNetCore.Identity;
 
@@ -6,26 +7,42 @@ namespace ApiNet8.Services
 {
     public class UsuarioServices : IUsuarioServices
     {
+        private readonly ApplicationDbContext db;
         private readonly PasswordHasher<Usuario> _passwordHasher;
 
-        public UsuarioServices()
+        public UsuarioServices(ApplicationDbContext db)
         {
             _passwordHasher = new PasswordHasher<Usuario>();
+            this.db = db;
         }
 
-        public Usuario CrearUsuario(string nombre, string contrasena)
+        public List<Usuario> GetUsuarios()
         {
-            var usuario = new Usuario
+            return db.Usuario.ToList();
+        }
+
+        public Usuario GetUsuarioById(int id)
+        {
+            try
             {
-                Nombre = nombre
-            };
+                Usuario? usuario = db.Usuario.Find(id);
 
+                return usuario;
+            }
+            catch (Exception)
+            {
+
+                throw;
+            }
+        }
+
+        public Usuario CrearUsuario(Usuario usuario)
+        {
             // Hash de la contraseña
-            usuario.Contrasena = _passwordHasher.HashPassword(usuario, contrasena);
+            usuario.Contrasena = _passwordHasher.HashPassword(usuario, usuario.Contrasena);
 
-            // Aquí debes guardar el usuario en la base de datos
-            // Ejemplo: _context.Usuarios.Add(usuario);
-            // await _context.SaveChangesAsync();
+            db.Add(usuario);
+            db.SaveChanges();          
 
             return usuario;
         }
@@ -34,6 +51,11 @@ namespace ApiNet8.Services
         {
             var result = _passwordHasher.VerifyHashedPassword(usuario, usuario.Contrasena, contrasena);
             return result == PasswordVerificationResult.Success;
+        }
+
+        bool IUsuarioServices.ExisteUsuario(string usuario)
+        {
+            throw new NotImplementedException();
         }
     }
 }

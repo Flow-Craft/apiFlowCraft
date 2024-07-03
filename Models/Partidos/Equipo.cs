@@ -13,8 +13,8 @@ namespace ApiNet8.Models.Partidos
         public DateTime? FechaModificacion { get; set; }
 
         // Relaciones
-        public List<EquipoUsuario> EquipoUsuarios { get; set; }
-        public List<EquipoHistorial> EquipoHistoriales { get; set; }
+        public IList<EquipoUsuario> EquipoUsuarios { get; set; }
+        public IList<EquipoHistorial> EquipoHistoriales { get; set; }
         public Disciplina Disciplina { get; set; }
         public Categoria Categoria { get; set; }
     }

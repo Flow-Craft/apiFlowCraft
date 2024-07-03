@@ -15,7 +15,7 @@ namespace ApiNet8.Models.Lecciones
         // Relaciones
         public Disciplina Disciplina { get; set; }
         public Categoria Categoria { get; set; }
-        public List<LeccionHistorial> LeccionHistoriales { get; set; }
+        public IList<LeccionHistorial> LeccionHistoriales { get; set; }
         public Usuario Usuario { get; set; }
     }
 }

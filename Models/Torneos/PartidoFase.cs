@@ -12,8 +12,8 @@ namespace ApiNet8.Models.Torneos
         public int UsuarioEditor { get; set; }
 
         // Relaciones
-        public List<PartidoFase>? Llave { get; set; }
+        public IList<PartidoFase>? Llave { get; set; }
         public Torneo Torneo { get; set; }
-        public List<Partido> Partidos { get; set; }
+        public IList<Partido> Partidos { get; set; }
     }
 }

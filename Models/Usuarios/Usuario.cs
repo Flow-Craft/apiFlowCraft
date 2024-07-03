@@ -23,7 +23,7 @@
         public DateTime? UltimoAcceso { get; set; }
 
         // Relaciones
-        public List<PerfilUsuario> PerfilesUsuario { get; set; }
-        public List<UsuarioHistorial> UsuarioHistoriales { get; set; }
+        public IList<PerfilUsuario> PerfilesUsuario { get; set; }
+        public IList<UsuarioHistorial> UsuarioHistoriales { get; set; }
     }
 }

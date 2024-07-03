@@ -15,6 +15,6 @@ namespace ApiNet8.Models.Torneos
         // Relaciones
         public Disciplina Disciplina { get; set; }
         public Categoria Categoria { get; set; }
-        public List<TorneoHistorial> TorneoHistoriales { get; set; }
+        public IList<TorneoHistorial> TorneoHistoriales { get; set; }
     }
 }

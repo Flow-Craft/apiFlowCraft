@@ -4,7 +4,10 @@ namespace ApiNet8.Services.IServices
 {
     public interface IUsuarioServices
     {
-        Usuario CrearUsuario(string nombre, string contrasena);
+        List<Usuario> GetUsuarios();
+        Usuario GetUsuarioById(int id);
+        Usuario CrearUsuario(Usuario usuario);
+        bool ExisteUsuario(string usuario);
         bool VerificarContraseña(Usuario usuario, string contrasena);
     }
 }

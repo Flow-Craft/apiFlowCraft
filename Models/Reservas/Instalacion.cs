@@ -11,6 +11,6 @@
         public TimeOnly HoraCierre { get; set; }
 
         // Relaciones
-        public List<InstalacionHistorial> InstalacionHistoriales { get; set; }
+        public IList<InstalacionHistorial> InstalacionHistoriales { get; set; }
     }
 }
