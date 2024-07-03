@@ -46,7 +46,7 @@ namespace ApiNet8.Controllers
 
         // crear usuarios
         [HttpPost]
-        public IActionResult CreateUser([FromBody] Usuario usuario)
+        public IActionResult CrearUsuario([FromBody] Usuario usuario)
         {
             if (usuario == null)
             {
