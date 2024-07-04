@@ -13,7 +13,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 });
 
 // agregar servicio e interfaz
-builder.Services.AddTransient<PartidoServices>();
+builder.Services.AddTransient<IConfiguracionServices, ConfiguracionServices>();
 builder.Services.AddTransient<IUsuarioServices, UsuarioServices>();
 
 

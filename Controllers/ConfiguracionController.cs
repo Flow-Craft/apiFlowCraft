@@ -51,13 +51,14 @@ namespace ApiNet8.Controllers
             }
             catch (Exception e)
             {
-                RespuestaAPI respuestaAPI = new RespuestaAPI();
-                respuestaAPI.StatusCode = HttpStatusCode.InternalServerError;
-                respuestaAPI.ErrorMessages.Add("Error al crear perfil" + e.ToString());
-                respuestaAPI.IsSuccess = false;
-                return BadRequest(respuestaAPI);
-            }
-            
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al crear perfil",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }            
         }
 
         // PUT api/<ConfiguracionController>/5

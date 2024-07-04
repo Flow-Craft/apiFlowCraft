@@ -19,9 +19,19 @@ namespace ApiNet8.Services
 
         Perfil IConfiguracionServices.CrearPerfil(Perfil perfil)
         {
-            _db.Add(perfil);
-            _db.SaveChanges();
-            return perfil;
+            try
+            {
+                _db.Add(perfil);
+                // para probar descomentar la siguiente linea
+                // throw new Exception("333");
+                _db.SaveChanges();
+                return perfil;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+            
         }
 
         Perfil IConfiguracionServices.EliminarPerfil(Perfil perfil)
