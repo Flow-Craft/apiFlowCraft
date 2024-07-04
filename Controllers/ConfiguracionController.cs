@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Models;
 using System.Net;
+using ApiNet8.Filters.ActionFilters;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -33,11 +34,28 @@ namespace ApiNet8.Controllers
             
         }
 
-        // GET api/<ConfiguracionController>/5
+       
         [HttpGet("{id}")]
-        public string Get(int id)
+        [TypeFilter(typeof(ValidateIdFilterAttribute))]
+        [EntityType(typeof(Perfil))] // Aquí se especifica el tipo de entidad
+        public IActionResult GetPerfilById(int id)
         {
-            return "value";
+            try
+            {
+                Perfil perfil = _configuracionServices.GetPerfilById(id);
+                return Ok(perfil);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al buscar perfil",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+            
         }
 
         // POST api/<ConfiguracionController>
@@ -60,17 +78,6 @@ namespace ApiNet8.Controllers
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }            
         }
-
-        // PUT api/<ConfiguracionController>/5
-        [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
-        {
-        }
-
-        // DELETE api/<ConfiguracionController>/5
-        [HttpDelete("{id}")]
-        public void Delete(int id)
-        {
-        }
+        
     }
 }

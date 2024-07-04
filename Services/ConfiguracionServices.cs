@@ -46,7 +46,17 @@ namespace ApiNet8.Services
 
         Perfil IConfiguracionServices.GetPerfilById(int Id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                // en el filter action ya verificamos que el id es valido y que el perfil existe, la unica validacion que hacemos aca es por si rompe el llamado a la base
+                Perfil perfil = _db.Perfil.Find(Id);
+                               
+                return perfil;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
         }
 
         List<Perfil> IConfiguracionServices.GetPerfiles()
