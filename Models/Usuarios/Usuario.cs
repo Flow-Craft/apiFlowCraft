@@ -20,7 +20,7 @@
         public string? Pais {  get; set; }
         public string? Provincia { get; set; }
         public string? Localidad { get; set; }
-        public DateTime? UltimoAcceso { get; set; }
+        public DateTime? UltimoAcceso { get; set; }        
 
         // Relaciones
         public IList<PerfilUsuario> PerfilesUsuario { get; set; }

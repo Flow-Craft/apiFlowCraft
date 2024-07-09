@@ -1,4 +1,5 @@
-﻿using ApiNet8.Models.Usuarios;
+﻿using ApiNet8.Models.DTO;
+using ApiNet8.Models.Usuarios;
 
 namespace ApiNet8.Services.IServices
 {
@@ -7,7 +8,10 @@ namespace ApiNet8.Services.IServices
         List<Usuario> GetUsuarios();
         Usuario GetUsuarioById(int id);
         Usuario CrearUsuario(Usuario usuario);
-        bool ExisteUsuario(string usuario);
+        bool ExisteUsuario(UsuarioRegistroDTO usuario);
         bool VerificarContraseña(Usuario usuario, string contrasena);
+        Task<Usuario> Login (UsuarioLoginDTO usuarioLoginDTO);
+        Task<Usuario> Registro(UsuarioRegistroDTO usuarioRegistroDTO);
+        Usuario GetUsuarioByEmailAndPassword(string email,string password);
     }
 }
