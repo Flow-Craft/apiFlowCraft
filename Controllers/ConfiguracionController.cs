@@ -4,6 +4,7 @@ using ApiNet8.Models.Usuarios;
 using ApiNet8.Models;
 using System.Net;
 using ApiNet8.Filters.ActionFilters;
+using ApiNet8.Models.DTO;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -84,6 +85,46 @@ namespace ApiNet8.Controllers
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }            
         }
-        
+
+        [HttpPost]
+        public IActionResult ActualizarPerfil([FromBody] PerfilDTO perfil)
+        {
+            try
+            {
+                Perfil perfilAActualizar = _configuracionServices.ActualizarPerfil(perfil);
+                return Ok(perfilAActualizar);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al actualizar perfil",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [HttpPost]
+        public IActionResult EliminarPerfil(int id)//ver con Mario como enviar los parametros
+        {
+            try
+            {
+                Perfil perfilAEliminar = _configuracionServices.EliminarPerfil(id);
+                return Ok(perfilAEliminar);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al eliminar perfil",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
     }
 }

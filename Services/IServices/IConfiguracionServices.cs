@@ -1,4 +1,5 @@
-﻿using ApiNet8.Models.Usuarios;
+﻿using ApiNet8.Models.DTO;
+using ApiNet8.Models.Usuarios;
 
 namespace ApiNet8.Services.IServices
 {
@@ -7,8 +8,8 @@ namespace ApiNet8.Services.IServices
         List<Perfil> GetPerfiles();
         Perfil GetPerfilById(int Id);
         Perfil CrearPerfil(Perfil perfil);
-        Perfil ActualizarPerfil(Perfil perfil);
-        Perfil EliminarPerfil(Perfil perfil);
+        Perfil ActualizarPerfil(PerfilDTO perfil);
+        Perfil EliminarPerfil(int id);
         bool ExistePerfil(string nombre);
         List<Permiso> GetPermisosByPerfil(Perfil perfil);
     }

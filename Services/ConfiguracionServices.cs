@@ -1,4 +1,5 @@
 ﻿using ApiNet8.Data;
+using ApiNet8.Models.DTO;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -12,9 +13,29 @@ namespace ApiNet8.Services
         {
             this._db = db;
         }
-        Perfil IConfiguracionServices.ActualizarPerfil(Perfil perfil)
+        Perfil IConfiguracionServices.ActualizarPerfil(PerfilDTO perfil)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Perfil per;
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    per = ((IConfiguracionServices)this).GetPerfilById(perfil.Id);
+                    per.NombrePerfil = perfil.NombrePerfil;
+                    per.DescripcionPerfil = perfil.DescripcionPerfil;
+                    per.FechaModificacion = DateTime.Now;
+                    per.UsuarioEditor = perfil.UsuarioEditor;//Implementar CurrentUser
+                    _db.Update(per);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+                return per;
+            }
+            catch (Exception e)
+            {
+
+                throw new Exception(e.Message, e);
+            }
         }
 
         Perfil IConfiguracionServices.CrearPerfil(Perfil perfil)
@@ -31,12 +52,29 @@ namespace ApiNet8.Services
             {
                 throw new Exception(e.Message, e);
             }
-            
+
         }
 
-        Perfil IConfiguracionServices.EliminarPerfil(Perfil perfil)
+        Perfil IConfiguracionServices.EliminarPerfil(int id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Perfil per = ((IConfiguracionServices)this).GetPerfilById(id);
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    per.FechaBaja = DateTime.Now;
+                    //per.UsuarioEditor = Current.User.Id;
+                    _db.Update(per);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+                return per;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message,e);
+            }
+
         }
 
         bool IConfiguracionServices.ExistePerfil(string nombre)
@@ -50,7 +88,7 @@ namespace ApiNet8.Services
             {
                 // en el filter action ya verificamos que el id es valido y que el perfil existe, la unica validacion que hacemos aca es por si rompe el llamado a la base
                 Perfil perfil = _db.Perfil.Find(Id);
-                               
+
                 return perfil;
             }
             catch (Exception e)
@@ -67,9 +105,9 @@ namespace ApiNet8.Services
             }
             catch (Exception e)
             {
-                throw new Exception(e.Message,e);
+                throw new Exception(e.Message, e);
             }
-            
+
         }
 
         List<Permiso> IConfiguracionServices.GetPermisosByPerfil(Perfil perfil)
