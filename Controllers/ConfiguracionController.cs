@@ -29,7 +29,13 @@ namespace ApiNet8.Controllers
             }
             catch (Exception e)
             {
-                return BadRequest(e.Message);
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al buscar perfiles",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
             
         }
@@ -42,7 +48,7 @@ namespace ApiNet8.Controllers
         {
             try
             {
-                Perfil perfil = _configuracionServices.GetPerfilById(id);
+                Perfil perfil = _configuracionServices.GetPerfilById(id);// guardar en sesion la entidad enciontrada en el filtro
                 return Ok(perfil);
             }
             catch (Exception e)

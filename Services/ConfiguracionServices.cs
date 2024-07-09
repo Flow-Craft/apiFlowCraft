@@ -61,7 +61,15 @@ namespace ApiNet8.Services
 
         List<Perfil> IConfiguracionServices.GetPerfiles()
         {
-            return _db.Perfil.ToList();
+            try
+            {
+                return _db.Perfil.ToList();// podriamos devolverlos ordenados por id
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message,e);
+            }
+            
         }
 
         List<Permiso> IConfiguracionServices.GetPermisosByPerfil(Perfil perfil)
