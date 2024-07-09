@@ -1,8 +1,11 @@
-﻿using ApiNet8.Models.Partidos;
+﻿using ApiNet8.Models;
+using ApiNet8.Models.DTO;
+using ApiNet8.Models.Partidos;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Services;
 using ApiNet8.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -47,18 +50,79 @@ namespace ApiNet8.Controllers
         // crear usuarios
         [HttpPost]
         public IActionResult CrearUsuario([FromBody] Usuario usuario)
-        {
+        {            
             if (usuario == null)
             {
                 return BadRequest("Usuario es nulo");
             }
 
-            var createdUsuario = _usuarioServices.CrearUsuario(usuario);
+            try
+            {
+                var crearUsuario = _usuarioServices.CrearUsuario(usuario);
 
-            // Retornar el usuario creado con el estado 201 Created
-            //return CreatedAtAction(nameof(GetUserById), new { id = createdUsuario.Id }, createdUsuario);
-            return CreatedAtAction("", usuario);
+                return Ok(crearUsuario);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al crear usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }    
+        }
 
+        [HttpPost]
+        public async Task<IActionResult> Registro([FromBody] UsuarioRegistroDTO usuarioRegistroDTO)
+        {
+            if (usuarioRegistroDTO == null)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.BadRequest,
+                    title = "El usuario es nulo",
+                    errors = new List<string> {  }
+                };
+                return BadRequest(respuestaAPI);
+            }
+
+            try
+            {
+                var usuario = await _usuarioServices.Registro(usuarioRegistroDTO);
+                return Ok(usuario);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = e.Message == "Ya existe un usuario con ese email o dni" ? HttpStatusCode.BadRequest : HttpStatusCode.InternalServerError,
+                    title = "Error al registrar usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> Login([FromBody] UsuarioLoginDTO usuarioLoginDTO)
+        {
+            try
+            {
+                var login = await _usuarioServices.Login(usuarioLoginDTO);
+                return Ok(login);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = e.Message == "Usuario o contrasena incorrecta" ? HttpStatusCode.BadRequest : HttpStatusCode.InternalServerError,
+                    title = "Error en login",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }       
         }
 
     }
