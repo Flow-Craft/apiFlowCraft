@@ -74,9 +74,9 @@ namespace ApiNet8.Services
             var usuarioBd = db.Usuario.FirstOrDefault(u => u.Email == usuario.Email || u.Dni == usuario.Dni);
             if (usuarioBd == null)
             {
-                return true;
+                return false;
             }
-            return false;
+            return true;
         }
 
        public async Task<Usuario> Login(UsuarioLoginDTO usuarioLoginDTO)
