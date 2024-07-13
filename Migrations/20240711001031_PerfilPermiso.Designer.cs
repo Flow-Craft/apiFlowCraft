@@ -4,6 +4,7 @@ using ApiNet8.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiNet8.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240711001031_PerfilPermiso")]
+    partial class PerfilPermiso
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -197,56 +200,6 @@ namespace ApiNet8.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("EstadoEvento");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            DescripcionEstado = "Evento creado",
-                            FechaCreacion = new DateTime(2024, 7, 13, 14, 12, 47, 667, DateTimeKind.Local).AddTicks(9345),
-                            NombreEstado = "Creado",
-                            UsuarioEditor = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            DescripcionEstado = "Evento cancelado",
-                            FechaCreacion = new DateTime(2024, 7, 13, 14, 12, 47, 667, DateTimeKind.Local).AddTicks(9347),
-                            NombreEstado = "Cancelado",
-                            UsuarioEditor = 1
-                        },
-                        new
-                        {
-                            Id = 3,
-                            DescripcionEstado = "Evento finalizado",
-                            FechaCreacion = new DateTime(2024, 7, 13, 14, 12, 47, 667, DateTimeKind.Local).AddTicks(9349),
-                            NombreEstado = "Finalizado",
-                            UsuarioEditor = 1
-                        },
-                        new
-                        {
-                            Id = 4,
-                            DescripcionEstado = "Evento iniciado",
-                            FechaCreacion = new DateTime(2024, 7, 13, 14, 12, 47, 667, DateTimeKind.Local).AddTicks(9350),
-                            NombreEstado = "Iniciado",
-                            UsuarioEditor = 1
-                        },
-                        new
-                        {
-                            Id = 5,
-                            DescripcionEstado = "Evento suspendido",
-                            FechaCreacion = new DateTime(2024, 7, 13, 14, 12, 47, 667, DateTimeKind.Local).AddTicks(9352),
-                            NombreEstado = "Suspendido",
-                            UsuarioEditor = 1
-                        },
-                        new
-                        {
-                            Id = 6,
-                            DescripcionEstado = "Evento en entretiempo",
-                            FechaCreacion = new DateTime(2024, 7, 13, 14, 12, 47, 667, DateTimeKind.Local).AddTicks(9353),
-                            NombreEstado = "Entretiempo",
-                            UsuarioEditor = 1
-                        });
                 });
 
             modelBuilder.Entity("ApiNet8.Models.Eventos.Evento", b =>
@@ -920,32 +873,6 @@ namespace ApiNet8.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("EquipoEstado");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            DescripcionEstado = "Equipo activo",
-                            FechaCreacion = new DateTime(2024, 7, 13, 14, 12, 47, 667, DateTimeKind.Local).AddTicks(9382),
-                            NombreEstado = "Activo",
-                            UsuarioEditor = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            DescripcionEstado = "Equipo inactivo",
-                            FechaCreacion = new DateTime(2024, 7, 13, 14, 12, 47, 667, DateTimeKind.Local).AddTicks(9385),
-                            NombreEstado = "Inactivo",
-                            UsuarioEditor = 1
-                        },
-                        new
-                        {
-                            Id = 3,
-                            DescripcionEstado = "Equipo suspendido",
-                            FechaCreacion = new DateTime(2024, 7, 13, 14, 12, 47, 667, DateTimeKind.Local).AddTicks(9387),
-                            NombreEstado = "Suspendido",
-                            UsuarioEditor = 1
-                        });
                 });
 
             modelBuilder.Entity("ApiNet8.Models.Partidos.EquipoHistorial", b =>
@@ -1946,32 +1873,6 @@ namespace ApiNet8.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("UsuarioEstado");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            DescripcionEstado = "Usuario activo en el club",
-                            FechaCreacion = new DateTime(2024, 7, 13, 14, 12, 47, 667, DateTimeKind.Local).AddTicks(9103),
-                            NombreEstado = "Activo",
-                            UsuarioEditor = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            DescripcionEstado = "Usuario bloqueado",
-                            FechaCreacion = new DateTime(2024, 7, 13, 14, 12, 47, 667, DateTimeKind.Local).AddTicks(9118),
-                            NombreEstado = "Bloqueado",
-                            UsuarioEditor = 1
-                        },
-                        new
-                        {
-                            Id = 3,
-                            DescripcionEstado = "Usuario desactivado",
-                            FechaCreacion = new DateTime(2024, 7, 13, 14, 12, 47, 667, DateTimeKind.Local).AddTicks(9120),
-                            NombreEstado = "Desactivado",
-                            UsuarioEditor = 1
-                        });
                 });
 
             modelBuilder.Entity("ApiNet8.Models.Usuarios.UsuarioHistorial", b =>

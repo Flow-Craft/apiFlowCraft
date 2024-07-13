@@ -78,6 +78,7 @@ namespace ApiNet8.Data
         public DbSet<Usuario> Usuario { get; set; }
         public DbSet<UsuarioEstado> UsuarioEstado { get; set; }
         public DbSet<UsuarioHistorial> UsuarioHistorial { get; set; }
+        public DbSet<PerfilPermiso> PerfilPermiso { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -118,7 +119,26 @@ namespace ApiNet8.Data
 
             // cargar data inicial
             //modelBuilder.Entity<Partidos>().HasData(
-            //    new Partidos { Id = 1, EquipoA="Independiente", EquipoB="Boca", Name="Fecha 1 copa de la liga", Resultado="2-0"});
+            //    new Partidos { Id = 1, EquipoA = "Independiente", EquipoB = "Boca", Name = "Fecha 1 copa de la liga", Resultado = "2-0" });
+
+            modelBuilder.Entity<UsuarioEstado>().HasData(
+                new UsuarioEstado { Id = 1, DescripcionEstado = "Usuario activo en el club", NombreEstado = "Activo", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+                new UsuarioEstado { Id = 2, DescripcionEstado = "Usuario bloqueado", NombreEstado = "Bloqueado", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+                new UsuarioEstado { Id = 3, DescripcionEstado = "Usuario desactivado", NombreEstado = "Desactivado", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 });
+
+            modelBuilder.Entity<EstadoEvento>().HasData(
+                new EstadoEvento { Id = 1, DescripcionEstado = "Evento creado", NombreEstado = "Creado", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+                new EstadoEvento { Id = 2, DescripcionEstado = "Evento cancelado", NombreEstado = "Cancelado", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+                new EstadoEvento { Id = 3, DescripcionEstado = "Evento finalizado", NombreEstado = "Finalizado", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+                new EstadoEvento { Id = 4, DescripcionEstado = "Evento iniciado", NombreEstado = "Iniciado", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+                new EstadoEvento { Id = 5, DescripcionEstado = "Evento suspendido", NombreEstado = "Suspendido", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+                new EstadoEvento { Id = 6, DescripcionEstado = "Evento en entretiempo", NombreEstado = "Entretiempo", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 });
+
+            modelBuilder.Entity<EquipoEstado>().HasData(
+                new EquipoEstado { Id = 1, DescripcionEstado = "Equipo activo", NombreEstado = "Activo", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+                new EquipoEstado { Id = 2, DescripcionEstado = "Equipo inactivo", NombreEstado = "Inactivo", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+                new EquipoEstado { Id = 3, DescripcionEstado = "Equipo suspendido", NombreEstado = "Suspendido", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 });
+
         }
     }
 }
