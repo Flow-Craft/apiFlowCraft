@@ -8,6 +8,6 @@
         public DateTime? FechaModificacion { get; set; }
         public DateTime FechaBaja { get; set; }
         public string Modulo { get; set; } // podria ser un Enum de utils
-        public string Funcionalidades { get; set; } 
+        public string Funcionalidades { get; set; }
     }
 }

@@ -3,6 +3,10 @@ using ApiNet8.Models.DTO;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.EntityFrameworkCore;
+using XAct;
+using XAct.Library.Settings;
+using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ApiNet8.Services
 {
@@ -79,7 +83,12 @@ namespace ApiNet8.Services
 
         bool IConfiguracionServices.ExistePerfil(string nombre)
         {
-            throw new NotImplementedException();
+            var perfil = _db.Perfil.FirstOrDefault(p => p.NombrePerfil == nombre);
+            if (perfil == null)
+            {
+                return false;
+            }
+            return true;
         }
 
         Perfil IConfiguracionServices.GetPerfilById(int Id)
@@ -112,7 +121,23 @@ namespace ApiNet8.Services
 
         List<Permiso> IConfiguracionServices.GetPermisosByPerfil(Perfil perfil)
         {
+            try
+            {
+                List<PerfilPermiso> perfilPermisos = _db.PerfilPermiso.Include(pp => pp.Perfil).Include(pp => pp.Permiso).Where(pp => pp.Perfil.Id == perfil.Id).DefaultIfEmpty().ToList();
+                List<Permiso> permisos = new List<Permiso>();
+
+                foreach (PerfilPermiso perm in perfilPermisos) {
+                    permisos.Add(_db.Permiso.Where(p => p.Id == perm.Permiso.Id).FirstOrDefault()); 
+                }
+                return permisos;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+
             throw new NotImplementedException();
         }
+
     }
 }
