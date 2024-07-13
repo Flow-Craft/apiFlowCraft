@@ -8,10 +8,11 @@ namespace ApiNet8.Services.IServices
         List<Usuario> GetUsuarios();
         Usuario GetUsuarioById(int id);
         Usuario CrearUsuario(Usuario usuario);
+        Usuario ActualizarUsuario(UsuarioDTO usuario);
+        Usuario EliminarUsuario(int id);
         bool ExisteUsuario(UsuarioRegistroDTO usuario);
-        bool VerificarContraseña(Usuario usuario, string contrasena);
-        Task<Usuario> Login (UsuarioLoginDTO usuarioLoginDTO);
+        Task<UsuarioLoginResponseDTO> Login(UsuarioLoginDTO usuarioLoginDTO);
         Task<Usuario> Registro(UsuarioRegistroDTO usuarioRegistroDTO);
-        Usuario GetUsuarioByEmailAndPassword(string email,string password);
+        Task<Usuario> GetUsuarioByEmailAndPassword(string email, string password);
     }
 }
