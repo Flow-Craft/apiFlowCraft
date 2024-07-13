@@ -14,6 +14,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
 
 // agregar servicio e interfaz
 builder.Services.AddTransient<IConfiguracionServices, ConfiguracionServices>();
+builder.Services.AddTransient<IUsuarioEstadoServices, UsuarioEstadoServices>();
 builder.Services.AddTransient<IUsuarioServices, UsuarioServices>();
 
 
