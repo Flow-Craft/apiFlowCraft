@@ -126,5 +126,47 @@ namespace ApiNet8.Controllers
             }
         }
 
+        [HttpPost]
+        public IActionResult GetPermisosByPerfil(Perfil perfil)
+        {
+            try
+            {
+                List<Permiso> permisos = _configuracionServices.GetPermisosByPerfil(perfil);// guardar en sesion la entidad enciontrada en el filtro
+                return Ok(permisos);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al buscar permisos del perfil",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+
+        [HttpGet]
+        public IActionResult ExistePerfil(string nombre)
+        {
+            try
+            {
+                bool exist = _configuracionServices.ExistePerfil(nombre);
+                return Ok(exist);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al buscar perfil",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+
     }
 }

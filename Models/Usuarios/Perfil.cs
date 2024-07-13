@@ -10,7 +10,5 @@
         public DateTime? FechaBaja { get; set; }
         public int UsuarioEditor {  get; set; }
 
-        // Relaciones
-        public IList<Permiso>? Permisos { get; set; }
     }
 }
