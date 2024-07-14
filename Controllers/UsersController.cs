@@ -150,5 +150,20 @@ namespace ApiNet8.Controllers
             }
         }
 
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult JwtTest()
+        {
+            try
+            {
+                return Ok();
+
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.ToString());
+            }
+        }
+
     }
 }

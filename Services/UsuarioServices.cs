@@ -85,15 +85,20 @@ namespace ApiNet8.Services
             var token = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(secretToken);
 
+            // Duración del token y la validación
+            var tokenExpiry = DateTime.UtcNow.AddSeconds(20);
+            var validationExpiry = DateTime.UtcNow.AddHours(2);
+
             // se crea info que va a ir en el jwt y se setea la duracion
             var tokenDescriptor = new SecurityTokenDescriptor
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
                     new Claim(ClaimTypes.Email, usuario.Email.ToString()),
-                    new Claim(ClaimTypes.Name,usuario.Nombre)
+                    new Claim(ClaimTypes.Name,usuario.Nombre),
+                    new Claim("validation_expiry", validationExpiry.ToString("o")) // ISO 8601 format
                 }),
-                Expires = DateTime.UtcNow.AddDays(1),
+                Expires = tokenExpiry,
                 // se firma el token con la clave secreta
                 SigningCredentials = new (new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
