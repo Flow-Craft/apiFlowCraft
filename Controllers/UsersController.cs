@@ -1,4 +1,5 @@
-﻿using ApiNet8.Models;
+﻿using ApiNet8.Filters.ActionFilters;
+using ApiNet8.Models;
 using ApiNet8.Models.DTO;
 using ApiNet8.Models.Partidos;
 using ApiNet8.Models.Usuarios;
@@ -30,8 +31,10 @@ namespace ApiNet8.Controllers
             return Ok(partidos);           
         }
 
-        // GET api/<UsersController>/5
+        // obtener usuario con id
         [HttpGet("{id}")]
+        [TypeFilter(typeof(ValidateIdFilterAttribute))]
+        [EntityType(typeof(Usuario))] // Aquí se especifica el tipo de entidad
         public IActionResult GetUsuario(int id)
         {
             Usuario usuario = _usuarioServices.GetUsuarioById(id);
@@ -47,7 +50,7 @@ namespace ApiNet8.Controllers
            
         }
 
-        // crear usuarios
+        // crear usuario
         [HttpPost]
         public IActionResult CrearUsuario([FromBody] Usuario usuario)
         {            
@@ -74,6 +77,7 @@ namespace ApiNet8.Controllers
             }    
         }
 
+        // Registrar usuario
         [HttpPost]
         public async Task<IActionResult> Registro([FromBody] UsuarioRegistroDTO usuarioRegistroDTO)
         {
@@ -105,6 +109,7 @@ namespace ApiNet8.Controllers
             }
         }
 
+        // login de un usuario
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] UsuarioLoginDTO usuarioLoginDTO)
         {
@@ -123,6 +128,41 @@ namespace ApiNet8.Controllers
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }       
+        }
+
+        [HttpPost]
+        public IActionResult ActualizarUsuario([FromBody] UsuarioDTO usuario)
+        {
+            try
+            {
+                Usuario usuarioAActualizar = _usuarioServices.ActualizarUsuario(usuario);
+                return Ok(usuarioAActualizar);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al actualizar usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult JwtTest()
+        {
+            try
+            {
+                return Ok();
+
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.ToString());
+            }
         }
 
     }
