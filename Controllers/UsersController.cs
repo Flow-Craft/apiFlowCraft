@@ -28,29 +28,67 @@ namespace ApiNet8.Controllers
         }
 
         // obtener usuarios
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult GetUsuarios()
         {
-            List<Usuario> partidos = _usuarioServices.GetUsuarios();
-            return Ok(partidos);           
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<Usuario> partidos = _usuarioServices.GetUsuarios();
+                return Ok(partidos);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener usuarios",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+                       
         }
 
         // obtener usuario con id
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet("{id}")]
         [TypeFilter(typeof(ValidateIdFilterAttribute))]
         [EntityType(typeof(Usuario))] // Aquí se especifica el tipo de entidad
         public IActionResult GetUsuario(int id)
         {
-            Usuario usuario = _usuarioServices.GetUsuarioById(id);
+            var TOKEN = HttpContext.Items[JWT].ToString();
 
-            if (usuario == null)
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
             {
-                var problemDetails = new ValidationProblemDetails() { Status = StatusCodes.Status404NotFound, Title = "Usuario no encontrado" };
+                Usuario usuario = _usuarioServices.GetUsuarioById(id);
 
-                return new NotFoundObjectResult(problemDetails);
+                if (usuario == null)
+                {
+                    var problemDetails = new ValidationProblemDetails() { Status = StatusCodes.Status404NotFound, Title = "Usuario no encontrado" };
+
+                    return new NotFoundObjectResult(problemDetails);
+                }
+
+                return Ok(usuario);
             }
-
-            return Ok(usuario);
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener usuario con id: " + id,
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+           
            
         }
 
@@ -141,9 +179,14 @@ namespace ApiNet8.Controllers
             }       
         }
 
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
         public IActionResult ActualizarUsuario([FromBody] UsuarioDTO usuario)
         {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
             try
             {
                 Usuario usuarioAActualizar = _usuarioServices.ActualizarUsuario(usuario);
