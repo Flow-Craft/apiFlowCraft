@@ -2,6 +2,7 @@
 using ApiNet8.Models.DTO;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
+using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
@@ -17,11 +18,13 @@ namespace ApiNet8.Services
     {
         private readonly ApplicationDbContext _db;        
         private string secretToken;
+        private readonly IMapper _mapper;
 
-        public UsuarioServices(ApplicationDbContext db, IConfiguration configuration)
+        public UsuarioServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper)
         {          
             this._db = db;
             this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
+            _mapper = mapper;
         }
 
         public List<Usuario> GetUsuarios()
@@ -41,15 +44,18 @@ namespace ApiNet8.Services
             }
         }
 
-        public Usuario CrearUsuario(Usuario usuario)
+        public UsuarioDTO CrearUsuario(UsuarioDTO usuario)
         {
             try
             {
-                // Hash de la contraseña
-                var password = obtenermd5(usuario.Contrasena);
-                usuario.Contrasena = password;
+                //mapper de usuariodto a usuario
+                Usuario user = _mapper.Map<Usuario>(usuario);
 
-                _db.Add(usuario);
+                // Hash de la contraseña
+                var password = obtenermd5(user.Contrasena);
+                user.Contrasena = password;
+
+                _db.Add(user);
                 _db.SaveChanges();
 
                 return usuario;
@@ -86,7 +92,7 @@ namespace ApiNet8.Services
             var key = Encoding.ASCII.GetBytes(secretToken);
 
             // Duración del token y la validación
-            var tokenExpiry = DateTime.UtcNow.AddSeconds(20);
+            var tokenExpiry = DateTime.UtcNow.AddHours(1);
             var validationExpiry = DateTime.UtcNow.AddHours(2);
 
             // se crea info que va a ir en el jwt y se setea la duracion
@@ -105,10 +111,31 @@ namespace ApiNet8.Services
 
             var jwt = token.CreateToken(tokenDescriptor);
 
+            UsuarioDTO user = new UsuarioDTO
+            {
+                Nombre = usuario.Nombre,
+                Apellido = usuario.Apellido,
+                Email = usuario.Email,
+                Id = usuario.Id,
+                CodPostal = usuario.CodPostal,
+                DeporteFavorito = usuario.DeporteFavorito,
+                Direccion = usuario.Direccion,
+                Telefono = usuario.Telefono,
+                Dni = usuario.Dni,
+                FechaNacimiento = usuario.FechaNacimiento,
+                FotoPerfil = usuario.FotoPerfil,
+                ImageType = usuario.ImageType,
+                Pais = usuario.Pais,
+                Provincia = usuario.Provincia,
+                Localidad = usuario.Localidad,
+                FechaAceptacionTYC = usuario.FechaAceptacionTYC,
+                FechaCambioContrasena = usuario.FechaCambioContrasena
+            };
+
             UsuarioLoginResponseDTO response = new UsuarioLoginResponseDTO
             {
                 JwtToken = token.WriteToken(jwt),
-                Usuario = usuario,
+                Usuario = user,
             };          
 
             return response;
@@ -176,7 +203,7 @@ namespace ApiNet8.Services
                 Usuario user;
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    user = GetUsuarioById(usuario.Id);
+                    user = GetUsuarioById((int)usuario.Id);
                     user.Nombre = usuario.Nombre;
                     user.Apellido = usuario.Apellido;
                     user.Direccion = usuario.Direccion;

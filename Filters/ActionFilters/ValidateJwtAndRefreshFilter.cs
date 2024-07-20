@@ -28,6 +28,9 @@ public class ValidateJwtAndRefreshFilter : IAsyncActionFilter
         {
             var token = tokenHeaderValues.FirstOrDefault()?.Split(" ").Last();
 
+            // se guarda jwt recibido
+            context.HttpContext.Items["JWT"] = token;
+
             if (string.IsNullOrEmpty(token))
             {
                 context.Result = new UnauthorizedResult();
@@ -53,7 +56,8 @@ public class ValidateJwtAndRefreshFilter : IAsyncActionFilter
                 if (ShouldRefreshToken(token))
                 {
                     var newToken = await _refreshTokenService.RefreshTokenAsync(token);
-                    context.HttpContext.Response.Headers.Add("X-Refreshed-Token", newToken);// el jwt se guarda en el contexto, deberiamos guardarlo en una cookie
+                    context.HttpContext.Items["JWT"] = newToken;
+                    //context.HttpContext.Response.Headers.Add("X-Refreshed-Token", newToken);// el jwt se guarda en el contexto, deberiamos guardarlo en una cookie
                     await next();
                 }
                 else

@@ -5,6 +5,7 @@ using ApiNet8.Models.Partidos;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Services;
 using ApiNet8.Services.IServices;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -12,15 +13,18 @@ using System.Net;
 
 namespace ApiNet8.Controllers
 {
+    
+
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly IUsuarioServices _usuarioServices;
+        private const string JWT = "JWT";
+        private readonly IUsuarioServices _usuarioServices;        
 
         public UsersController(IUsuarioServices usuarioServices)
         {
-            _usuarioServices = usuarioServices;
+            _usuarioServices = usuarioServices;            
         }
 
         // obtener usuarios
@@ -51,16 +55,21 @@ namespace ApiNet8.Controllers
         }
 
         // crear usuario
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
-        public IActionResult CrearUsuario([FromBody] Usuario usuario)
-        {            
+        public IActionResult CrearUsuario([FromBody] UsuarioDTO usuario)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
             if (usuario == null)
             {
                 return BadRequest("Usuario es nulo");
             }
 
             try
-            {
+            {                
                 var crearUsuario = _usuarioServices.CrearUsuario(usuario);
 
                 return Ok(crearUsuario);
@@ -112,11 +121,13 @@ namespace ApiNet8.Controllers
         // login de un usuario
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] UsuarioLoginDTO usuarioLoginDTO)
-        {
+        {            
             try
             {
-                var login = await _usuarioServices.Login(usuarioLoginDTO);
-                return Ok(login);
+                var login = await _usuarioServices.Login(usuarioLoginDTO);              
+                
+                Response.Headers.Append(JWT, login.JwtToken);
+                return Ok(login.Usuario);
             }
             catch (Exception e)
             {
