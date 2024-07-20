@@ -43,7 +43,7 @@ namespace ApiNet8.Services
             }
 
             var tokenExpiry = DateTimeOffset.FromUnixTimeSeconds(long.Parse(expClaim)).UtcDateTime;
-            //var validationExpiry = DateTime.Parse(validationExpiryClaim);
+           
             var validationExpiry = DateTime.Parse(validationExpiryClaim, null, System.Globalization.DateTimeStyles.RoundtripKind).ToUniversalTime();
 
 
@@ -66,17 +66,5 @@ namespace ApiNet8.Services
 
             throw new SecurityTokenException("Validation period expired");
         }
-
-        //        // Generar un nuevo token
-        //        var newToken = new JwtSecurityTokenHandler().CreateToken(new SecurityTokenDescriptor
-        //        {
-        //            Subject = new ClaimsIdentity(principal.Claims),
-        //            Expires = DateTime.UtcNow.AddHours(2),
-        //            SigningCredentials = new SigningCredentials(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
-        //        });
-
-        //        return tokenHandler.WriteToken(newToken);
-        //    }
-        //}
     }
 }

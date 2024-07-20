@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using AutoMapper;
-using ApiNet8.Mappers;
+using ApiNet8.Utils.Mappers;
 
 var builder = WebApplication.CreateBuilder(args);
 

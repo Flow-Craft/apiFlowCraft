@@ -2,7 +2,7 @@
 using ApiNet8.Models.Usuarios;
 using AutoMapper;
 
-namespace ApiNet8.Mappers
+namespace ApiNet8.Utils.Mappers
 {
     public class APIMappers : Profile
     {

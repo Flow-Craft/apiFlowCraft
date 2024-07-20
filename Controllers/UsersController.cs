@@ -1,5 +1,6 @@
 ﻿using ApiNet8.Filters.ActionFilters;
 using ApiNet8.Models;
+using ApiNet8.Models.Club;
 using ApiNet8.Models.DTO;
 using ApiNet8.Models.Partidos;
 using ApiNet8.Models.Usuarios;
@@ -20,6 +21,8 @@ namespace ApiNet8.Controllers
     public class UsersController : ControllerBase
     {
         private const string JWT = "JWT";
+        private const string CurrentUserJWT = "CurrentUserJWT";
+        
         private readonly IUsuarioServices _usuarioServices;        
 
         public UsersController(IUsuarioServices usuarioServices)
@@ -183,12 +186,15 @@ namespace ApiNet8.Controllers
         [HttpPost]
         public IActionResult ActualizarUsuario([FromBody] UsuarioDTO usuario)
         {
+            // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
-
             Response.Headers.Append(JWT, TOKEN);
 
+            // obtengo datos de jwt para utilizar
+            JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
+
             try
-            {
+            {                
                 Usuario usuarioAActualizar = _usuarioServices.ActualizarUsuario(usuario);
                 return Ok(usuarioAActualizar);
             }
@@ -202,6 +208,32 @@ namespace ApiNet8.Controllers
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult EliminarUsuario([FromBody] int Id)
+        {
+            //var TOKEN = HttpContext.Items[JWT].ToString();
+
+            //Response.Headers.Append(JWT, TOKEN);
+
+            //try
+            //{
+            //    Perfil perfilAEliminar = _configuracionServices.EliminarPerfil(id);
+            //    return Ok(perfilAEliminar);
+            //}
+            //catch (Exception e)
+            //{
+            //    RespuestaAPI respuestaAPI = new RespuestaAPI
+            //    {
+            //        status = HttpStatusCode.InternalServerError,
+            //        title = "Error al eliminar perfil",
+            //        errors = new List<string> { e.Message }
+            //    };
+            //    return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            //}
+            return Ok(Id);
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]

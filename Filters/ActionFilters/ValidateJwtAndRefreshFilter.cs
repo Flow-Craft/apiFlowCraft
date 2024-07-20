@@ -1,12 +1,15 @@
-﻿using ApiNet8.Services.IServices;
+﻿using ApiNet8.Models;
+using ApiNet8.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
+using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
+using XAct;
 
 public class ValidateJwtAndRefreshFilter : IAsyncActionFilter
 {
@@ -48,6 +51,8 @@ public class ValidateJwtAndRefreshFilter : IAsyncActionFilter
                     ClockSkew = TimeSpan.Zero
                 }, out SecurityToken validatedToken);
 
+                context.HttpContext.Items["CurrentUserJWT"] = DecodeJwt(token);
+
                 await next();
             }
             catch (SecurityTokenExpiredException)
@@ -57,7 +62,8 @@ public class ValidateJwtAndRefreshFilter : IAsyncActionFilter
                 {
                     var newToken = await _refreshTokenService.RefreshTokenAsync(token);
                     context.HttpContext.Items["JWT"] = newToken;
-                    //context.HttpContext.Response.Headers.Add("X-Refreshed-Token", newToken);// el jwt se guarda en el contexto, deberiamos guardarlo en una cookie
+                    context.HttpContext.Items["CurrentUserJWT"] = DecodeJwt(newToken);
+
                     await next();
                 }
                 else
@@ -74,6 +80,28 @@ public class ValidateJwtAndRefreshFilter : IAsyncActionFilter
         {
             context.Result = new UnauthorizedResult();
         }
+    }
+
+    private JwtToken DecodeJwt(string token)
+    {
+        var handler = new JwtSecurityTokenHandler();
+        var jwt = handler.ReadJwtToken(token);
+
+        var userIdClaim = jwt.Claims.FirstOrDefault(claim => claim.Type == "User_Id");
+        var emailClaim = jwt.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Email);
+
+        if (userIdClaim == null || emailClaim == null)
+        {
+            throw new Exception("El token no contiene los claims necesarios.");
+        }
+
+        JwtToken jwtToken = new JwtToken
+        {
+            Id = int.Parse(userIdClaim.Value),
+            Email = emailClaim.Value,
+        };
+
+        return jwtToken;
     }
 
     private bool ShouldRefreshToken(string token)
@@ -103,9 +131,6 @@ public class ValidateJwtAndRefreshFilter : IAsyncActionFilter
             //var validationExpiry = DateTime.Parse(validationExpiryClaim);
             // Parsear la fecha en formato UTC
             var validationExpiry = DateTime.Parse(validationExpiryClaim, null, System.Globalization.DateTimeStyles.RoundtripKind).ToUniversalTime();
-
-            //// Restar 3 horas a validationExpiry
-            //var adjustedValidationExpiry = validationExpiry.AddHours(3);
 
             return DateTime.UtcNow <= validationExpiry;
         }
