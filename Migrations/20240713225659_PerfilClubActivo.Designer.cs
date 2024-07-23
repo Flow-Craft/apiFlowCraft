@@ -4,6 +4,7 @@ using ApiNet8.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiNet8.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240713225659_PerfilClubActivo")]
+    partial class PerfilClubActivo
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -206,7 +209,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 1,
                             DescripcionEstado = "Evento creado",
-                            FechaCreacion = new DateTime(2024, 7, 20, 14, 3, 40, 696, DateTimeKind.Local).AddTicks(7714),
+                            FechaCreacion = new DateTime(2024, 7, 13, 19, 56, 58, 546, DateTimeKind.Local).AddTicks(281),
                             NombreEstado = "Creado",
                             UsuarioEditor = 1
                         },
@@ -214,7 +217,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 2,
                             DescripcionEstado = "Evento cancelado",
-                            FechaCreacion = new DateTime(2024, 7, 20, 14, 3, 40, 696, DateTimeKind.Local).AddTicks(7716),
+                            FechaCreacion = new DateTime(2024, 7, 13, 19, 56, 58, 546, DateTimeKind.Local).AddTicks(284),
                             NombreEstado = "Cancelado",
                             UsuarioEditor = 1
                         },
@@ -222,7 +225,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 3,
                             DescripcionEstado = "Evento finalizado",
-                            FechaCreacion = new DateTime(2024, 7, 20, 14, 3, 40, 696, DateTimeKind.Local).AddTicks(7718),
+                            FechaCreacion = new DateTime(2024, 7, 13, 19, 56, 58, 546, DateTimeKind.Local).AddTicks(287),
                             NombreEstado = "Finalizado",
                             UsuarioEditor = 1
                         },
@@ -230,7 +233,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 4,
                             DescripcionEstado = "Evento iniciado",
-                            FechaCreacion = new DateTime(2024, 7, 20, 14, 3, 40, 696, DateTimeKind.Local).AddTicks(7719),
+                            FechaCreacion = new DateTime(2024, 7, 13, 19, 56, 58, 546, DateTimeKind.Local).AddTicks(288),
                             NombreEstado = "Iniciado",
                             UsuarioEditor = 1
                         },
@@ -238,7 +241,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 5,
                             DescripcionEstado = "Evento suspendido",
-                            FechaCreacion = new DateTime(2024, 7, 20, 14, 3, 40, 696, DateTimeKind.Local).AddTicks(7720),
+                            FechaCreacion = new DateTime(2024, 7, 13, 19, 56, 58, 546, DateTimeKind.Local).AddTicks(290),
                             NombreEstado = "Suspendido",
                             UsuarioEditor = 1
                         },
@@ -246,7 +249,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 6,
                             DescripcionEstado = "Evento en entretiempo",
-                            FechaCreacion = new DateTime(2024, 7, 20, 14, 3, 40, 696, DateTimeKind.Local).AddTicks(7721),
+                            FechaCreacion = new DateTime(2024, 7, 13, 19, 56, 58, 546, DateTimeKind.Local).AddTicks(292),
                             NombreEstado = "Entretiempo",
                             UsuarioEditor = 1
                         });
@@ -929,7 +932,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 1,
                             DescripcionEstado = "Equipo activo",
-                            FechaCreacion = new DateTime(2024, 7, 20, 14, 3, 40, 696, DateTimeKind.Local).AddTicks(7746),
+                            FechaCreacion = new DateTime(2024, 7, 13, 19, 56, 58, 546, DateTimeKind.Local).AddTicks(450),
                             NombreEstado = "Activo",
                             UsuarioEditor = 1
                         },
@@ -937,7 +940,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 2,
                             DescripcionEstado = "Equipo inactivo",
-                            FechaCreacion = new DateTime(2024, 7, 20, 14, 3, 40, 696, DateTimeKind.Local).AddTicks(7749),
+                            FechaCreacion = new DateTime(2024, 7, 13, 19, 56, 58, 546, DateTimeKind.Local).AddTicks(459),
                             NombreEstado = "Inactivo",
                             UsuarioEditor = 1
                         },
@@ -945,7 +948,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 3,
                             DescripcionEstado = "Equipo suspendido",
-                            FechaCreacion = new DateTime(2024, 7, 20, 14, 3, 40, 696, DateTimeKind.Local).AddTicks(7751),
+                            FechaCreacion = new DateTime(2024, 7, 13, 19, 56, 58, 546, DateTimeKind.Local).AddTicks(462),
                             NombreEstado = "Suspendido",
                             UsuarioEditor = 1
                         });
@@ -1869,10 +1872,10 @@ namespace ApiNet8.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime?>("FechaAceptacionTYC")
+                    b.Property<DateTime>("FechaAceptacionTYC")
                         .HasColumnType("datetime2");
 
-                    b.Property<DateTime?>("FechaCambioContrasena")
+                    b.Property<DateTime>("FechaCambioContrasena")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("FechaNacimiento")
@@ -1955,7 +1958,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 1,
                             DescripcionEstado = "Usuario activo en el club",
-                            FechaCreacion = new DateTime(2024, 7, 20, 14, 3, 40, 696, DateTimeKind.Local).AddTicks(7448),
+                            FechaCreacion = new DateTime(2024, 7, 13, 19, 56, 58, 545, DateTimeKind.Local).AddTicks(9917),
                             NombreEstado = "Activo",
                             UsuarioEditor = 1
                         },
@@ -1963,7 +1966,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 2,
                             DescripcionEstado = "Usuario bloqueado",
-                            FechaCreacion = new DateTime(2024, 7, 20, 14, 3, 40, 696, DateTimeKind.Local).AddTicks(7462),
+                            FechaCreacion = new DateTime(2024, 7, 13, 19, 56, 58, 545, DateTimeKind.Local).AddTicks(9943),
                             NombreEstado = "Bloqueado",
                             UsuarioEditor = 1
                         },
@@ -1971,7 +1974,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 3,
                             DescripcionEstado = "Usuario desactivado",
-                            FechaCreacion = new DateTime(2024, 7, 20, 14, 3, 40, 696, DateTimeKind.Local).AddTicks(7464),
+                            FechaCreacion = new DateTime(2024, 7, 13, 19, 56, 58, 545, DateTimeKind.Local).AddTicks(9945),
                             NombreEstado = "Desactivado",
                             UsuarioEditor = 1
                         });

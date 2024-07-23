@@ -1,9 +1,12 @@
-﻿using ApiNet8.Models;
+﻿using ApiNet8.Filters.ActionFilters;
+using ApiNet8.Models;
+using ApiNet8.Models.Club;
 using ApiNet8.Models.DTO;
 using ApiNet8.Models.Partidos;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Services;
 using ApiNet8.Services.IServices;
+using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 
@@ -11,53 +14,103 @@ using System.Net;
 
 namespace ApiNet8.Controllers
 {
+    
+
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class UsersController : ControllerBase
     {
-        private readonly IUsuarioServices _usuarioServices;
+        private const string JWT = "JWT";
+        private const string CurrentUserJWT = "CurrentUserJWT";
+        
+        private readonly IUsuarioServices _usuarioServices;        
 
         public UsersController(IUsuarioServices usuarioServices)
         {
-            _usuarioServices = usuarioServices;
+            _usuarioServices = usuarioServices;            
         }
 
         // obtener usuarios
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult GetUsuarios()
         {
-            List<Usuario> partidos = _usuarioServices.GetUsuarios();
-            return Ok(partidos);           
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<Usuario> partidos = _usuarioServices.GetUsuarios();
+                return Ok(partidos);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener usuarios",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+                       
         }
 
-        // GET api/<UsersController>/5
+        // obtener usuario con id
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet("{id}")]
+        [TypeFilter(typeof(ValidateIdFilterAttribute))]
+        [EntityType(typeof(Usuario))] // Aquí se especifica el tipo de entidad
         public IActionResult GetUsuario(int id)
         {
-            Usuario usuario = _usuarioServices.GetUsuarioById(id);
+            var TOKEN = HttpContext.Items[JWT].ToString();
 
-            if (usuario == null)
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
             {
-                var problemDetails = new ValidationProblemDetails() { Status = StatusCodes.Status404NotFound, Title = "Usuario no encontrado" };
+                Usuario usuario = _usuarioServices.GetUsuarioById(id);
 
-                return new NotFoundObjectResult(problemDetails);
+                if (usuario == null)
+                {
+                    var problemDetails = new ValidationProblemDetails() { Status = StatusCodes.Status404NotFound, Title = "Usuario no encontrado" };
+
+                    return new NotFoundObjectResult(problemDetails);
+                }
+
+                return Ok(usuario);
             }
-
-            return Ok(usuario);
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener usuario con id: " + id,
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+           
            
         }
 
-        // crear usuarios
+        // crear usuario
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
-        public IActionResult CrearUsuario([FromBody] Usuario usuario)
-        {            
+        public IActionResult CrearUsuario([FromBody] UsuarioDTO usuario)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
             if (usuario == null)
             {
                 return BadRequest("Usuario es nulo");
             }
 
             try
-            {
+            {                
                 var crearUsuario = _usuarioServices.CrearUsuario(usuario);
 
                 return Ok(crearUsuario);
@@ -74,6 +127,7 @@ namespace ApiNet8.Controllers
             }    
         }
 
+        // Registrar usuario
         [HttpPost]
         public async Task<IActionResult> Registro([FromBody] UsuarioRegistroDTO usuarioRegistroDTO)
         {
@@ -105,13 +159,16 @@ namespace ApiNet8.Controllers
             }
         }
 
+        // login de un usuario
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] UsuarioLoginDTO usuarioLoginDTO)
-        {
+        {            
             try
             {
-                var login = await _usuarioServices.Login(usuarioLoginDTO);
-                return Ok(login);
+                var login = await _usuarioServices.Login(usuarioLoginDTO);              
+                
+                Response.Headers.Append(JWT, login.JwtToken);
+                return Ok(login.Usuario);
             }
             catch (Exception e)
             {
@@ -123,6 +180,75 @@ namespace ApiNet8.Controllers
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }       
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult ActualizarUsuario([FromBody] UsuarioDTO usuario)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            // obtengo datos de jwt para utilizar
+            JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
+
+            try
+            {                
+                Usuario usuarioAActualizar = _usuarioServices.ActualizarUsuario(usuario);
+                return Ok(usuarioAActualizar);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al actualizar usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult EliminarUsuario([FromBody] int Id)
+        {
+            //var TOKEN = HttpContext.Items[JWT].ToString();
+
+            //Response.Headers.Append(JWT, TOKEN);
+
+            //try
+            //{
+            //    Perfil perfilAEliminar = _configuracionServices.EliminarPerfil(id);
+            //    return Ok(perfilAEliminar);
+            //}
+            //catch (Exception e)
+            //{
+            //    RespuestaAPI respuestaAPI = new RespuestaAPI
+            //    {
+            //        status = HttpStatusCode.InternalServerError,
+            //        title = "Error al eliminar perfil",
+            //        errors = new List<string> { e.Message }
+            //    };
+            //    return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            //}
+            return Ok(Id);
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult JwtTest()
+        {
+            try
+            {
+                return Ok();
+
+            }
+            catch (Exception e)
+            {
+                return BadRequest(e.ToString());
+            }
         }
 
     }

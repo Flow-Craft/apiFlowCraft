@@ -12,8 +12,8 @@
         public int Telefono { get; set; }
         public int Dni {  get; set; }   
         public string Email { get; set; }   
-        public DateTime FechaAceptacionTYC { get; set; }
-        public DateTime FechaCambioContrasena { get; set; }
+        public DateTime? FechaAceptacionTYC { get; set; }
+        public DateTime? FechaCambioContrasena { get; set; }
         public DateTime FechaNacimiento {  get; set; }
         public byte[]? FotoPerfil { get; set; }
         public string? ImageType { get; set; } // Para almacenar el tipo de la imagen (image/jpeg, image/png)

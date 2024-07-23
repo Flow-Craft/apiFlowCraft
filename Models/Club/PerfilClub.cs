@@ -8,5 +8,6 @@
         public DateTime? FechaBaja { get; set; }
         public DateTime? FechaModificacion { get; set; }
         public int UsuarioEditor { get; set; }
+        public bool Activo {  get; set; }
     }
 }
