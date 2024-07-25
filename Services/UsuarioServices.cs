@@ -82,6 +82,10 @@ namespace ApiNet8.Services
             var passwordEncriptado = obtenermd5(usuarioLoginDTO.Contrasena);
             Usuario usuario = await GetUsuarioByEmailAndPassword(usuarioLoginDTO.Email, passwordEncriptado);
 
+            // 
+
+            
+
             if (usuario == null)
             {
                 throw new Exception("Usuario o contrasena incorrecta");
