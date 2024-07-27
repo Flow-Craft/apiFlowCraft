@@ -32,7 +32,7 @@ namespace ApiNet8.Services
             return _db.Usuario.ToList();
         }
 
-        public Usuario GetUsuarioById(int id)
+        public Usuario? GetUsuarioById(int id)
         {
             try
             {

@@ -13,9 +13,7 @@ using System.Net;
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace ApiNet8.Controllers
-{
-    
-
+{ 
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class UsersController : ControllerBase

@@ -8,6 +8,7 @@ using ApiNet8.Models.DTO;
 using ApiNet8.Models.Club;
 using static System.Runtime.InteropServices.JavaScript.JSType;
 using System.Runtime.Intrinsics.X86;
+using ApiNet8.Models.TYC;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -22,7 +23,7 @@ namespace ApiNet8.Controllers
         {
             this._configuracionServices = configuracionServices;
         }
-        // GET: api/<ConfiguracionController>
+        
         [HttpGet]
         public IActionResult GetPerfiles()
         {
@@ -211,6 +212,7 @@ namespace ApiNet8.Controllers
             }
         }
 
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
         public IActionResult EliminarPerfilClub(int id)
         {
@@ -225,6 +227,26 @@ namespace ApiNet8.Controllers
                 {
                     status = e.Message == "No existe un parametro o un historial asociado a ese perfil" ? HttpStatusCode.BadRequest : HttpStatusCode.InternalServerError,
                     title = "Error al eliminar perfil de club",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [HttpPost]
+        public IActionResult CrearTYC([FromBody] TerminosYCondicionesDTO terminosYCondicionesDTO)
+        {
+            try
+            {
+                TerminosYCondiciones tycACrear = _configuracionServices.CrearTYC(terminosYCondicionesDTO);
+                return Ok(tycACrear);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = e.Message == "Ya existen unos términos y condiciones con esa descripción" ? HttpStatusCode.BadRequest : HttpStatusCode.InternalServerError,
+                    title = "Error al crear términos y condiciones",
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);

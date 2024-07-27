@@ -1,8 +1,10 @@
 ﻿using ApiNet8.Data;
 using ApiNet8.Models.Club;
 using ApiNet8.Models.DTO;
+using ApiNet8.Models.TYC;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
+using AutoMapper;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
 using System.Runtime.ConstrainedExecution;
@@ -16,9 +18,12 @@ namespace ApiNet8.Services
     public class ConfiguracionServices : IConfiguracionServices
     {
         private readonly ApplicationDbContext _db;
-        public ConfiguracionServices(ApplicationDbContext db)
+        private readonly IMapper _mapper;
+
+        public ConfiguracionServices(ApplicationDbContext db, IMapper mapper)
         {
             this._db = db;
+            _mapper = mapper;
         }
         Perfil IConfiguracionServices.ActualizarPerfil(PerfilDTO perfil)
         {
@@ -191,7 +196,7 @@ namespace ApiNet8.Services
                     _db.Add(clubHistorialNuevo);
                     _db.Update(perfilClub);
                     _db.Update(parametrosClub);
-                    _db.Update(clubHistorialNuevo);
+                    _db.Update(clubHistorial);
                     _db.SaveChanges();
                     transaction.Commit();
 
@@ -315,5 +320,62 @@ namespace ApiNet8.Services
             throw new NotImplementedException();
         }
 
+        public bool ExisteTYC(TerminosYCondicionesDTO tyc)
+        {
+            var existeTYC = _db.TerminosYCondiciones.FirstOrDefault(u => u.TYC == tyc.TYC);
+            if (existeTYC == null)
+            {
+                return false;
+            }
+            return true;
+        }
+
+        public TerminosYCondiciones CrearTYC(TerminosYCondicionesDTO tyc)
+        {
+            try
+            {
+                TerminosYCondiciones terminosYCondiciones = _mapper.Map<TerminosYCondiciones>(tyc);
+
+                var existeTYC = ExisteTYC(tyc);
+
+                if (existeTYC)
+                {
+                    throw new Exception("Ya existen unos términos y condiciones con esa descripción");
+                }
+
+                HistorialTerminosYCondiciones tycHistorial = _db.HistorialTerminosYCondiciones.Where(c => c.FechaBaja == null).FirstOrDefault();
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+
+                    if (tycHistorial != null)
+                    {
+                        tycHistorial.FechaBaja = DateTime.Now;
+                        _db.Update(tycHistorial);
+                    }
+
+                    HistorialTerminosYCondiciones historialTerminosYCondiciones = new HistorialTerminosYCondiciones
+                    {
+                        FechaCreacion = DateTime.Now,
+                        UsuarioEditor = 0
+                    };
+
+                    terminosYCondiciones.HistorialTerminosYCondiciones = historialTerminosYCondiciones;
+
+                    _db.Add(historialTerminosYCondiciones);
+                    _db.Add(terminosYCondiciones);
+                    _db.SaveChanges();
+                    transaction.Commit();                    
+                }
+
+                return terminosYCondiciones;
+
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+           
+        }
     }
 }
