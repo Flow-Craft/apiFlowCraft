@@ -18,6 +18,6 @@ namespace ApiNet8.Services.IServices
         PerfilClub ActualizarPerfilClub(PerfilClubDTO perfilClubDTO);
         PerfilClub EliminarPerfilClub(int id);
         PerfilClub GetPerfilClubById(int Id);
-        TerminosYCondiciones AltaTYC(TerminosYCondiciones terminosYCondiciones);
+        TerminosYCondiciones CrearTYC(TerminosYCondicionesDTO terminosYCondiciones);
     }
 }

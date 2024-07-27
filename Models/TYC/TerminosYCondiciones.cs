@@ -6,6 +6,6 @@
         public string TYC { get; set; }
 
         // Relaciones
-        public IList<HistorialTerminosYCondiciones> HistorialTerminosYCondicionesList { get; set; }
+        public HistorialTerminosYCondiciones HistorialTerminosYCondiciones { get; set; }
     }
 }
