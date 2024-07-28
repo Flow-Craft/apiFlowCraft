@@ -11,7 +11,7 @@ namespace ApiNet8.Models.DTO
         public string? DeporteFavorito { get; set; }
         public string? Contrasena { get; set; }
         public string Direccion { get; set; }
-        public int Telefono { get; set; }
+        public string Telefono { get; set; }
         public int Dni { get; set; }
         public string Email { get; set; }        
         public DateTime FechaNacimiento { get; set; }

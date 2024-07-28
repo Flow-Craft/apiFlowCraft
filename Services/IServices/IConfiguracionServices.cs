@@ -1,4 +1,5 @@
-﻿using ApiNet8.Models.Club;
+﻿using ApiNet8.Models;
+using ApiNet8.Models.Club;
 using ApiNet8.Models.DTO;
 using ApiNet8.Models.Usuarios;
 
@@ -8,9 +9,9 @@ namespace ApiNet8.Services.IServices
     {
         List<Perfil> GetPerfiles();
         Perfil GetPerfilById(int Id);
-        Perfil CrearPerfil(Perfil perfil);
-        Perfil ActualizarPerfil(PerfilDTO perfil);
-        Perfil EliminarPerfil(int id);
+        Perfil CrearPerfil(Perfil perfil, JwtToken currentUserJwt);
+        Perfil ActualizarPerfil(PerfilDTO perfil, JwtToken currentUserJwt);
+        Perfil EliminarPerfil(int id, JwtToken currentUserJwt);
         bool ExistePerfil(string nombre);
         List<Permiso> GetPermisosByPerfil(Perfil perfil);
         PerfilClub CrearPerfilClub(PerfilClubDTO perfilClubDTO);
