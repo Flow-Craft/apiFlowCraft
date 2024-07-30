@@ -1,4 +1,5 @@
-﻿using ApiNet8.Models.DTO;
+﻿using ApiNet8.Models;
+using ApiNet8.Models.DTO;
 using ApiNet8.Models.Usuarios;
 
 namespace ApiNet8.Services.IServices
@@ -7,9 +8,9 @@ namespace ApiNet8.Services.IServices
     {
         List<UsuarioEstado> GetUsuarioEstados();
         UsuarioEstado GetUsuarioEstadoById(int Id);
-        UsuarioEstado CrearUsuarioEstado(UsuarioEstado usuarioEstado);
-        UsuarioEstado ActualizarUsuarioEstado(UsuarioEstadoDTO perfil);
-        UsuarioEstado EliminarUsuarioEstado(int id);
+        UsuarioEstado CrearUsuarioEstado(UsuarioEstadoDTO usuarioEstado, JwtToken currentUserJwt);
+        UsuarioEstado ActualizarUsuarioEstado(UsuarioEstadoDTO usuarioEstado, JwtToken currentUserJwt);
+        UsuarioEstado EliminarUsuarioEstado(int id, JwtToken currentUserJwt);
         bool ExisteUsuarioEstado(string nombre);
     }
 }

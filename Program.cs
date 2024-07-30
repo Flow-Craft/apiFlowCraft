@@ -23,6 +23,8 @@ var secretKey = builder.Configuration["ApiSettings:secretToken"];
 // agregar servicio e interfaz
 builder.Services.AddTransient<IConfiguracionServices, ConfiguracionServices>();
 builder.Services.AddTransient<IUsuarioEstadoServices, UsuarioEstadoServices>();
+builder.Services.AddTransient<IEquipoEstadoService, EquipoEstadoService>();
+builder.Services.AddTransient<IEventoEstadoService, EventoEstadoService>();
 builder.Services.AddTransient<IUsuarioServices, UsuarioServices>();
 builder.Services.AddTransient<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddTransient<ValidateJwtAndRefreshFilter>();

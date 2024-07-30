@@ -1,30 +1,26 @@
 ﻿using ApiNet8.Data;
 using ApiNet8.Models;
 using ApiNet8.Models.DTO;
+using ApiNet8.Models.Eventos;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
 using AutoMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
-using Microsoft.EntityFrameworkCore;
-using XAct;
-using XAct.Library.Settings;
-using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace ApiNet8.Services
 {
-    public class UsuarioEstadoServices : IUsuarioEstadoServices
+    public class EventoEstadoService : IEventoEstadoService
     {
         private readonly ApplicationDbContext _db;
         private string secretToken;
         private readonly IMapper _mapper;
-        public UsuarioEstadoServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper)
+
+        public EventoEstadoService(ApplicationDbContext db, IConfiguration configuration, IMapper mapper)
         {
             this._db = db;
             this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
             _mapper = mapper;
         }
-
-        public UsuarioEstado ActualizarUsuarioEstado(UsuarioEstadoDTO usEst, JwtToken currentUserJwt)
+        public EstadoEvento ActualizarEventoEstado(EstadoEventoDTO eventoEstadoDTO, JwtToken currentUserJwt)
         {
             try
             {
@@ -43,16 +39,16 @@ namespace ApiNet8.Services
                 //return usuarioEstado;
 
                 //mapper de usuariodto a usuario
-                UsuarioEstado estUs = _mapper.Map<UsuarioEstado>(usEst);
+                EstadoEvento estEvent = _mapper.Map<EstadoEvento>(eventoEstadoDTO);
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    estUs.FechaModificacion = DateTime.Now;
-                    estUs.UsuarioEditor = currentUserJwt.Id;
-                    _db.Update(estUs);
+                    estEvent.FechaModificacion = DateTime.Now;
+                    estEvent.UsuarioEditor = currentUserJwt.Id;
+                    _db.Update(estEvent);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
-                return estUs;
+                return estEvent;
             }
             catch (Exception e)
             {
@@ -61,65 +57,63 @@ namespace ApiNet8.Services
             }
         }
 
-        public UsuarioEstado CrearUsuarioEstado(UsuarioEstadoDTO usuarioEstado, JwtToken currentUserJwt)
+        public EstadoEvento CrearEventoEstado(EstadoEventoDTO eventoEstadoDTO, JwtToken currentUserJwt)
         {
             try
             {
                 //mapper de usuariodto a usuario
-                UsuarioEstado estUs = _mapper.Map<UsuarioEstado>(usuarioEstado);
+                EstadoEvento estEvent = _mapper.Map<EstadoEvento>(eventoEstadoDTO);
 
-                estUs.FechaCreacion = DateTime.Now;
-                estUs.UsuarioEditor = currentUserJwt.Id;
-                _db.Add(estUs);
+                estEvent.FechaCreacion = DateTime.Now;
+                estEvent.UsuarioEditor = currentUserJwt.Id;
+                _db.Add(estEvent);
                 _db.SaveChanges();
-                return estUs;
+                return estEvent;
             }
             catch (Exception e)
             {
                 throw new Exception(e.Message, e);
             }
-
         }
 
-        public UsuarioEstado EliminarUsuarioEstado(int id, JwtToken currentUserJwt)
+        public EstadoEvento EliminarEventoEstado(int id, JwtToken currentUserJwt)
         {
             try
             {
-                UsuarioEstado usuarioEstado = this.GetUsuarioEstadoById(id);
+                EstadoEvento eventoEstado = this.GetEventoEstadoById(id);
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    usuarioEstado.FechaBaja = DateTime.Now;
-                    usuarioEstado.UsuarioEditor = currentUserJwt.Id;
-                    _db.Update(usuarioEstado);
+                    eventoEstado.FechaBaja = DateTime.Now;
+                    eventoEstado.UsuarioEditor = currentUserJwt.Id;
+                    _db.Update(eventoEstado);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
-                return usuarioEstado;
+                return eventoEstado;
             }
             catch (Exception e)
             {
                 throw new Exception(e.Message, e);
             }
-
         }
 
-        public bool ExisteUsuarioEstado(string nombre)
+        public bool ExisteEventoEstado(string nombre)
         {
-            var usuarioEst = _db.UsuarioEstado.FirstOrDefault(ue => ue.NombreEstado == nombre);
-            if (usuarioEst == null)
+            var eventEst = _db.EstadoEvento.FirstOrDefault(ee => ee.NombreEstado == nombre);
+            if (eventEst == null)
             {
                 return false;
             }
             return true;
         }
 
-        public UsuarioEstado GetUsuarioEstadoById(int Id)
+        public EstadoEvento GetEventoEstadoById(int Id)
         {
             try
             {
-                UsuarioEstado usuarioEstado = _db.UsuarioEstado.Find(Id);
+                EstadoEvento eventEstado = _db.EstadoEvento.Find(Id);
 
-                return usuarioEstado;
+                return eventEstado;
             }
             catch (Exception e)
             {
@@ -127,19 +121,16 @@ namespace ApiNet8.Services
             }
         }
 
-
-        public List<UsuarioEstado> GetUsuarioEstados()
+        public List<EstadoEvento> GetEventoEstados()
         {
             try
             {
-                return _db.UsuarioEstado.ToList();// podriamos devolverlos ordenados por id
+                return _db.EstadoEvento.ToList();
             }
             catch (Exception e)
             {
                 throw new Exception(e.Message, e);
             }
-
         }
-
     }
 }
