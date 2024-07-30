@@ -17,7 +17,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("flowCraft"));
 });
 
-// Obtener la secret key desde la configuración
+// Obtener la secret key desde la configuraciï¿½n
 var secretKey = builder.Configuration["ApiSettings:secretToken"];
 
 // agregar servicio e interfaz
@@ -51,6 +51,16 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+//Soporte para CORS
+//Se pueden habilitar: 1-Un dominio, 2-multiples dominios,
+//3-cualquier dominio (Tener en cuenta seguridad)
+//Usamos de ejemplo el dominio: http://localhost:3223, se debe cambiar por el correcto
+//Se usa (*) para todos los dominios
+builder.Services.AddCors(p => p.AddPolicy("PoliticaCors", build =>
+{
+    build.WithOrigins("*").AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("JWT");
+}));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -61,6 +71,9 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+//Soporte para CORS
+app.UseCors("PoliticaCors");
 
 app.UseAuthorization();
 

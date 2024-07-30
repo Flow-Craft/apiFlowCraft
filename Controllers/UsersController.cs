@@ -13,9 +13,7 @@ using System.Net;
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace ApiNet8.Controllers
-{
-    
-
+{ 
     [Route("api/[controller]/[action]")]
     [ApiController]
     public class UsersController : ControllerBase
@@ -128,6 +126,7 @@ namespace ApiNet8.Controllers
         }
 
         // Registrar usuario
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
         public async Task<IActionResult> Registro([FromBody] UsuarioRegistroDTO usuarioRegistroDTO)
         {
@@ -237,11 +236,14 @@ namespace ApiNet8.Controllers
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        [HttpPost]
-        public IActionResult JwtTest()
+        [HttpGet]
+        public IActionResult ComprobarJWT()
         {
             try
             {
+                // seteo jwt en header de respuesta para refrescarlo en el front
+                var TOKEN = HttpContext.Items[JWT].ToString();
+                Response.Headers.Append(JWT, TOKEN);
                 return Ok();
 
             }

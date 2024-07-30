@@ -1,6 +1,7 @@
 ﻿using ApiNet8.Models.DTO;
 using ApiNet8.Models.Eventos;
 using ApiNet8.Models.Partidos;
+using ApiNet8.Models.TYC;
 using ApiNet8.Models.Usuarios;
 using AutoMapper;
 
@@ -11,6 +12,8 @@ namespace ApiNet8.Utils.Mappers
         public APIMappers()
         {
             CreateMap<Usuario, UsuarioDTO>().ReverseMap();
+            CreateMap<TerminosYCondiciones, TerminosYCondicionesDTO>().ReverseMap();
+
             CreateMap<UsuarioEstado, UsuarioEstadoDTO>().ReverseMap();
             CreateMap<EstadoEvento, EstadoEventoDTO>().ReverseMap();
             CreateMap<EquipoEstado, EquipoEstadoDTO>().ReverseMap();

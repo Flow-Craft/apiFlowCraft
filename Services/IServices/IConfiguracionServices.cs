@@ -1,6 +1,7 @@
 ﻿using ApiNet8.Models;
 using ApiNet8.Models.Club;
 using ApiNet8.Models.DTO;
+using ApiNet8.Models.TYC;
 using ApiNet8.Models.Usuarios;
 
 namespace ApiNet8.Services.IServices
@@ -18,5 +19,6 @@ namespace ApiNet8.Services.IServices
         PerfilClub ActualizarPerfilClub(PerfilClubDTO perfilClubDTO);
         PerfilClub EliminarPerfilClub(int id);
         PerfilClub GetPerfilClubById(int Id);
+        TerminosYCondiciones CrearTYC(TerminosYCondicionesDTO terminosYCondiciones);
     }
 }
