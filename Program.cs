@@ -17,7 +17,7 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("flowCraft"));
 });
 
-// Obtener la secret key desde la configuración
+// Obtener la secret key desde la configuraciï¿½n
 var secretKey = builder.Configuration["ApiSettings:secretToken"];
 
 // agregar servicio e interfaz
@@ -56,7 +56,7 @@ builder.Services.AddSwaggerGen();
 //Se usa (*) para todos los dominios
 builder.Services.AddCors(p => p.AddPolicy("PoliticaCors", build =>
 {
-    build.WithOrigins("*").AllowAnyMethod().AllowAnyHeader();
+    build.WithOrigins("*").AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("JWT");
 }));
 
 var app = builder.Build();
