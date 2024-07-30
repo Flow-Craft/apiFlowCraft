@@ -100,7 +100,7 @@ namespace ApiNet8.Services
             {
                 Subject = new ClaimsIdentity(new Claim[]
                 {
-                    new Claim(ClaimTypes.Email, usuario.Email.ToString()),
+                    new Claim("User_Email", usuario.Email.ToString()),
                     new Claim(ClaimTypes.Name,usuario.Nombre),
                     new Claim("User_Id",usuario.Id.ToString()),
                     new Claim("validation_expiry", validationExpiry.ToString("o")) // ISO 8601 format

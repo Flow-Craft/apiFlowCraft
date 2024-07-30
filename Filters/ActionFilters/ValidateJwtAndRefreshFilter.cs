@@ -71,7 +71,7 @@ public class ValidateJwtAndRefreshFilter : IAsyncActionFilter
                     context.Result = new UnauthorizedResult();
                 }
             }
-            catch (Exception)
+            catch (Exception e)
             {
                 context.Result = new UnauthorizedResult();
             }
@@ -88,7 +88,7 @@ public class ValidateJwtAndRefreshFilter : IAsyncActionFilter
         var jwt = handler.ReadJwtToken(token);
 
         var userIdClaim = jwt.Claims.FirstOrDefault(claim => claim.Type == "User_Id");
-        var emailClaim = jwt.Claims.FirstOrDefault(claim => claim.Type == ClaimTypes.Email);
+        var emailClaim = jwt.Claims.FirstOrDefault(claim => claim.Type == "User_Email");
 
         if (userIdClaim == null || emailClaim == null)
         {

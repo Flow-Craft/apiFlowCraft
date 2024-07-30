@@ -126,6 +126,7 @@ namespace ApiNet8.Controllers
         }
 
         // Registrar usuario
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
         public async Task<IActionResult> Registro([FromBody] UsuarioRegistroDTO usuarioRegistroDTO)
         {
