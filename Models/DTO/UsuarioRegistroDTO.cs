@@ -15,7 +15,7 @@ namespace ApiNet8.Models.DTO
         [Required(ErrorMessage = "La direccion es obligatoria")]
         public string Direccion { get; set; }
         [Required(ErrorMessage = "El telefono es obligatorio")]
-        public int Telefono { get; set; }
+        public string Telefono { get; set; }
         [Required(ErrorMessage = "El dni es obligatorio")]
         public int Dni { get; set; }
         [Required(ErrorMessage = "El email es obligatorio")]

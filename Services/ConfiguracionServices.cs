@@ -1,4 +1,5 @@
 ﻿using ApiNet8.Data;
+using ApiNet8.Models;
 using ApiNet8.Models.Club;
 using ApiNet8.Models.DTO;
 using ApiNet8.Models.TYC;
@@ -18,14 +19,15 @@ namespace ApiNet8.Services
     public class ConfiguracionServices : IConfiguracionServices
     {
         private readonly ApplicationDbContext _db;
+        private string secretToken;
         private readonly IMapper _mapper;
-
-        public ConfiguracionServices(ApplicationDbContext db, IMapper mapper)
+        public ConfiguracionServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper)
         {
             this._db = db;
+            this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
             _mapper = mapper;
         }
-        Perfil IConfiguracionServices.ActualizarPerfil(PerfilDTO perfil)
+        public Perfil ActualizarPerfil(PerfilDTO perfil, JwtToken currentUserJwt)
         {
             try
             {
@@ -36,7 +38,7 @@ namespace ApiNet8.Services
                     per.NombrePerfil = perfil.NombrePerfil;
                     per.DescripcionPerfil = perfil.DescripcionPerfil;
                     per.FechaModificacion = DateTime.Now;
-                    per.UsuarioEditor = perfil.UsuarioEditor;//Implementar CurrentUser
+                    per.UsuarioEditor = currentUserJwt.Id;//Implementar CurrentUser
                     _db.Update(per);
                     _db.SaveChanges();
                     transaction.Commit();
@@ -48,12 +50,14 @@ namespace ApiNet8.Services
 
                 throw new Exception(e.Message, e);
             }
-        }        
+        }
 
-        Perfil IConfiguracionServices.CrearPerfil(Perfil perfil)
+        public Perfil CrearPerfil(Perfil perfil, JwtToken currentUserJwt)
         {
             try
             {
+                perfil.FechaCreacion = DateTime.Now;
+                perfil.UsuarioEditor = currentUserJwt.Id;
                 _db.Add(perfil);              
                 _db.SaveChanges();
                 return perfil;
@@ -75,7 +79,7 @@ namespace ApiNet8.Services
             return true;
         }
 
-        PerfilClub IConfiguracionServices.CrearPerfilClub(PerfilClubDTO perfilClubDTO)
+        public PerfilClub CrearPerfilClub(PerfilClubDTO perfilClubDTO)
         {
             try
             {
@@ -145,7 +149,7 @@ namespace ApiNet8.Services
             }
         }
 
-        PerfilClub IConfiguracionServices.ActualizarPerfilClub(PerfilClubDTO perfilClubDTO)
+        public PerfilClub ActualizarPerfilClub(PerfilClubDTO perfilClubDTO)
         {
             try
             {
@@ -209,7 +213,7 @@ namespace ApiNet8.Services
             }
         }
 
-        PerfilClub IConfiguracionServices.EliminarPerfilClub(int id)
+        public PerfilClub EliminarPerfilClub(int id)
         {
             try
             {
@@ -240,15 +244,15 @@ namespace ApiNet8.Services
             }
         }
 
-        Perfil IConfiguracionServices.EliminarPerfil(int id)
+        public Perfil EliminarPerfil(int id, JwtToken currentUserJwt)
         {
             try
             {
-                Perfil per = ((IConfiguracionServices)this).GetPerfilById(id);
+                Perfil per = this.GetPerfilById(id);
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     per.FechaBaja = DateTime.Now;
-                    //per.UsuarioEditor = Current.User.Id;
+                    per.UsuarioEditor = currentUserJwt.Id;
                     _db.Update(per);
                     _db.SaveChanges();
                     transaction.Commit();
@@ -260,9 +264,9 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message,e);
             }
 
-        }       
+        }
 
-        bool IConfiguracionServices.ExistePerfil(string nombre)
+        public bool ExistePerfil(string nombre)
         {
             var perfil = _db.Perfil.FirstOrDefault(p => p.NombrePerfil == nombre);
             if (perfil == null)
@@ -272,7 +276,7 @@ namespace ApiNet8.Services
             return true;
         }
 
-        Perfil IConfiguracionServices.GetPerfilById(int Id)
+        public Perfil GetPerfilById(int Id)
         {
             try
             {
@@ -287,7 +291,7 @@ namespace ApiNet8.Services
             }
         }
 
-        List<Perfil> IConfiguracionServices.GetPerfiles()
+        public List<Perfil> GetPerfiles()
         {
             try
             {
@@ -300,7 +304,7 @@ namespace ApiNet8.Services
 
         }
 
-        List<Permiso> IConfiguracionServices.GetPermisosByPerfil(Perfil perfil)
+        public List<Permiso> GetPermisosByPerfil(Perfil perfil)
         {
             try
             {
