@@ -236,11 +236,14 @@ namespace ApiNet8.Controllers
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        [HttpPost]
-        public IActionResult JwtTest()
+        [HttpGet]
+        public IActionResult ComprobarJWT()
         {
             try
             {
+                // seteo jwt en header de respuesta para refrescarlo en el front
+                var TOKEN = HttpContext.Items[JWT].ToString();
+                Response.Headers.Append(JWT, TOKEN);
                 return Ok();
 
             }
