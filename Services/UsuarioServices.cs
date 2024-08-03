@@ -13,6 +13,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using XAct.Library.Settings;
+using XAct.Users;
 using XSystem.Security.Cryptography;
 
 namespace ApiNet8.Services
@@ -66,7 +67,7 @@ namespace ApiNet8.Services
                 // Obtener el usuario actual desde la sesión
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
-                // actualizar clases
+                // crear en la base
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     UsuarioHistorial historial = new UsuarioHistorial()
@@ -194,8 +195,28 @@ namespace ApiNet8.Services
                     FechaNacimiento = usuarioRegistroDTO.FechaNacimiento
                 };
 
-                _db.Usuario.Add(usuario);
-                await _db.SaveChangesAsync();
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                // crear en la base
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    UsuarioHistorial historial = new UsuarioHistorial()
+                    {
+                        FechaInicio = DateTime.Now,
+                        DetalleCambioEstado = "Crear usuario",
+                        UsuarioEditor = currentUser?.Id,
+                        UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1)
+                    };
+
+                    usuario.UsuarioHistoriales.Add(historial);
+
+                    _db.UsuarioHistorial.Add(historial);
+                    _db.Usuario.Add(usuario);
+                    await _db.SaveChangesAsync();
+                    transaction.Commit();
+                }
+              
                 return usuario;
             }
             catch (Exception e)
