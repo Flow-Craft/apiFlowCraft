@@ -1,7 +1,10 @@
 ﻿using ApiNet8.Data;
+using ApiNet8.Models;
+using ApiNet8.Models.Club;
 using ApiNet8.Models.DTO;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
+using ApiNet8.Utils;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -19,12 +22,17 @@ namespace ApiNet8.Services
         private readonly ApplicationDbContext _db;        
         private string secretToken;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IUsuarioEstadoServices _usuarioEstadoServices;
 
-        public UsuarioServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper)
+
+        public UsuarioServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor, IUsuarioEstadoServices usuarioEstadoServices)
         {          
             this._db = db;
             this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
+            this._usuarioEstadoServices = usuarioEstadoServices;
         }
 
         public List<Usuario> GetUsuarios()
@@ -44,7 +52,7 @@ namespace ApiNet8.Services
             }
         }
 
-        public UsuarioDTO CrearUsuario(UsuarioDTO usuario)
+        public void CrearUsuario(UsuarioDTO usuario)
         {
             try
             {
@@ -55,10 +63,27 @@ namespace ApiNet8.Services
                 var password = obtenermd5(user.Contrasena);
                 user.Contrasena = password;
 
-                _db.Add(user);
-                _db.SaveChanges();
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
-                return usuario;
+                // actualizar clases
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    UsuarioHistorial historial = new UsuarioHistorial()
+                    {
+                        FechaInicio = DateTime.Now,
+                        DetalleCambioEstado = "Crear usuario",
+                        UsuarioEditor = currentUser?.Id,
+                        UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1)
+                    };
+
+                   user.UsuarioHistoriales.Add(historial);
+
+                    _db.Add(historial);
+                    _db.Add(user);                    
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
             }
             catch (Exception ex)
             {

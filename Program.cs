@@ -29,6 +29,16 @@ builder.Services.AddTransient<IUsuarioServices, UsuarioServices>();
 builder.Services.AddTransient<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddTransient<ValidateJwtAndRefreshFilter>();
 
+// se agrega session
+builder.Services.AddDistributedMemoryCache();
+
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(10);
+});
+
+builder.Services.AddHttpContextAccessor();
+
 // agregamos jwt
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
        .AddJwtBearer(options =>
@@ -76,6 +86,8 @@ app.UseHttpsRedirection();
 app.UseCors("PoliticaCors");
 
 app.UseAuthorization();
+
+app.UseSession();
 
 app.MapControllers();
 
