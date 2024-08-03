@@ -28,6 +28,7 @@ namespace ApiNet8.Controllers
             _usuarioServices = usuarioServices;            
         }
 
+        #region Usuario
         // obtener usuarios
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
@@ -52,7 +53,7 @@ namespace ApiNet8.Controllers
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
-                       
+
         }
 
         // obtener usuario con id
@@ -64,7 +65,7 @@ namespace ApiNet8.Controllers
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
 
-            Response.Headers.Append(JWT, TOKEN);            
+            Response.Headers.Append(JWT, TOKEN);
 
             try
             {
@@ -89,8 +90,8 @@ namespace ApiNet8.Controllers
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
-           
-           
+
+
         }
 
         // crear usuario
@@ -108,8 +109,8 @@ namespace ApiNet8.Controllers
             }
 
             try
-            {                
-                var crearUsuario = _usuarioServices.CrearUsuario(usuario);
+            {
+                _usuarioServices.CrearUsuario(usuario);
 
                 return Ok();
             }
@@ -122,7 +123,7 @@ namespace ApiNet8.Controllers
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
-            }    
+            }
         }
 
         // Registrar usuario        
@@ -135,14 +136,14 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.BadRequest,
                     title = "El usuario es nulo",
-                    errors = new List<string> {  }
+                    errors = new List<string> { }
                 };
                 return BadRequest(respuestaAPI);
             }
 
             try
             {
-                var usuario = await _usuarioServices.Registro(usuarioRegistroDTO);               
+                var usuario = await _usuarioServices.Registro(usuarioRegistroDTO);
 
                 return Ok(usuario);
             }
@@ -161,15 +162,15 @@ namespace ApiNet8.Controllers
         // login de un usuario
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] UsuarioLoginDTO usuarioLoginDTO)
-        {            
+        {
             try
             {
-                var login = await _usuarioServices.Login(usuarioLoginDTO);              
-                
+                var login = await _usuarioServices.Login(usuarioLoginDTO);
+
                 Response.Headers.Append(JWT, login.JwtToken);
 
-                
-                HttpContext.Session.SetString("pruebaKey","holaaaaaa");
+
+                HttpContext.Session.SetString("pruebaKey", "holaaaaaa");
 
                 // creo el current user para guardar en session
                 CurrentUser currentUser = new CurrentUser
@@ -191,7 +192,7 @@ namespace ApiNet8.Controllers
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
-            }       
+            }
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
@@ -202,13 +203,10 @@ namespace ApiNet8.Controllers
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
 
-            // obtengo datos de jwt para utilizar
-            JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-
             try
-            {                
-                Usuario usuarioAActualizar = _usuarioServices.ActualizarUsuario(usuario);
-                return Ok(usuarioAActualizar);
+            {
+                _usuarioServices.ActualizarUsuario(usuario);
+                return Ok();
             }
             catch (Exception e)
             {
@@ -247,6 +245,12 @@ namespace ApiNet8.Controllers
             //}
             return Ok(Id);
         }
+        #endregion
+
+
+
+
+
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]

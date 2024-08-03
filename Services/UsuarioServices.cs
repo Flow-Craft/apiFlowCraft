@@ -75,7 +75,7 @@ namespace ApiNet8.Services
                         FechaInicio = DateTime.Now,
                         DetalleCambioEstado = "Crear usuario",
                         UsuarioEditor = currentUser?.Id,
-                        UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1)
+                        UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1) // asigno estado ACTIVO
                     };
 
                    user.UsuarioHistoriales.Add(historial);
@@ -206,7 +206,7 @@ namespace ApiNet8.Services
                         FechaInicio = DateTime.Now,
                         DetalleCambioEstado = "Crear usuario",
                         UsuarioEditor = currentUser?.Id,
-                        UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1)
+                        UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1) // asigno estado ACTIVO
                     };
 
                     usuario.UsuarioHistoriales.Add(historial);
@@ -243,20 +243,28 @@ namespace ApiNet8.Services
              return await _db.Usuario.FirstOrDefaultAsync(u => u.Email == email && u.Contrasena == password);
         }
 
-        public Usuario ActualizarUsuario(UsuarioDTO usuario)
+        public void ActualizarUsuario(UsuarioDTO usuario)
         {
             try
             {
+                //mapper de usuariodto a usuario
                 Usuario user;
+              
                 using (var transaction = _db.Database.BeginTransaction())
                 {
+                    // obtengo usuario a modificar y lo actualizo
                     user = GetUsuarioById((int)usuario.Id);
-                    user.Nombre = usuario.Nombre;
-                    user.Apellido = usuario.Apellido;
-                    user.Direccion = usuario.Direccion;
-                    user.Dni = usuario.Dni;
-                    user.Email = usuario.Email;
-                    user.FechaNacimiento = usuario.FechaNacimiento;
+
+                    //// obtengo ultimo historial y lo doy de baja
+                    //UsuarioHistorial historialAnterior = user.UsuarioHistoriales.FirstOrDefault(u=>u.FechaFin == null);
+                    //historialAnterior.FechaFin = DateTime.Now;
+
+                    user.Nombre = usuario.Nombre ?? user.Nombre;
+                    user.Apellido = usuario.Apellido ?? user.Apellido;
+                    user.Direccion = usuario.Direccion ?? user.Direccion;
+                    user.Dni = usuario.Dni ?? user.Dni;
+                    user.Email = usuario.Email ?? user.Email;
+                    user.FechaNacimiento = usuario.FechaNacimiento ?? user.FechaNacimiento;
                     user.CodPostal = usuario.CodPostal ?? user.CodPostal;
                     user.DeporteFavorito = usuario.DeporteFavorito ?? user.DeporteFavorito;
                     user.FotoPerfil = usuario.FotoPerfil ?? user.FotoPerfil;
@@ -264,11 +272,11 @@ namespace ApiNet8.Services
                     user.Pais = usuario.Pais ?? user.Pais;
                     user.Provincia = usuario.Provincia ?? user.Provincia;
                     user.Localidad = usuario.Localidad ?? user.Localidad;
-                    _db.Update(user);
+
+                    _db.Usuario.Update(user);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
-                return user;
             }
             catch (Exception e)
             {
