@@ -45,7 +45,10 @@ namespace ApiNet8.Services
         {
             try
             {
-                return _db.Usuario.Find(id); 
+                return _db.Usuario
+                    .Include(u => u.UsuarioHistoriales)
+                    .Where(u => u.Id == id)
+                    .FirstOrDefault();
             }
             catch (Exception e)
             {
@@ -78,6 +81,7 @@ namespace ApiNet8.Services
                         UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1) // asigno estado ACTIVO
                     };
 
+                   user.UsuarioHistoriales = new List<UsuarioHistorial>();            
                    user.UsuarioHistoriales.Add(historial);
 
                     _db.Add(historial);
@@ -253,11 +257,7 @@ namespace ApiNet8.Services
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     // obtengo usuario a modificar y lo actualizo
-                    user = GetUsuarioById((int)usuario.Id);
-
-                    //// obtengo ultimo historial y lo doy de baja
-                    //UsuarioHistorial historialAnterior = user.UsuarioHistoriales.FirstOrDefault(u=>u.FechaFin == null);
-                    //historialAnterior.FechaFin = DateTime.Now;
+                    user = GetUsuarioById((int)usuario.Id);                  
 
                     user.Nombre = usuario.Nombre ?? user.Nombre;
                     user.Apellido = usuario.Apellido ?? user.Apellido;
@@ -272,6 +272,7 @@ namespace ApiNet8.Services
                     user.Pais = usuario.Pais ?? user.Pais;
                     user.Provincia = usuario.Provincia ?? user.Provincia;
                     user.Localidad = usuario.Localidad ?? user.Localidad;
+                    user.Telefono = usuario.Telefono ?? user.Telefono;
 
                     _db.Usuario.Update(user);
                     _db.SaveChanges();
@@ -284,26 +285,54 @@ namespace ApiNet8.Services
             }
         }
 
-        public Usuario EliminarUsuario(int id)
+        public void EliminarUsuario(int id)
         {
-            throw new NotImplementedException();
-            // se debe crear un usuario historial y asignarlo al usuario
-            //try
-            //{
-            //    Usuario user = GetUsuarioById(id);
-            //    using (var transaction = db.Database.BeginTransaction())
-            //    {
+            try
+            {
+                Usuario usuarioAEliminar = GetUsuarioById(id);
+
+                if (usuarioAEliminar == null)
+                {
+                    throw new Exception("No se encontró el usuario.");
+                }
+
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    if (usuarioAEliminar.UsuarioHistoriales.Count != 0 && usuarioAEliminar.UsuarioHistoriales.Any(a=>a.FechaFin == null))
+                    {
+                        // obtengo ultimo historial y lo doy de baja
+                        UsuarioHistorial historialAnterior = usuarioAEliminar.UsuarioHistoriales.FirstOrDefault(u => u.FechaFin == null);
+                        historialAnterior.FechaFin = DateTime.Now;
+                        _db.UsuarioHistorial.Update(historialAnterior);
+                    }                    
+
+                    // se crea nuevo historial con estado desactivado
+                    UsuarioHistorial nuevoHistorial = new UsuarioHistorial                    
+                    { 
+                        DetalleCambioEstado = "Se elimina usuario",
+                        FechaInicio = DateTime.Now,
+                        UsuarioEditor = currentUser?.Id,
+                        UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(3) // asigno estado DESACTIVADO
+                    };
+
+                    // se asigna el historial al usuario
+                    usuarioAEliminar.UsuarioHistoriales.Add(nuevoHistorial);
+
                     
-            //        _db.Update(user);
-            //        _db.SaveChanges();
-            //        transaction.Commit();
-            //    }
-            //    return user;
-            //}
-            //catch (Exception e)
-            //{
-            //    throw new Exception(e.Message, e);
-            //}
+                    _db.UsuarioHistorial.Update(nuevoHistorial);
+                    _db.Usuario.Update(usuarioAEliminar);
+
+                    _db.SaveChanges();
+                    transaction.Commit();                  
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
         }
     }
 }

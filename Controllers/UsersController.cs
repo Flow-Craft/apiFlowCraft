@@ -60,6 +60,7 @@ namespace ApiNet8.Controllers
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [TypeFilter(typeof(ValidateIdFilterAttribute))]
         [EntityType(typeof(Usuario))] // Aquí se especifica el tipo de entidad
+        [HttpGet("{id}")]
         [HttpGet]
         public IActionResult GetUsuario(int id)
         {
@@ -222,28 +223,27 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
-        public IActionResult EliminarUsuario([FromBody] int Id)
+        public IActionResult EliminarUsuario(int id)
         {
-            //var TOKEN = HttpContext.Items[JWT].ToString();
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
 
-            //Response.Headers.Append(JWT, TOKEN);
-
-            //try
-            //{
-            //    Perfil perfilAEliminar = _configuracionServices.EliminarPerfil(id);
-            //    return Ok(perfilAEliminar);
-            //}
-            //catch (Exception e)
-            //{
-            //    RespuestaAPI respuestaAPI = new RespuestaAPI
-            //    {
-            //        status = HttpStatusCode.InternalServerError,
-            //        title = "Error al eliminar perfil",
-            //        errors = new List<string> { e.Message }
-            //    };
-            //    return StatusCode((int)respuestaAPI.status, respuestaAPI);
-            //}
-            return Ok(Id);
+            try
+            {
+                _usuarioServices.EliminarUsuario(id);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al eliminar usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
         }
         #endregion
 
