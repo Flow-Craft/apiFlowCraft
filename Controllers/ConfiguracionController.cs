@@ -772,7 +772,7 @@ namespace ApiNet8.Controllers
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        [HttpPost]
+        [HttpPost("{id}")]
         public IActionResult EliminarEquipoEstado(int id)
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
