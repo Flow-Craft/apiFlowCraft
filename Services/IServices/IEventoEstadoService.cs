@@ -8,8 +8,8 @@ namespace ApiNet8.Services.IServices
     {
         List<EstadoEvento> GetEventoEstados();
         EstadoEvento GetEventoEstadoById(int Id);
-        EstadoEvento CrearEventoEstado(EstadoEventoDTO eventoEstadoDTO, JwtToken currentUserJwt);
-        EstadoEvento ActualizarEventoEstado(EstadoEventoDTO eventoEstadoDTO, JwtToken currentUserJwt);
+        EstadoEvento CrearEventoEstado(EstadoEventoDTO eventoEstadoDTO);
+        EstadoEvento ActualizarEventoEstado(EstadoEventoDTO eventoEstadoDTO);
         EstadoEvento EliminarEventoEstado(int id, JwtToken currentUserJwt);
         bool ExisteEventoEstado(string nombre);
     }

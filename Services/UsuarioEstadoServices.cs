@@ -24,35 +24,34 @@ namespace ApiNet8.Services
             _mapper = mapper;
         }
 
-        public UsuarioEstado ActualizarUsuarioEstado(UsuarioEstadoDTO usEst, JwtToken currentUserJwt)
+        public UsuarioEstado ActualizarUsuarioEstado(UsuarioEstadoDTO usEst)
         {
             try
             {
-                //UsuarioEstado usuarioEstado;
-                //using (var transaction = _db.Database.BeginTransaction())
-                //{
-                //    usuarioEstado = ((IUsuarioEstadoServices)this).GetUsuarioEstadoById(usEst.Id);
-                //    usuarioEstado.NombreEstado = usEst.NombreEstado;
-                //    usuarioEstado.DescripcionEstado = usEst.DescripcionEstado;
-                //    usuarioEstado.FechaModificacion = DateTime.Now;
-                //    usuarioEstado.UsuarioEditor = usEst.UsuarioEditor;//Implementar CurrentUser
-                //    _db.Update(usuarioEstado);
-                //    _db.SaveChanges();
-                //    transaction.Commit();
-                //}
-                //return usuarioEstado;
 
-                //mapper de usuariodto a usuario
-                UsuarioEstado estUs = _mapper.Map<UsuarioEstado>(usEst);
+                UsuarioEstado usuarioEstado = GetUsuarioEstadoById(usEst.Id);
+
+                if (usuarioEstado.NombreEstado != usEst.NombreEstado)
+                {
+                    var existeEstado = ExisteUsuarioEstado(usEst.NombreEstado);
+                    if (existeEstado)
+                    {
+                        throw new Exception("Ya existe un estado con ese nombre");
+                    }
+                }
+
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    estUs.FechaModificacion = DateTime.Now;
-                    estUs.UsuarioEditor = currentUserJwt.Id;
-                    _db.Update(estUs);
+                    usuarioEstado.NombreEstado = usEst.NombreEstado;
+                    usuarioEstado.DescripcionEstado = usEst.DescripcionEstado;
+                    usuarioEstado.FechaModificacion = DateTime.Now;
+                    usuarioEstado.UsuarioEditor = usEst.UsuarioEditor;
+                    _db.Update(usuarioEstado);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
-                return estUs;
+
+                return usuarioEstado;
             }
             catch (Exception e)
             {
@@ -61,15 +60,18 @@ namespace ApiNet8.Services
             }
         }
 
-        public UsuarioEstado CrearUsuarioEstado(UsuarioEstadoDTO usuarioEstado, JwtToken currentUserJwt)
+        public UsuarioEstado CrearUsuarioEstado(UsuarioEstadoDTO usuarioEstado)
         {
             try
             {
-                //mapper de usuariodto a usuario
-                UsuarioEstado estUs = _mapper.Map<UsuarioEstado>(usuarioEstado);
+                var existeEstado = ExisteUsuarioEstado(usuarioEstado.NombreEstado);
+                if (existeEstado)
+                {
+                    throw new Exception("Ya existe un estado con ese nombre");
+                }
 
+                UsuarioEstado estUs = _mapper.Map<UsuarioEstado>(usuarioEstado);
                 estUs.FechaCreacion = DateTime.Now;
-                estUs.UsuarioEditor = currentUserJwt.Id;
                 _db.Add(estUs);
                 _db.SaveChanges();
                 return estUs;
@@ -132,7 +134,7 @@ namespace ApiNet8.Services
         {
             try
             {
-                return _db.UsuarioEstado.ToList();// podriamos devolverlos ordenados por id
+                return _db.UsuarioEstado.Where(p => p.FechaBaja == null).ToList();// podriamos devolverlos ordenados por id
             }
             catch (Exception e)
             {
