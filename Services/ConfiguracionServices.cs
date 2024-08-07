@@ -5,6 +5,7 @@ using ApiNet8.Models.DTO;
 using ApiNet8.Models.TYC;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
+using ApiNet8.Utils;
 using AutoMapper;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
@@ -21,11 +22,14 @@ namespace ApiNet8.Services
         private readonly ApplicationDbContext _db;
         private string secretToken;
         private readonly IMapper _mapper;
-        public ConfiguracionServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+
+        public ConfiguracionServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             this._db = db;
             this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
         public Perfil ActualizarPerfil(PerfilDTO perfil, JwtToken currentUserJwt)
         {
@@ -115,7 +119,7 @@ namespace ApiNet8.Services
                         TextoFooterEmail = perfilClubDTO.TextoFooterEmail,
                         ColorBannerEmail = perfilClubDTO.ColorBannerEmail,
                         TextoEmail = perfilClubDTO.TextoEmail,
-                        QuienesSomos = perfilClubDTO.QuienesSomos,
+                        //QuienesSomos = perfilClubDTO.QuienesSomos,
                         PerfilClub = perfilClub,
                         clubHistoriales = new List<ClubHistorial>()
                     };
@@ -184,7 +188,7 @@ namespace ApiNet8.Services
                     parametrosClub.TextoFooterEmail = perfilClubDTO.TextoFooterEmail;
                     parametrosClub.ColorBannerEmail = perfilClubDTO.ColorBannerEmail;
                     parametrosClub.TextoEmail = perfilClubDTO.TextoEmail;
-                    parametrosClub.QuienesSomos = perfilClubDTO.QuienesSomos;
+                    //parametrosClub.QuienesSomos = perfilClubDTO.QuienesSomos;
 
                     clubHistorial.FechaBaja = DateTime.Now;
                     clubHistorial.UsuarioEditor = 1;// usar current user o jwt
@@ -347,7 +351,16 @@ namespace ApiNet8.Services
                     throw new Exception("Ya existen unos términos y condiciones con esa descripción");
                 }
 
-                HistorialTerminosYCondiciones tycHistorial = _db.HistorialTerminosYCondiciones.Where(c => c.FechaBaja == null).FirstOrDefault();
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                HistorialTerminosYCondiciones tycHistorial = null;
+                // verificar si ya existen otros tyc
+                if (_db.HistorialTerminosYCondiciones.Count() > 0 && _db.HistorialTerminosYCondiciones.Any(h=>h.FechaBaja == null))
+                {
+                    tycHistorial = _db.HistorialTerminosYCondiciones.Where(c => c.FechaBaja == null).FirstOrDefault();
+                }
+               
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
@@ -361,7 +374,7 @@ namespace ApiNet8.Services
                     HistorialTerminosYCondiciones historialTerminosYCondiciones = new HistorialTerminosYCondiciones
                     {
                         FechaCreacion = DateTime.Now,
-                        UsuarioEditor = 0
+                        UsuarioEditor = currentUser != null ? currentUser.Id : 0
                     };
 
                     terminosYCondiciones.HistorialTerminosYCondiciones = historialTerminosYCondiciones;
@@ -380,6 +393,22 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
            
+        }
+
+        public TerminosYCondiciones ObtenerTYC()
+        {
+            try
+            {
+                return _db.TerminosYCondiciones
+                .Include(h => h.HistorialTerminosYCondiciones)
+                .Where(t => t.HistorialTerminosYCondiciones.FechaBaja == null)
+                .FirstOrDefault();
+            }
+            catch (Exception e)
+            {
+                throw new Exception("No existen términos y condiciones", e);
+            }
+            
         }
     }
 }

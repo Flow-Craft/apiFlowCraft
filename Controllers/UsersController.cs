@@ -16,7 +16,7 @@ namespace ApiNet8.Controllers
 { 
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class UsersController : ControllerBase
+    public class UsersController : CustomController
     {
         private const string JWT = "JWT";
         private const string CurrentUserJWT = "CurrentUserJWT";
@@ -28,6 +28,7 @@ namespace ApiNet8.Controllers
             _usuarioServices = usuarioServices;            
         }
 
+        #region Usuario
         // obtener usuarios
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
@@ -52,14 +53,15 @@ namespace ApiNet8.Controllers
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
-                       
+
         }
 
         // obtener usuario con id
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        [HttpGet("{id}")]
         [TypeFilter(typeof(ValidateIdFilterAttribute))]
         [EntityType(typeof(Usuario))] // Aquí se especifica el tipo de entidad
+        [HttpGet("{id}")]
+        [HttpGet]
         public IActionResult GetUsuario(int id)
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -89,8 +91,8 @@ namespace ApiNet8.Controllers
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
-           
-           
+
+
         }
 
         // crear usuario
@@ -108,10 +110,10 @@ namespace ApiNet8.Controllers
             }
 
             try
-            {                
-                var crearUsuario = _usuarioServices.CrearUsuario(usuario);
+            {
+                _usuarioServices.CrearUsuario(usuario);
 
-                return Ok(crearUsuario);
+                return Ok();
             }
             catch (Exception e)
             {
@@ -122,11 +124,10 @@ namespace ApiNet8.Controllers
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
-            }    
+            }
         }
 
-        // Registrar usuario
-        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        // Registrar usuario        
         [HttpPost]
         public async Task<IActionResult> Registro([FromBody] UsuarioRegistroDTO usuarioRegistroDTO)
         {
@@ -136,7 +137,7 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.BadRequest,
                     title = "El usuario es nulo",
-                    errors = new List<string> {  }
+                    errors = new List<string> { }
                 };
                 return BadRequest(respuestaAPI);
             }
@@ -144,6 +145,7 @@ namespace ApiNet8.Controllers
             try
             {
                 var usuario = await _usuarioServices.Registro(usuarioRegistroDTO);
+
                 return Ok(usuario);
             }
             catch (Exception e)
@@ -161,12 +163,25 @@ namespace ApiNet8.Controllers
         // login de un usuario
         [HttpPost]
         public async Task<IActionResult> Login([FromBody] UsuarioLoginDTO usuarioLoginDTO)
-        {            
+        {
             try
             {
-                var login = await _usuarioServices.Login(usuarioLoginDTO);              
-                
+                var login = await _usuarioServices.Login(usuarioLoginDTO);
+
                 Response.Headers.Append(JWT, login.JwtToken);
+
+
+                HttpContext.Session.SetString("pruebaKey", "holaaaaaa");
+
+                // creo el current user para guardar en session
+                CurrentUser currentUser = new CurrentUser
+                {
+                    Id = (int)login.Usuario.Id,
+                    Email = login.Usuario.Email,
+                    Name = login.Usuario.Nombre
+                };
+                SetCurrentUser(currentUser);
+
                 return Ok(login.Usuario);
             }
             catch (Exception e)
@@ -178,7 +193,7 @@ namespace ApiNet8.Controllers
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
-            }       
+            }
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
@@ -189,13 +204,10 @@ namespace ApiNet8.Controllers
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
 
-            // obtengo datos de jwt para utilizar
-            JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-
             try
-            {                
-                Usuario usuarioAActualizar = _usuarioServices.ActualizarUsuario(usuario);
-                return Ok(usuarioAActualizar);
+            {
+                _usuarioServices.ActualizarUsuario(usuario);
+                return Ok();
             }
             catch (Exception e)
             {
@@ -211,29 +223,34 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
-        public IActionResult EliminarUsuario([FromBody] int Id)
+        public IActionResult EliminarUsuario(int id)
         {
-            //var TOKEN = HttpContext.Items[JWT].ToString();
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
 
-            //Response.Headers.Append(JWT, TOKEN);
-
-            //try
-            //{
-            //    Perfil perfilAEliminar = _configuracionServices.EliminarPerfil(id);
-            //    return Ok(perfilAEliminar);
-            //}
-            //catch (Exception e)
-            //{
-            //    RespuestaAPI respuestaAPI = new RespuestaAPI
-            //    {
-            //        status = HttpStatusCode.InternalServerError,
-            //        title = "Error al eliminar perfil",
-            //        errors = new List<string> { e.Message }
-            //    };
-            //    return StatusCode((int)respuestaAPI.status, respuestaAPI);
-            //}
-            return Ok(Id);
+            try
+            {
+                _usuarioServices.EliminarUsuario(id);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al eliminar usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
         }
+        #endregion
+
+
+
+
+
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
