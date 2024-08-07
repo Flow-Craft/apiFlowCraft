@@ -2,20 +2,13 @@
 using ApiNet8.Models;
 using ApiNet8.Models.Club;
 using ApiNet8.Models.DTO;
-using ApiNet8.Models.Eventos;
-using ApiNet8.Models.Partidos;
 using ApiNet8.Models.TYC;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
 using ApiNet8.Utils;
 using AutoMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.ConstrainedExecution;
-using XAct;
-using XAct.Library.Settings;
-using XAct.Users;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace ApiNet8.Services
 {

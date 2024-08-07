@@ -11,7 +11,7 @@ namespace ApiNet8.Services.IServices
         List<Perfil> GetPerfiles();
         List<Permiso> GetPermisos();
         Perfil GetPerfilById(int Id);
-        Perfil CrearPerfil(PerfilDTO perfil, List<Permiso> Permisos);
+        Perfil CrearPerfil(PerfilDTO perfil, List<Permiso> permisos);
         Perfil ActualizarPerfil(PerfilDTO perfil, List<Permiso> permisos);
         Perfil EliminarPerfil(int id, JwtToken currentUserJwt);
         bool ExistePerfil(string nombre);
