@@ -7,13 +7,8 @@ using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
 using ApiNet8.Utils;
 using AutoMapper;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
-using System.Runtime.ConstrainedExecution;
-using XAct;
-using XAct.Library.Settings;
-using XAct.Users;
-using static System.Runtime.InteropServices.JavaScript.JSType;
+
 
 namespace ApiNet8.Services
 {
@@ -31,22 +26,76 @@ namespace ApiNet8.Services
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
-        public Perfil ActualizarPerfil(PerfilDTO perfil, JwtToken currentUserJwt)
+        public Perfil ActualizarPerfil(PerfilDTO perfil, List<Permiso> permisosNuevos)
         {
             try
             {
-                Perfil per;
+                Perfil per = GetPerfilById(perfil.Id);
+
+                if (per.NombrePerfil != perfil.NombrePerfil)
+                {
+                    var existePerfil = ExistePerfil(perfil.NombrePerfil);
+                    if (existePerfil)
+                    {
+                        throw new Exception("Ya existe un perfil con ese nombre");
+                    }
+                }
+                
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    per = ((IConfiguracionServices)this).GetPerfilById(perfil.Id);
                     per.NombrePerfil = perfil.NombrePerfil;
                     per.DescripcionPerfil = perfil.DescripcionPerfil;
                     per.FechaModificacion = DateTime.Now;
-                    per.UsuarioEditor = currentUserJwt.Id;//Implementar CurrentUser
+                    per.UsuarioEditor = perfil.UsuarioEditor;
                     _db.Update(per);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
+
+                List<Permiso> permisosViejos = GetPermisosByPerfil(per);
+
+                // Comparar y actualizar permisos
+                foreach (var nuevoPermiso in permisosNuevos)
+                {
+                    Permiso permisoExistente = null;
+                    if (permisosViejos != null)
+                    {
+                        permisoExistente = permisosViejos.FirstOrDefault(p => p.Id == nuevoPermiso.Id);
+                    }
+
+                    if (permisoExistente == null)
+                    {
+                        Permiso permisoAsoc = _db.Permiso.Where(p => p.Id == nuevoPermiso.Id).FirstOrDefault();
+                        PerfilPermiso perfilPermiso = new PerfilPermiso
+                        {
+                            Perfil = per,
+                            Permiso = permisoAsoc,
+                            FechaCreacion = DateTime.Now,
+                            UsuarioEditor = perfil.UsuarioEditor
+                        };
+                        _db.Add(perfilPermiso);
+                    }
+                }
+                if (permisosViejos != null) { 
+                    foreach (var permisoActual in permisosViejos)
+                    {
+                        var permisoEnNuevaLista = permisosNuevos.FirstOrDefault(p => p.Id == permisoActual.Id);
+                        if (permisoEnNuevaLista == null)
+                        {
+                            // Permiso ya no está en la nueva lista, establecer FechaBaja
+                            PerfilPermiso perfilPermiso = _db.PerfilPermiso.FirstOrDefault(pp => pp.Permiso == permisoActual && pp.Perfil == per && pp.FechaBaja == null);
+                            if (perfilPermiso != null)
+                            {
+                                perfilPermiso.FechaBaja = DateTime.Now;
+                                _db.Update(perfilPermiso);
+                            }
+                        }
+                    }
+                }
+                // Guardar cambios en la base de datos
+                _db.SaveChanges();
+
+
                 return per;
             }
             catch (Exception e)
@@ -56,15 +105,42 @@ namespace ApiNet8.Services
             }
         }
 
-        public Perfil CrearPerfil(Perfil perfil, JwtToken currentUserJwt)
+        public Perfil CrearPerfil(PerfilDTO perfil, List<Permiso> permisos) 
         {
             try
             {
-                perfil.FechaCreacion = DateTime.Now;
-                perfil.UsuarioEditor = currentUserJwt.Id;
-                _db.Add(perfil);              
+                var existePerfil = ExistePerfil(perfil.NombrePerfil);
+                if (existePerfil)
+                {
+                    throw new Exception("Ya existe un perfil con ese nombre");
+                }
+
+                Perfil per = _mapper.Map<Perfil>(perfil);
+                per.FechaCreacion = DateTime.Now;
+                _db.Add(per);
                 _db.SaveChanges();
-                return perfil;
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    Perfil perfilNuevo = _db.Perfil.Where(p => p.NombrePerfil == per.NombrePerfil).FirstOrDefault();
+                    foreach (Permiso perm in permisos)
+                    {
+                        Permiso permisoAsoc = _db.Permiso.Where(p => p.Id == perm.Id).FirstOrDefault();
+                        PerfilPermiso perfilPermiso = new PerfilPermiso();
+                        perfilPermiso.Perfil = perfilNuevo;
+                        perfilPermiso.Permiso = permisoAsoc;
+                        perfilPermiso.FechaCreacion = DateTime.Now;
+                        perfilPermiso.UsuarioEditor = per.UsuarioEditor;
+                        _db.Add(perfilPermiso);
+                        _db.SaveChanges();
+
+                    }
+                    transaction.Commit();
+                }
+
+                
+
+                return per;
             }
             catch (Exception e)
             {
@@ -299,7 +375,20 @@ namespace ApiNet8.Services
         {
             try
             {
-                return _db.Perfil.ToList();// podriamos devolverlos ordenados por id
+                return _db.Perfil.Where(p => p.FechaBaja == null).ToList();// podriamos devolverlos ordenados por id
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+
+        }
+
+        public List<Permiso> GetPermisos()
+        {
+            try
+            {
+                return _db.Permiso.Where(p => p.FechaBaja == null).ToList();// podriamos devolverlos ordenados por id
             }
             catch (Exception e)
             {
@@ -312,7 +401,12 @@ namespace ApiNet8.Services
         {
             try
             {
-                List<PerfilPermiso> perfilPermisos = _db.PerfilPermiso.Include(pp => pp.Perfil).Include(pp => pp.Permiso).Where(pp => pp.Perfil.Id == perfil.Id).DefaultIfEmpty().ToList();
+                List<PerfilPermiso> perfilPermisos = _db.PerfilPermiso.Include(pp => pp.Perfil).Include(pp => pp.Permiso).Where(pp => pp.Perfil.Id == perfil.Id && pp.FechaBaja==null).DefaultIfEmpty().ToList();
+                
+                if (perfilPermisos.FirstOrDefault() == null)
+                {
+                    return null;
+                }
                 List<Permiso> permisos = new List<Permiso>();
 
                 foreach (PerfilPermiso perm in perfilPermisos) {

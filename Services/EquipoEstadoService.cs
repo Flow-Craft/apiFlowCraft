@@ -3,6 +3,7 @@ using ApiNet8.Models;
 using ApiNet8.Models.DTO;
 using ApiNet8.Models.Eventos;
 using ApiNet8.Models.Partidos;
+using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
 using AutoMapper;
 
@@ -21,20 +22,33 @@ namespace ApiNet8.Services
             _mapper = mapper;
         }
 
-        public EquipoEstado ActualizarEquipoEstado(EquipoEstadoDTO equipoEstadoDTO, JwtToken currentUserJwt)
+        public EquipoEstado ActualizarEquipoEstado(EquipoEstadoDTO equipoEstadoDTO)
         {
             try
             {
-                EquipoEstado estEquip = _mapper.Map<EquipoEstado>(equipoEstadoDTO);
+                EquipoEstado equipoEstado = GetEquipoEstadoById(equipoEstadoDTO.Id);
+
+                if (equipoEstado.NombreEstado != equipoEstadoDTO.NombreEstado)
+                {
+                    var existeEstado = ExisteEquipoEstado(equipoEstadoDTO.NombreEstado);
+                    if (existeEstado)
+                    {
+                        throw new Exception("Ya existe un estado con ese nombre");
+                    }
+                }
+
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    estEquip.FechaModificacion = DateTime.Now;
-                    estEquip.UsuarioEditor = currentUserJwt.Id;
-                    _db.Update(estEquip);
+                    equipoEstado.NombreEstado = equipoEstadoDTO.NombreEstado;
+                    equipoEstado.DescripcionEstado = equipoEstadoDTO.DescripcionEstado;
+                    equipoEstado.FechaModificacion = DateTime.Now;
+                    equipoEstado.UsuarioEditor = equipoEstadoDTO.UsuarioEditor;
+                    _db.Update(equipoEstado);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
-                return estEquip;
+
+                return equipoEstado;
             }
             catch (Exception e)
             {
@@ -43,14 +57,18 @@ namespace ApiNet8.Services
             }
         }
 
-        public EquipoEstado CrearEquipoEstado(EquipoEstadoDTO equipoEstadoDTO, JwtToken currentUserJwt)
+        public EquipoEstado CrearEquipoEstado(EquipoEstadoDTO equipoEstadoDTO)
         {
             try
             {
-                EquipoEstado estEquip = _mapper.Map<EquipoEstado>(equipoEstadoDTO);
+                var existeEstado = ExisteEquipoEstado(equipoEstadoDTO.NombreEstado);
+                if (existeEstado)
+                {
+                    throw new Exception("Ya existe un estado con ese nombre");
+                }
 
+                EquipoEstado estEquip = _mapper.Map<EquipoEstado>(equipoEstadoDTO);
                 estEquip.FechaCreacion = DateTime.Now;
-                estEquip.UsuarioEditor = currentUserJwt.Id;
                 _db.Add(estEquip);
                 _db.SaveChanges();
                 return estEquip;
@@ -110,7 +128,7 @@ namespace ApiNet8.Services
         {
             try
             {
-                return _db.EquipoEstado.ToList();
+                return _db.EquipoEstado.Where(p => p.FechaBaja == null).ToList();
             }
             catch (Exception e)
             {
