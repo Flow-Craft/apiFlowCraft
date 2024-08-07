@@ -1,7 +1,10 @@
 ﻿using ApiNet8.Data;
+using ApiNet8.Models;
+using ApiNet8.Models.Club;
 using ApiNet8.Models.DTO;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
+using ApiNet8.Utils;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +13,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using XAct.Library.Settings;
+using XAct.Users;
 using XSystem.Security.Cryptography;
 
 namespace ApiNet8.Services
@@ -19,12 +23,17 @@ namespace ApiNet8.Services
         private readonly ApplicationDbContext _db;        
         private string secretToken;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IUsuarioEstadoServices _usuarioEstadoServices;
 
-        public UsuarioServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper)
+
+        public UsuarioServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor, IUsuarioEstadoServices usuarioEstadoServices)
         {          
             this._db = db;
             this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
+            this._usuarioEstadoServices = usuarioEstadoServices;
         }
 
         public List<Usuario> GetUsuarios()
@@ -36,7 +45,10 @@ namespace ApiNet8.Services
         {
             try
             {
-                return _db.Usuario.Find(id); 
+                return _db.Usuario
+                    .Include(u => u.UsuarioHistoriales)
+                    .Where(u => u.Id == id)
+                    .FirstOrDefault();
             }
             catch (Exception e)
             {
@@ -44,7 +56,7 @@ namespace ApiNet8.Services
             }
         }
 
-        public UsuarioDTO CrearUsuario(UsuarioDTO usuario)
+        public void CrearUsuario(UsuarioDTO usuario)
         {
             try
             {
@@ -55,10 +67,28 @@ namespace ApiNet8.Services
                 var password = obtenermd5(user.Contrasena);
                 user.Contrasena = password;
 
-                _db.Add(user);
-                _db.SaveChanges();
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
-                return usuario;
+                // crear en la base
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    UsuarioHistorial historial = new UsuarioHistorial()
+                    {
+                        FechaInicio = DateTime.Now,
+                        DetalleCambioEstado = "Crear usuario",
+                        UsuarioEditor = currentUser?.Id,
+                        UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1) // asigno estado ACTIVO
+                    };
+
+                   user.UsuarioHistoriales = new List<UsuarioHistorial>();            
+                   user.UsuarioHistoriales.Add(historial);
+
+                    _db.Add(historial);
+                    _db.Add(user);                    
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
             }
             catch (Exception ex)
             {
@@ -169,8 +199,28 @@ namespace ApiNet8.Services
                     FechaNacimiento = usuarioRegistroDTO.FechaNacimiento
                 };
 
-                _db.Usuario.Add(usuario);
-                await _db.SaveChangesAsync();
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                // crear en la base
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    UsuarioHistorial historial = new UsuarioHistorial()
+                    {
+                        FechaInicio = DateTime.Now,
+                        DetalleCambioEstado = "Crear usuario",
+                        UsuarioEditor = currentUser?.Id,
+                        UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1) // asigno estado ACTIVO
+                    };
+
+                    usuario.UsuarioHistoriales.Add(historial);
+
+                    _db.UsuarioHistorial.Add(historial);
+                    _db.Usuario.Add(usuario);
+                    await _db.SaveChangesAsync();
+                    transaction.Commit();
+                }
+              
                 return usuario;
             }
             catch (Exception e)
@@ -197,20 +247,24 @@ namespace ApiNet8.Services
              return await _db.Usuario.FirstOrDefaultAsync(u => u.Email == email && u.Contrasena == password);
         }
 
-        public Usuario ActualizarUsuario(UsuarioDTO usuario)
+        public void ActualizarUsuario(UsuarioDTO usuario)
         {
             try
             {
+                //mapper de usuariodto a usuario
                 Usuario user;
+              
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    user = GetUsuarioById((int)usuario.Id);
-                    user.Nombre = usuario.Nombre;
-                    user.Apellido = usuario.Apellido;
-                    user.Direccion = usuario.Direccion;
-                    user.Dni = usuario.Dni;
-                    user.Email = usuario.Email;
-                    user.FechaNacimiento = usuario.FechaNacimiento;
+                    // obtengo usuario a modificar y lo actualizo
+                    user = GetUsuarioById((int)usuario.Id);                  
+
+                    user.Nombre = usuario.Nombre ?? user.Nombre;
+                    user.Apellido = usuario.Apellido ?? user.Apellido;
+                    user.Direccion = usuario.Direccion ?? user.Direccion;
+                    user.Dni = usuario.Dni ?? user.Dni;
+                    user.Email = usuario.Email ?? user.Email;
+                    user.FechaNacimiento = usuario.FechaNacimiento ?? user.FechaNacimiento;
                     user.CodPostal = usuario.CodPostal ?? user.CodPostal;
                     user.DeporteFavorito = usuario.DeporteFavorito ?? user.DeporteFavorito;
                     user.FotoPerfil = usuario.FotoPerfil ?? user.FotoPerfil;
@@ -218,11 +272,12 @@ namespace ApiNet8.Services
                     user.Pais = usuario.Pais ?? user.Pais;
                     user.Provincia = usuario.Provincia ?? user.Provincia;
                     user.Localidad = usuario.Localidad ?? user.Localidad;
-                    _db.Update(user);
+                    user.Telefono = usuario.Telefono ?? user.Telefono;
+
+                    _db.Usuario.Update(user);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
-                return user;
             }
             catch (Exception e)
             {
@@ -230,26 +285,54 @@ namespace ApiNet8.Services
             }
         }
 
-        public Usuario EliminarUsuario(int id)
+        public void EliminarUsuario(int id)
         {
-            throw new NotImplementedException();
-            // se debe crear un usuario historial y asignarlo al usuario
-            //try
-            //{
-            //    Usuario user = GetUsuarioById(id);
-            //    using (var transaction = db.Database.BeginTransaction())
-            //    {
+            try
+            {
+                Usuario usuarioAEliminar = GetUsuarioById(id);
+
+                if (usuarioAEliminar == null)
+                {
+                    throw new Exception("No se encontró el usuario.");
+                }
+
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    if (usuarioAEliminar.UsuarioHistoriales.Count != 0 && usuarioAEliminar.UsuarioHistoriales.Any(a=>a.FechaFin == null))
+                    {
+                        // obtengo ultimo historial y lo doy de baja
+                        UsuarioHistorial historialAnterior = usuarioAEliminar.UsuarioHistoriales.FirstOrDefault(u => u.FechaFin == null);
+                        historialAnterior.FechaFin = DateTime.Now;
+                        _db.UsuarioHistorial.Update(historialAnterior);
+                    }                    
+
+                    // se crea nuevo historial con estado desactivado
+                    UsuarioHistorial nuevoHistorial = new UsuarioHistorial                    
+                    { 
+                        DetalleCambioEstado = "Se elimina usuario",
+                        FechaInicio = DateTime.Now,
+                        UsuarioEditor = currentUser?.Id,
+                        UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(3) // asigno estado DESACTIVADO
+                    };
+
+                    // se asigna el historial al usuario
+                    usuarioAEliminar.UsuarioHistoriales.Add(nuevoHistorial);
+
                     
-            //        _db.Update(user);
-            //        _db.SaveChanges();
-            //        transaction.Commit();
-            //    }
-            //    return user;
-            //}
-            //catch (Exception e)
-            //{
-            //    throw new Exception(e.Message, e);
-            //}
+                    _db.UsuarioHistorial.Update(nuevoHistorial);
+                    _db.Usuario.Update(usuarioAEliminar);
+
+                    _db.SaveChanges();
+                    transaction.Commit();                  
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
         }
     }
 }

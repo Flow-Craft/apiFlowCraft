@@ -21,5 +21,7 @@ namespace ApiNet8.Services.IServices
         PerfilClub EliminarPerfilClub(int id);
         PerfilClub GetPerfilClubById(int Id);
         TerminosYCondiciones CrearTYC(TerminosYCondicionesDTO terminosYCondiciones);
+        TerminosYCondiciones ObtenerTYC();
+
     }
 }

@@ -823,6 +823,8 @@ namespace ApiNet8.Controllers
 
         }
 
+        #region terminos y condiciones
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
         public IActionResult CrearTYC([FromBody] TerminosYCondicionesDTO terminosYCondicionesDTO)
         {
@@ -842,6 +844,31 @@ namespace ApiNet8.Controllers
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
         }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult ObtenerTYC()
+        {
+            try
+            {
+                TerminosYCondiciones tycActuales = _configuracionServices.ObtenerTYC();
+                return Ok(tycActuales.TYC);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = e.Message == "No existen términos y condiciones" ? HttpStatusCode.NoContent : HttpStatusCode.InternalServerError,
+                    title = "Error al obtener términos y condiciones",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+
+        #endregion
+
 
     }
 }

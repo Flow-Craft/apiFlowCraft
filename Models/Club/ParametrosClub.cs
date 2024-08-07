@@ -13,7 +13,8 @@
         public string TextoFooterEmail { get; set; }
         public string ColorBannerEmail { get; set; }
         public string TextoEmail { get; set; }
-        public string QuienesSomos { get; set; }
+        public string TituloQuienesSomos { get; set; }
+        public string DescripcionQuienesSomos { get; set; }
 
         // Relaciones
         public IList<ClubHistorial>? clubHistoriales { get; set; }
