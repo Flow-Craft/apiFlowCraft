@@ -119,7 +119,7 @@ namespace ApiNet8.Services
                         TextoFooterEmail = perfilClubDTO.TextoFooterEmail,
                         ColorBannerEmail = perfilClubDTO.ColorBannerEmail,
                         TextoEmail = perfilClubDTO.TextoEmail,
-                        QuienesSomos = perfilClubDTO.QuienesSomos,
+                        //QuienesSomos = perfilClubDTO.QuienesSomos,
                         PerfilClub = perfilClub,
                         clubHistoriales = new List<ClubHistorial>()
                     };
@@ -188,7 +188,7 @@ namespace ApiNet8.Services
                     parametrosClub.TextoFooterEmail = perfilClubDTO.TextoFooterEmail;
                     parametrosClub.ColorBannerEmail = perfilClubDTO.ColorBannerEmail;
                     parametrosClub.TextoEmail = perfilClubDTO.TextoEmail;
-                    parametrosClub.QuienesSomos = perfilClubDTO.QuienesSomos;
+                    //parametrosClub.QuienesSomos = perfilClubDTO.QuienesSomos;
 
                     clubHistorial.FechaBaja = DateTime.Now;
                     clubHistorial.UsuarioEditor = 1;// usar current user o jwt
