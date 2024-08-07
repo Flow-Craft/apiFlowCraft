@@ -9,9 +9,10 @@ namespace ApiNet8.Services.IServices
     public interface IConfiguracionServices
     {
         List<Perfil> GetPerfiles();
+        List<Permiso> GetPermisos();
         Perfil GetPerfilById(int Id);
-        Perfil CrearPerfil(Perfil perfil, JwtToken currentUserJwt);
-        Perfil ActualizarPerfil(PerfilDTO perfil, JwtToken currentUserJwt);
+        Perfil CrearPerfil(PerfilDTO perfil, List<Permiso> Permisos);
+        Perfil ActualizarPerfil(PerfilDTO perfil, List<Permiso> permisos);
         Perfil EliminarPerfil(int id, JwtToken currentUserJwt);
         bool ExistePerfil(string nombre);
         List<Permiso> GetPermisosByPerfil(Perfil perfil);

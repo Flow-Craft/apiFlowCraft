@@ -8,8 +8,8 @@ namespace ApiNet8.Services.IServices
     {
         List<UsuarioEstado> GetUsuarioEstados();
         UsuarioEstado GetUsuarioEstadoById(int Id);
-        UsuarioEstado CrearUsuarioEstado(UsuarioEstadoDTO usuarioEstado, JwtToken currentUserJwt);
-        UsuarioEstado ActualizarUsuarioEstado(UsuarioEstadoDTO usuarioEstado, JwtToken currentUserJwt);
+        UsuarioEstado CrearUsuarioEstado(UsuarioEstadoDTO usuarioEstado);
+        UsuarioEstado ActualizarUsuarioEstado(UsuarioEstadoDTO usuarioEstado);
         UsuarioEstado EliminarUsuarioEstado(int id, JwtToken currentUserJwt);
         bool ExisteUsuarioEstado(string nombre);
     }

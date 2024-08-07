@@ -40,7 +40,7 @@ namespace ApiNet8.Controllers
         
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetPerfiles()
+        public IActionResult GetPerfiles()//LISTO
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -65,10 +65,36 @@ namespace ApiNet8.Controllers
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        [HttpGet("{id}")]
+        [HttpGet]
+        public IActionResult GetPermisos()//LISTO
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<Permiso> permisos = _configuracionServices.GetPermisos();
+                return Ok(permisos);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al buscar perfiles",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
         [TypeFilter(typeof(ValidateIdFilterAttribute))]
         [EntityType(typeof(Perfil))] 
-        public IActionResult GetPerfilById(int id)
+        public IActionResult GetPerfilById(int id)//LISTO
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
@@ -90,20 +116,26 @@ namespace ApiNet8.Controllers
             }
             
         }
+        public class PerfilRequest
+        {
+            public PerfilDTO Perfil { get; set; }
+            public List<Permiso> Permisos { get; set; }
+        }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
-        public IActionResult CrearPerfil([FromBody] Perfil perfil)
+        public IActionResult CrearPerfil([FromBody] PerfilRequest form)//LISTO
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
 
             // obtengo datos de jwt para utilizar
             JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
+            form.Perfil.UsuarioEditor = currentUserJwt.Id;
 
             try
             {
-            Perfil perfilACrear = _configuracionServices.CrearPerfil(perfil, currentUserJwt);
+            Perfil perfilACrear = _configuracionServices.CrearPerfil(form.Perfil, form.Permisos);
             return Ok(perfilACrear);
             }
             catch (Exception e)
@@ -120,17 +152,17 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
-        public IActionResult ActualizarPerfil([FromBody] PerfilDTO perfil)
+        public IActionResult ActualizarPerfil([FromBody] PerfilRequest form)//LISTO
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
 
             // obtengo datos de jwt para utilizar
             JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-
+            form.Perfil.UsuarioEditor = currentUserJwt.Id;
             try
             {
-                Perfil perfilAActualizar = _configuracionServices.ActualizarPerfil(perfil, currentUserJwt);
+                Perfil perfilAActualizar = _configuracionServices.ActualizarPerfil(form.Perfil, form.Permisos);
                 return Ok(perfilAActualizar);
             }
             catch (Exception e)
@@ -146,8 +178,8 @@ namespace ApiNet8.Controllers
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        [HttpPost]
-        public IActionResult EliminarPerfil(int id)
+        [HttpPost("{id}")]
+        public IActionResult EliminarPerfil(int id)//LISTO
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
@@ -174,7 +206,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
-        public IActionResult GetPermisosByPerfil(Perfil perfil)
+        public IActionResult GetPermisosByPerfil(Perfil perfil)//LISTO
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
@@ -199,7 +231,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult ExistePerfil(string nombre)
+        public IActionResult ExistePerfil(string nombre)//LISTO
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
@@ -300,7 +332,7 @@ namespace ApiNet8.Controllers
         
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetUsuarioEstado()
+        public IActionResult GetUsuarioEstado()//LISTO
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -328,7 +360,7 @@ namespace ApiNet8.Controllers
         [HttpGet("{id}")]
         [TypeFilter(typeof(ValidateIdFilterAttribute))]
         [EntityType(typeof(UsuarioEstado))]
-        public IActionResult GetUsuarioEstadoById(int id)
+        public IActionResult GetUsuarioEstadoById(int id)//LISTO
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
 
@@ -354,7 +386,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
-        public IActionResult CrearUsuarioEstado([FromBody] UsuarioEstadoDTO usuarioEstadoDTO)
+        public IActionResult CrearUsuarioEstado([FromBody] UsuarioEstadoDTO usuarioEstadoDTO)//LISTO
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
 
@@ -362,15 +394,11 @@ namespace ApiNet8.Controllers
 
             // obtengo datos de jwt para utilizar
             JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-
-            if (usuarioEstadoDTO == null)
-            {
-                return BadRequest("Estado de usuario es nulo");
-            }
+            usuarioEstadoDTO.UsuarioEditor = currentUserJwt.Id;
 
             try
             {
-                UsuarioEstado estadoACrear = _usuarioEstadoServices.CrearUsuarioEstado(usuarioEstadoDTO, currentUserJwt);
+                UsuarioEstado estadoACrear = _usuarioEstadoServices.CrearUsuarioEstado(usuarioEstadoDTO);
                 return Ok(estadoACrear);
             }
             catch (Exception e)
@@ -387,7 +415,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
-        public IActionResult ActualizarUsuarioEstado([FromBody] UsuarioEstadoDTO usuarioEstadoDTO)
+        public IActionResult ActualizarUsuarioEstado([FromBody] UsuarioEstadoDTO usuarioEstadoDTO)//LISTO
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -395,10 +423,10 @@ namespace ApiNet8.Controllers
 
             // obtengo datos de jwt para utilizar
             JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-
+            usuarioEstadoDTO.UsuarioEditor = currentUserJwt.Id;
             try
             {
-                UsuarioEstado estadoAActualizar = _usuarioEstadoServices.ActualizarUsuarioEstado(usuarioEstadoDTO, currentUserJwt);
+                UsuarioEstado estadoAActualizar = _usuarioEstadoServices.ActualizarUsuarioEstado(usuarioEstadoDTO);
                 return Ok(estadoAActualizar);
             }
             catch (Exception e)
@@ -414,8 +442,8 @@ namespace ApiNet8.Controllers
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        [HttpPost]
-        public IActionResult EliminarUsuarioEstado(int id)
+        [HttpPost("{id}")]
+        public IActionResult EliminarUsuarioEstado(int id)//LISTO
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
 
@@ -443,7 +471,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult ExisteUsuarioEstado(string nombre)
+        public IActionResult ExisteUsuarioEstado(string nombre)//LISTO
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
 
@@ -467,7 +495,7 @@ namespace ApiNet8.Controllers
 
         }
 
-        //////////////////////////////////EVENTO ESTADO/////////////////////////////////////////////////////
+        //////////////////////////////////EVENTO ESTADO/////////////////////////////////////////////////////LISTO
         
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
@@ -531,15 +559,11 @@ namespace ApiNet8.Controllers
 
             // obtengo datos de jwt para utilizar
             JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-
-            if (eventoEstadoDTO == null)
-            {
-                return BadRequest("Estado de evento es nulo");
-            }
+            eventoEstadoDTO.UsuarioEditor = currentUserJwt.Id;
 
             try
             {
-                EstadoEvento estadoACrear = _eventoEstadoServices.CrearEventoEstado(eventoEstadoDTO, currentUserJwt);
+                EstadoEvento estadoACrear = _eventoEstadoServices.CrearEventoEstado(eventoEstadoDTO);
                 return Ok(estadoACrear);
             }
             catch (Exception e)
@@ -564,10 +588,11 @@ namespace ApiNet8.Controllers
 
             // obtengo datos de jwt para utilizar
             JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
+            eventoEstadoDTO.UsuarioEditor = currentUserJwt.Id;
 
             try
             {
-                EstadoEvento estadoAActualizar = _eventoEstadoServices.ActualizarEventoEstado(eventoEstadoDTO, currentUserJwt);
+                EstadoEvento estadoAActualizar = _eventoEstadoServices.ActualizarEventoEstado(eventoEstadoDTO);
                 return Ok(estadoAActualizar);
             }
             catch (Exception e)
@@ -583,7 +608,7 @@ namespace ApiNet8.Controllers
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        [HttpPost]
+        [HttpPost("{id}")]
         public IActionResult EliminarEventoEstado(int id)
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -698,15 +723,11 @@ namespace ApiNet8.Controllers
 
             // obtengo datos de jwt para utilizar
             JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-
-            if (equipoEstadoDTO == null)
-            {
-                return BadRequest("Estado de equipo es nulo");
-            }
+            equipoEstadoDTO.UsuarioEditor = currentUserJwt.Id;
 
             try
             {
-                EquipoEstado estadoACrear = _equipoEstadoServices.CrearEquipoEstado(equipoEstadoDTO, currentUserJwt);
+                EquipoEstado estadoACrear = _equipoEstadoServices.CrearEquipoEstado(equipoEstadoDTO);
                 return Ok(estadoACrear);
             }
             catch (Exception e)
@@ -731,10 +752,11 @@ namespace ApiNet8.Controllers
 
             // obtengo datos de jwt para utilizar
             JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
+            equipoEstadoDTO.UsuarioEditor = currentUserJwt.Id;
 
             try
             {
-                EquipoEstado estadoAActualizar = _equipoEstadoServices.ActualizarEquipoEstado(equipoEstadoDTO, currentUserJwt);
+                EquipoEstado estadoAActualizar = _equipoEstadoServices.ActualizarEquipoEstado(equipoEstadoDTO);
                 return Ok(estadoAActualizar);
             }
             catch (Exception e)
@@ -750,7 +772,7 @@ namespace ApiNet8.Controllers
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        [HttpPost]
+        [HttpPost("{id}")]
         public IActionResult EliminarEquipoEstado(int id)
         {
             var TOKEN = HttpContext.Items[JWT].ToString();

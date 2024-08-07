@@ -20,35 +20,33 @@ namespace ApiNet8.Services
             this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
             _mapper = mapper;
         }
-        public EstadoEvento ActualizarEventoEstado(EstadoEventoDTO eventoEstadoDTO, JwtToken currentUserJwt)
+        public EstadoEvento ActualizarEventoEstado(EstadoEventoDTO eventoEstadoDTO)
         {
             try
             {
-                //UsuarioEstado usuarioEstado;
-                //using (var transaction = _db.Database.BeginTransaction())
-                //{
-                //    usuarioEstado = ((IUsuarioEstadoServices)this).GetUsuarioEstadoById(usEst.Id);
-                //    usuarioEstado.NombreEstado = usEst.NombreEstado;
-                //    usuarioEstado.DescripcionEstado = usEst.DescripcionEstado;
-                //    usuarioEstado.FechaModificacion = DateTime.Now;
-                //    usuarioEstado.UsuarioEditor = usEst.UsuarioEditor;//Implementar CurrentUser
-                //    _db.Update(usuarioEstado);
-                //    _db.SaveChanges();
-                //    transaction.Commit();
-                //}
-                //return usuarioEstado;
+                EstadoEvento eventoEstado = GetEventoEstadoById(eventoEstadoDTO.Id);
 
-                //mapper de usuariodto a usuario
-                EstadoEvento estEvent = _mapper.Map<EstadoEvento>(eventoEstadoDTO);
+                if (eventoEstado.NombreEstado != eventoEstadoDTO.NombreEstado)
+                {
+                    var existeEstado = ExisteEventoEstado(eventoEstadoDTO.NombreEstado);
+                    if (existeEstado)
+                    {
+                        throw new Exception("Ya existe un estado con ese nombre");
+                    }
+                }
+
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    estEvent.FechaModificacion = DateTime.Now;
-                    estEvent.UsuarioEditor = currentUserJwt.Id;
-                    _db.Update(estEvent);
+                    eventoEstado.NombreEstado = eventoEstadoDTO.NombreEstado;
+                    eventoEstado.DescripcionEstado = eventoEstadoDTO.DescripcionEstado;
+                    eventoEstado.FechaModificacion = DateTime.Now;
+                    eventoEstado.UsuarioEditor = eventoEstadoDTO.UsuarioEditor;
+                    _db.Update(eventoEstado);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
-                return estEvent;
+ 
+                return eventoEstado;
             }
             catch (Exception e)
             {
@@ -57,15 +55,19 @@ namespace ApiNet8.Services
             }
         }
 
-        public EstadoEvento CrearEventoEstado(EstadoEventoDTO eventoEstadoDTO, JwtToken currentUserJwt)
+        public EstadoEvento CrearEventoEstado(EstadoEventoDTO eventoEstadoDTO)
         {
             try
             {
+                var existeEstado = ExisteEventoEstado(eventoEstadoDTO.NombreEstado);
+                if (existeEstado)
+                {
+                    throw new Exception("Ya existe un estado con ese nombre");
+                }
+
                 //mapper de usuariodto a usuario
                 EstadoEvento estEvent = _mapper.Map<EstadoEvento>(eventoEstadoDTO);
-
                 estEvent.FechaCreacion = DateTime.Now;
-                estEvent.UsuarioEditor = currentUserJwt.Id;
                 _db.Add(estEvent);
                 _db.SaveChanges();
                 return estEvent;
@@ -125,7 +127,7 @@ namespace ApiNet8.Services
         {
             try
             {
-                return _db.EstadoEvento.ToList();
+                return _db.EstadoEvento.Where(p => p.FechaBaja == null).ToList();
             }
             catch (Exception e)
             {
