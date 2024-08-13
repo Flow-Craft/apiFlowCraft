@@ -313,8 +313,8 @@ namespace ApiNet8.Controllers
 
             try
             {
-                PerfilClub perfilAEliminar = _configuracionServices.EliminarPerfilClub(id);
-                return Ok(perfilAEliminar);
+                _configuracionServices.EliminarPerfilClub(id);
+                return Ok();
             }
             catch (Exception e)
             {
@@ -328,8 +328,58 @@ namespace ApiNet8.Controllers
             }
         }
 
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetPerfilClubById(int id)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                PerfilClub perfilClub = _configuracionServices.GetPerfilClubById(id);
+                return Ok(perfilClub);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener perfil.",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetPerfilClubActivo(int id)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                PerfilClubResponseDTO perfilClub = _configuracionServices.GetPerfilClubActivo();
+                return Ok(perfilClub);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener perfil activo.",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
         //////////////////////////////////USUARIO ESTADO/////////////////////////////////////////////////////
-        
+
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult GetUsuarioEstado()//LISTO

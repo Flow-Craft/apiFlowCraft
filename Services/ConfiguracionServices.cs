@@ -163,6 +163,9 @@ namespace ApiNet8.Services
         {
             try
             {
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
                 var existePerfilClub = ExistePerfilClub(perfilClubDTO);
                 if (existePerfilClub)
                 {
@@ -171,11 +174,20 @@ namespace ApiNet8.Services
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
+                    PerfilClub perfilClubActivo = _db.PerfilClub.Where(p => p.Activo == true).FirstOrDefault();
+
+                    if (perfilClubActivo!=null)
+                    {
+                        perfilClubActivo.Activo = false;
+                        _db.Update(perfilClubActivo);
+                    }
+
                     PerfilClub perfilClub = new PerfilClub
                     {
                         NombrePerfilClub = perfilClubDTO.NombrePerfilClub,
-                        UsuarioEditor = 1,// traer de current user o jwt
+                        UsuarioEditor = currentUser != null ? currentUser.Id : 0,
                         FechaCreacion = DateTime.Now,
+                        Activo = true,
                     };
 
                     ClubHistorial clubHistorial = new ClubHistorial
@@ -185,7 +197,7 @@ namespace ApiNet8.Services
 
                     ParametrosClub parametrosClub = new ParametrosClub
                     {
-                        Nombre = perfilClubDTO.Nombre,
+                        Nombre = perfilClubDTO.NombrePerfilClub,
                         ColorPrincipal = perfilClubDTO.ColorPrincipal,
                         ColorSecundario = perfilClubDTO.ColorSecundario,
                         LogoPequenio = perfilClubDTO.LogoPequenio ?? null,
@@ -195,7 +207,8 @@ namespace ApiNet8.Services
                         TextoFooterEmail = perfilClubDTO.TextoFooterEmail,
                         ColorBannerEmail = perfilClubDTO.ColorBannerEmail,
                         TextoEmail = perfilClubDTO.TextoEmail,
-                        //QuienesSomos = perfilClubDTO.QuienesSomos,
+                        TituloQuienesSomos = perfilClubDTO.TituloQuienesSomos,
+                        DescripcionQuienesSomos = perfilClubDTO.DescripcionQuienesSomos,
                         PerfilClub = perfilClub,
                         clubHistoriales = new List<ClubHistorial>()
                     };
@@ -233,14 +246,16 @@ namespace ApiNet8.Services
         {
             try
             {
-               // obtener perfilclub, parametrosclub y club historial
-               PerfilClub perfilClub = GetPerfilClubById(perfilClubDTO.Id);
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                // obtener perfilclub, parametrosclub y club historial
+                PerfilClub perfilClub = GetPerfilClubById(perfilClubDTO.Id);
 
                 if (perfilClub == null) {
                     throw new Exception("No existe el perfil");
                 }
 
-                ParametrosClub parametrosClub = _db.ParametrosClub.Where(p=> p.PerfilClub.Id==perfilClubDTO.Id).FirstOrDefault();
+                ParametrosClub parametrosClub = _db.ParametrosClub.Include(pp => pp.clubHistoriales).Where(p=> p.PerfilClub.Id==perfilClubDTO.Id).FirstOrDefault();
                 ClubHistorial clubHistorial = parametrosClub.clubHistoriales.Where(c=> c.FechaBaja == null).FirstOrDefault();
 
                 if (parametrosClub == null || clubHistorial == null) {
@@ -252,22 +267,23 @@ namespace ApiNet8.Services
                 {
                     perfilClub.NombrePerfilClub = perfilClubDTO.NombrePerfilClub;
                     perfilClub.FechaModificacion = DateTime.Now;
-                    perfilClub.UsuarioEditor = 1;// usar current user o jwt
+                    perfilClub.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
 
-                    parametrosClub.Nombre = perfilClubDTO.Nombre;
-                    parametrosClub.ColorPrincipal = perfilClubDTO.ColorPrincipal;
-                    parametrosClub.ColorSecundario = perfilClubDTO.ColorSecundario;
-                    parametrosClub.LogoPequenio = perfilClubDTO.LogoPequenio;
-                    parametrosClub.LogoGrande = perfilClubDTO.LogoGrande;
-                    parametrosClub.IconoPlataforma = perfilClubDTO.IconoPlataforma;
-                    parametrosClub.TextoBannerEmail = perfilClubDTO.TextoBannerEmail;
-                    parametrosClub.TextoFooterEmail = perfilClubDTO.TextoFooterEmail;
-                    parametrosClub.ColorBannerEmail = perfilClubDTO.ColorBannerEmail;
-                    parametrosClub.TextoEmail = perfilClubDTO.TextoEmail;
-                    //parametrosClub.QuienesSomos = perfilClubDTO.QuienesSomos;
+                    parametrosClub.Nombre = perfilClubDTO.NombrePerfilClub ?? perfilClub.NombrePerfilClub;
+                    parametrosClub.ColorPrincipal = perfilClubDTO.ColorPrincipal ?? parametrosClub.ColorPrincipal;
+                    parametrosClub.ColorSecundario = perfilClubDTO.ColorSecundario ?? parametrosClub.ColorSecundario;
+                    parametrosClub.LogoPequenio = perfilClubDTO.LogoPequenio ?? parametrosClub.LogoPequenio;
+                    parametrosClub.LogoGrande = perfilClubDTO.LogoGrande ?? parametrosClub.LogoGrande;
+                    parametrosClub.IconoPlataforma = perfilClubDTO.IconoPlataforma ?? parametrosClub.IconoPlataforma;
+                    parametrosClub.TextoBannerEmail = perfilClubDTO.TextoBannerEmail ?? parametrosClub.TextoBannerEmail;
+                    parametrosClub.TextoFooterEmail = perfilClubDTO.TextoFooterEmail ?? parametrosClub.TextoFooterEmail;
+                    parametrosClub.ColorBannerEmail = perfilClubDTO.ColorBannerEmail ?? parametrosClub.ColorBannerEmail;
+                    parametrosClub.TextoEmail = perfilClubDTO.TextoEmail ?? parametrosClub.TextoEmail;
+                    parametrosClub.TituloQuienesSomos = perfilClubDTO.TituloQuienesSomos ?? parametrosClub.TituloQuienesSomos;
+                    parametrosClub.DescripcionQuienesSomos = perfilClubDTO.DescripcionQuienesSomos ?? parametrosClub.DescripcionQuienesSomos;
 
                     clubHistorial.FechaBaja = DateTime.Now;
-                    clubHistorial.UsuarioEditor = 1;// usar current user o jwt
+                    clubHistorial.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
 
                     ClubHistorial clubHistorialNuevo = new ClubHistorial()
                     {
@@ -293,12 +309,12 @@ namespace ApiNet8.Services
             }
         }
 
-        public PerfilClub EliminarPerfilClub(int id)
+        public void EliminarPerfilClub(int id)
         {
             try
             {
                 PerfilClub perfilClub = GetPerfilClubById(id);
-                ParametrosClub parametrosClub = _db.ParametrosClub.Where(p => p.PerfilClub.Id == id).FirstOrDefault();
+                ParametrosClub parametrosClub = _db.ParametrosClub.Include(pp => pp.clubHistoriales).Where(p => p.PerfilClub.Id == id).FirstOrDefault();
                 ClubHistorial clubHistorial = parametrosClub.clubHistoriales.Where(c => c.FechaBaja == null).FirstOrDefault();
 
                 if (parametrosClub == null || clubHistorial == null)
@@ -308,7 +324,8 @@ namespace ApiNet8.Services
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    perfilClub.FechaBaja = DateTime.Now;                 
+                    perfilClub.FechaBaja = DateTime.Now;
+                    perfilClub.Activo = false;
                     clubHistorial.FechaBaja = DateTime.Now;
                     _db.Update(perfilClub);
                     _db.Update(clubHistorial);
@@ -321,6 +338,43 @@ namespace ApiNet8.Services
             {
 
                 throw;
+            }
+        }
+
+        public PerfilClubResponseDTO GetPerfilClubActivo()
+        {
+            try
+            {
+                PerfilClub perfilClub = _db.PerfilClub.Where(p => p.Activo == true).FirstOrDefault();
+                ParametrosClub parametrosClub = _db.ParametrosClub.Where(p=>p.PerfilClub.Id == perfilClub.Id).FirstOrDefault();
+
+                if (perfilClub==null || parametrosClub==null)
+                {
+                    throw new Exception("No existe un perfil activo ó no tiene parámetros.");
+                }
+
+                PerfilClubResponseDTO response = new PerfilClubResponseDTO 
+                {
+                    NombrePerfilClub = perfilClub.NombrePerfilClub,
+                    UsuarioEditor = perfilClub.UsuarioEditor,
+                    ColorPrincipal = parametrosClub.ColorPrincipal,
+                    ColorSecundario = parametrosClub.ColorSecundario,
+                    LogoPequenio = parametrosClub.LogoPequenio,
+                    LogoGrande = parametrosClub.LogoGrande,
+                    IconoPlataforma = parametrosClub.IconoPlataforma,
+                    TextoBannerEmail = parametrosClub.TextoBannerEmail,
+                    TextoFooterEmail = parametrosClub.TextoFooterEmail,
+                    ColorBannerEmail = parametrosClub.ColorBannerEmail,
+                    TextoEmail = parametrosClub.TextoEmail,
+                    TituloQuienesSomos = parametrosClub.TituloQuienesSomos,
+                    DescripcionQuienesSomos = parametrosClub.DescripcionQuienesSomos                     
+                };
+
+                return response;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
             }
         }
 
