@@ -1,9 +1,9 @@
 ﻿namespace ApiNet8.Models.DTO
 {
-    public class PerfilClubDTO
+    public class PerfilClubResponseDTO
     {
         // perfil club
-        public int Id { get; set; }
+        //public int Id { get; set; }
         public string NombrePerfilClub { get; set; }       
         public int UsuarioEditor { get; set; }
 
