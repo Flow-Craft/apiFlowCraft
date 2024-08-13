@@ -330,8 +330,7 @@ namespace ApiNet8.Services
                     _db.Update(perfilClub);
                     _db.Update(clubHistorial);
                     _db.SaveChanges();
-                    transaction.Commit();
-                    return perfilClub;
+                    transaction.Commit();                    
                 }
             }
             catch (Exception)
