@@ -23,5 +23,6 @@ namespace ApiNet8.Services.IServices
         TerminosYCondiciones CrearTYC(TerminosYCondicionesDTO terminosYCondiciones);
         TerminosYCondiciones ObtenerTYC();
         PerfilClubResponseDTO GetPerfilClubActivo();
+        PerfilClubQuienesSomosDTO GetPerfilClubQuienesSomos();
     }
 }

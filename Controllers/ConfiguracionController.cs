@@ -377,6 +377,26 @@ namespace ApiNet8.Controllers
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
         }
+                
+        [HttpGet]
+        public IActionResult GetPerfilClubQuienesSomos()
+        {           
+            try
+            {
+                PerfilClubQuienesSomosDTO perfilClub = _configuracionServices.GetPerfilClubQuienesSomos();
+                return Ok(perfilClub);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener descripcion quienes somos.",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
 
         //////////////////////////////////USUARIO ESTADO/////////////////////////////////////////////////////
 

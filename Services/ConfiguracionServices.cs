@@ -377,6 +377,26 @@ namespace ApiNet8.Services
             }
         }
 
+        public PerfilClubQuienesSomosDTO GetPerfilClubQuienesSomos()
+        {
+            try
+            {
+                PerfilClubResponseDTO perfilActivo = GetPerfilClubActivo();
+
+                PerfilClubQuienesSomosDTO response = new PerfilClubQuienesSomosDTO
+                {
+                    TituloQuienesSomos = perfilActivo.TituloQuienesSomos,
+                    DescripcionQuienesSomos = perfilActivo.DescripcionQuienesSomos
+                };
+
+                return response;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
         public Perfil EliminarPerfil(int id, JwtToken currentUserJwt)
         {
             try
