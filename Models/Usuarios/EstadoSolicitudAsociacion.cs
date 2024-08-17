@@ -2,7 +2,7 @@
 {
     public class EstadoSolicitudAsociacion
     {
-        public string Id { get; set; }
+        public int Id { get; set; }
         public string DescripcionEstado { get; set; }
         public string NombreEstado { get; set; } // Pendiente, Aprobada, Rechazada
         public DateTime FechaCreacion { get; set; }
