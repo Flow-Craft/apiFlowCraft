@@ -129,6 +129,20 @@ namespace ApiNet8.Services
             }
         }
 
+        public EstadoSolicitudAsociacion GetEstadoSolicitudAsociacion(int Id)
+        {
+            try
+            {
+                EstadoSolicitudAsociacion estadoSolicitudAsociacion = _db.EstadoSolicitudAsociacion.Find(Id);
+
+                return estadoSolicitudAsociacion;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
 
         public List<UsuarioEstado> GetUsuarioEstados()
         {

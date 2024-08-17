@@ -196,7 +196,13 @@ namespace ApiNet8.Services
                     Email = usuarioRegistroDTO.Email,
                     FechaAceptacionTYC = DateTime.Now,
                     FechaCambioContrasena = DateTime.Now,
-                    FechaNacimiento = usuarioRegistroDTO.FechaNacimiento
+                    FechaNacimiento = usuarioRegistroDTO.FechaNacimiento,
+                    Sexo = usuarioRegistroDTO.Sexo,
+                    ImageType = usuarioRegistroDTO.ImageType ?? null,
+                    FotoPerfil = usuarioRegistroDTO.FotoPerfil ?? [],
+                    Pais = usuarioRegistroDTO.Pais ?? null,
+                    Provincia = usuarioRegistroDTO.Provincia ?? null,
+                    Localidad = usuarioRegistroDTO?.Localidad ?? null
                 };
 
                 // Obtener el usuario actual desde la sesión
@@ -208,17 +214,23 @@ namespace ApiNet8.Services
                     UsuarioHistorial historial = new UsuarioHistorial()
                     {
                         FechaInicio = DateTime.Now,
-                        DetalleCambioEstado = "Crear usuario",
+                        DetalleCambioEstado = "Registrar usuario",
                         UsuarioEditor = currentUser?.Id,
                         UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1) // asigno estado ACTIVO
                     };
 
+                    usuario.UsuarioHistoriales = new List<UsuarioHistorial>();
                     usuario.UsuarioHistoriales.Add(historial);
 
                     _db.UsuarioHistorial.Add(historial);
                     _db.Usuario.Add(usuario);
                     await _db.SaveChangesAsync();
                     transaction.Commit();
+                }
+                // ver si debo obtener user de la base para ver id
+                if (usuarioRegistroDTO.Socio)
+                {
+                    Asociarse(usuario);
                 }
               
                 return usuario;
@@ -228,6 +240,47 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message,e);
             }
           
+        }
+
+        public void Asociarse(Usuario usuario)
+        {
+            try
+            {
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                // se crea el historial
+                SolicitudAsociacionHistorial nuevaSolicitudHistorial = new SolicitudAsociacionHistorial
+                {
+                    FechaInicio = DateTime.Now,
+                    DetalleCambioEstado = "Usuario crea solicitud para asociarse",
+                    UsuarioEditor = currentUser?.Id,
+                    EstadoSolicitudAsociacion = _usuarioEstadoServices.GetEstadoSolicitudAsociacion(1)
+                };
+
+                List<SolicitudAsociacionHistorial> historial = new List<SolicitudAsociacionHistorial>();
+                historial.Add(nuevaSolicitudHistorial);
+
+                // se crea la solicitud con el historial de pendiente
+                SolicitudAsociacion nuevaSolicitud = new SolicitudAsociacion
+                {
+                    Usuario = usuario,
+                    SolicitudAsociacionHistoriales = historial
+                };
+
+                // crear en la base
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.SolicitudAsociacionHistorial.Add(nuevaSolicitudHistorial);
+                    _db.SolicitudAsociacion.Add(nuevaSolicitud);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
         }
 
         //Método para encriptar contraseña con MD5 se usa tanto en el Acceso como en el Registro

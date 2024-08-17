@@ -139,6 +139,10 @@ namespace ApiNet8.Data
                 new EquipoEstado { Id = 2, DescripcionEstado = "Equipo inactivo", NombreEstado = "Inactivo", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
                 new EquipoEstado { Id = 3, DescripcionEstado = "Equipo suspendido", NombreEstado = "Suspendido", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 });
 
+            modelBuilder.Entity<EstadoSolicitudAsociacion>().HasData(
+              new EstadoSolicitudAsociacion { Id = 1, DescripcionEstado = "Solicitud pendiente", NombreEstado = "Pendiente", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+              new EstadoSolicitudAsociacion { Id = 2, DescripcionEstado = "Solicitud aprobada", NombreEstado = "Aprobada", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+              new EstadoSolicitudAsociacion { Id = 3, DescripcionEstado = "Solicitud rechazada", NombreEstado = "Rechazada", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 });
         }
     }
 }

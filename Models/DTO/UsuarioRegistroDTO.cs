@@ -28,5 +28,7 @@ namespace ApiNet8.Models.DTO
         public string? Pais { get; set; }
         public string? Provincia { get; set; }
         public string? Localidad { get; set; }
+        public bool Socio { get; set; }
+        public string? Sexo { get; set; }
     }
 }
