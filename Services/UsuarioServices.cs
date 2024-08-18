@@ -183,7 +183,7 @@ namespace ApiNet8.Services
                     throw new Exception("Ya existe un usuario con ese email o dni");
                 }
 
-                if (usuarioRegistroDTO.Sexo != "M" || usuarioRegistroDTO.Sexo != "H" || usuarioRegistroDTO.Sexo != "X")
+                if (usuarioRegistroDTO.Sexo != "M" && usuarioRegistroDTO.Sexo != "H" && usuarioRegistroDTO.Sexo != "X")
                 {
                     throw new Exception("Debe cargar un sexo válido para el usuario");
                 }
