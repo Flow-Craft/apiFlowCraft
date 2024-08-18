@@ -18,10 +18,11 @@ namespace ApiNet8.Services.IServices
         List<Permiso> GetPermisosByPerfil(Perfil perfil);
         PerfilClub CrearPerfilClub(PerfilClubDTO perfilClubDTO);
         PerfilClub ActualizarPerfilClub(PerfilClubDTO perfilClubDTO);
-        PerfilClub EliminarPerfilClub(int id);
+        void EliminarPerfilClub(int id);
         PerfilClub GetPerfilClubById(int Id);
         TerminosYCondiciones CrearTYC(TerminosYCondicionesDTO terminosYCondiciones);
         TerminosYCondiciones ObtenerTYC();
-
+        PerfilClubResponseDTO GetPerfilClubActivo();
+        PerfilClubQuienesSomosDTO GetPerfilClubQuienesSomos();
     }
 }

@@ -11,7 +11,8 @@
         public string Direccion {  get; set; }
         public string Telefono { get; set; }
         public int Dni {  get; set; }   
-        public string Email { get; set; }   
+        public string Email { get; set; }  
+        public string? Sexo {  get; set; }
         public DateTime? FechaAceptacionTYC { get; set; }
         public DateTime? FechaCambioContrasena { get; set; }
         public DateTime FechaNacimiento {  get; set; }
