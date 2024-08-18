@@ -1,6 +1,7 @@
 ﻿using ApiNet8.Data;
 using ApiNet8.Models.DTO;
 using ApiNet8.Models.Reservas;
+using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
 using AutoMapper;
 using XAct.Library.Settings;
@@ -66,14 +67,14 @@ namespace ApiNet8.Services
                 List<Instalacion> listComp = _db.Instalacion.ToList();
                 List<Instalacion> listFiltrada = new List<Instalacion>();
 
-                //foreach (var instalacion in listComp)
-                //{
-                //    InstalacionHistorial estado = _db.InstalacionHistorial.Where(i => i.InstalacionEstado.Id != 2 && i.FechaFin != null).FirstOrDefault();
-                //    if (estado != null)
-                //    {
-                //        listFiltrada.Add(instalacion);
-                //    }
-                //}
+                foreach (var instalacion in listComp)
+                {
+                    InstalacionHistorial estado = _db.InstalacionHistorial.Where(i => i.InstalacionEstado.Id != 2 && i.FechaFin == null && i.Instalacion.Id==instalacion.Id).FirstOrDefault();
+                    if (estado != null)
+                    {
+                        listFiltrada.Add(instalacion);
+                    }
+                }
 
                 return listFiltrada;
             }

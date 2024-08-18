@@ -1,30 +1,33 @@
-﻿using ApiNet8.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using System.Net;
+﻿using Microsoft.AspNetCore.Mvc;
 using ApiNet8.Services.IServices;
 using ApiNet8.Models.Reservas;
+using ApiNet8.Models;
+using ApiNet8.Services;
+using System.Net;
+using ApiNet8.Models.NoticiasYNotificaciones;
+
+// For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
 namespace ApiNet8.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class ReservasController : ControllerBase
+    public class NoticiasController : ControllerBase
     {
         private const string JWT = "JWT";
         private const string CurrentUserJWT = "CurrentUserJWT";
 
-        private readonly IInstalacionServices _instalacionServices;
+        private readonly INoticiasServices _noticiasServices;
 
-        public ReservasController(IInstalacionServices instalacionServices)
+        public NoticiasController(INoticiasServices noticiasServices)
         {
-            this._instalacionServices = instalacionServices;
+            this._noticiasServices = noticiasServices;
         }
 
-        // GET: ReservasController
+        // GET: api/<NoticiasController>
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetInstalaciones()
+        public IActionResult GetNoticias()
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -32,15 +35,15 @@ namespace ApiNet8.Controllers
 
             try
             {
-                List<Instalacion> instalaciones = _instalacionServices.GetInstalaciones();
-                return Ok(instalaciones);
+                List<Noticias> noticias = _noticiasServices.GetNoticias();
+                return Ok(noticias);
             }
             catch (Exception e)
             {
                 RespuestaAPI respuestaAPI = new RespuestaAPI
                 {
                     status = HttpStatusCode.InternalServerError,
-                    title = "Error al buscar instalaciones",
+                    title = "Error al buscar noticias",
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
@@ -51,7 +54,7 @@ namespace ApiNet8.Controllers
         // GET: ReservasController
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetInstalacionesActivas()
+        public IActionResult GetNoticiasActivas()
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -59,21 +62,20 @@ namespace ApiNet8.Controllers
 
             try
             {
-                List<Instalacion> instalaciones = _instalacionServices.GetInstalacionesActivas();
-                return Ok(instalaciones);
+                List<Noticias> noticias = _noticiasServices.GetNoticiasActivas();
+                return Ok(noticias);
             }
             catch (Exception e)
             {
                 RespuestaAPI respuestaAPI = new RespuestaAPI
                 {
                     status = HttpStatusCode.InternalServerError,
-                    title = "Error al buscar instalaciones",
+                    title = "Error al buscar noticias",
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
 
         }
-
     }
 }
