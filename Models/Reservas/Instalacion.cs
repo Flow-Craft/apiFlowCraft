@@ -10,7 +10,5 @@
         public TimeOnly HoraInicio { get; set; }
         public TimeOnly HoraCierre { get; set; }
 
-        // Relaciones
-        public IList<InstalacionHistorial> InstalacionHistoriales { get; set; }
     }
 }
