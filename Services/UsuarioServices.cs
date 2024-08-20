@@ -309,7 +309,6 @@ namespace ApiNet8.Services
         {
             try
             {
-                //mapper de usuariodto a usuario
                 Usuario user;
               
                 using (var transaction = _db.Database.BeginTransaction())
