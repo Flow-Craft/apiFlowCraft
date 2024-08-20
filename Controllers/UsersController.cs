@@ -247,11 +247,6 @@ namespace ApiNet8.Controllers
         }
         #endregion
 
-
-
-
-
-
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult ComprobarJWT()
