@@ -302,6 +302,33 @@ namespace ApiNet8.Controllers
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult DarseDeBaja()
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                CurrentUser currentUser = GetCurrentUser();
+                
+                _usuarioServices.EliminarUsuario(currentUser.Id);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al dar de baja usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult ComprobarJWT()
         {
