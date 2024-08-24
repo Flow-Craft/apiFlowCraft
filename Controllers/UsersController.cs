@@ -246,6 +246,34 @@ namespace ApiNet8.Controllers
             }
         }
         #endregion
+                
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]        
+        [HttpGet]
+        public IActionResult GetMiPerfil()
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                MiPerfilDTO miPerfilDTO = _usuarioServices.GetMiPerfil();
+                               
+                return Ok(miPerfilDTO);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener el perfil del usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+
+        }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]

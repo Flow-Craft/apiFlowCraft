@@ -391,6 +391,36 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
+        public MiPerfilDTO GetMiPerfil()
+        {
+            try
+            {
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                if (currentUser.Id == null)
+                {
+                    throw new Exception("El id del usuario es nulo");
+                }
+
+                Usuario usuario = GetUsuarioById(currentUser.Id);
+
+                if (usuario == null)
+                {
+                    throw new Exception("no se encontró un usuario con el id" + currentUser.Id);
+                }
+
+                //mapper de usuario a miperfildto
+                MiPerfilDTO miPerfilDTO = _mapper.Map<MiPerfilDTO>(usuario);
+
+                return miPerfilDTO;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
     }
 }
 
