@@ -80,6 +80,27 @@ namespace ApiNet8.Controllers
 
         }
 
+        [HttpGet]
+        public IActionResult GetInstalacionesActivasSimpatizante()
+        {
+            try
+            {
+                List<Instalacion> instalaciones = _instalacionServices.GetInstalacionesActivas();
+                return Ok(instalaciones);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al buscar instalaciones",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet("{id}")]
         [TypeFilter(typeof(ValidateIdFilterAttribute))]
