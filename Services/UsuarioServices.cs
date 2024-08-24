@@ -232,7 +232,7 @@ namespace ApiNet8.Services
                     await _db.SaveChangesAsync();
                     transaction.Commit();
                 }
-                // ver si debo obtener user de la base para ver id
+               
                 if (usuarioRegistroDTO.Socio)
                 {
                     Asociarse(usuario);
@@ -253,6 +253,23 @@ namespace ApiNet8.Services
             {
                 // Obtener el usuario actual desde la sesión
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                // verifico si tiene algun historial anterior y lo doy de baja
+                SolicitudAsociacion? solicitud = _db.SolicitudAsociacion
+                .Include(u => u.Usuario)
+                .Include(h => h.SolicitudAsociacionHistoriales).
+                Where(s => s.Usuario.Id == usuario.Id
+                && s.SolicitudAsociacionHistoriales.Any(sah => sah.FechaFin == null))
+                .FirstOrDefault();
+
+                SolicitudAsociacionHistorial solicitudAsociacionHistorialUltimo = null;
+
+                if (solicitud != null)
+                {
+                    solicitudAsociacionHistorialUltimo = solicitud.SolicitudAsociacionHistoriales.Where(h => h.FechaFin == null).FirstOrDefault();
+                    solicitudAsociacionHistorialUltimo.FechaFin = DateTime.Now;
+                }
+
 
                 // se crea el historial
                 SolicitudAsociacionHistorial nuevaSolicitudHistorial = new SolicitudAsociacionHistorial
@@ -276,6 +293,10 @@ namespace ApiNet8.Services
                 // crear en la base
                 using (var transaction = _db.Database.BeginTransaction())
                 {
+                    if (solicitudAsociacionHistorialUltimo != null)
+                    {
+                        _db.SolicitudAsociacionHistorial.Update(solicitudAsociacionHistorialUltimo);
+                    }
                     _db.SolicitudAsociacionHistorial.Add(nuevaSolicitudHistorial);
                     _db.SolicitudAsociacion.Add(nuevaSolicitud);
                     _db.SaveChanges();
@@ -414,12 +435,40 @@ namespace ApiNet8.Services
                 //mapper de usuario a miperfildto
                 MiPerfilDTO miPerfilDTO = _mapper.Map<MiPerfilDTO>(usuario);
 
+                // verificar si el usuario es socio
+                miPerfilDTO.mostrarBotonAsociarse = MostrarBotonAsociarse(usuario);
+
                 return miPerfilDTO;
             }
             catch (Exception e)
             {
                 throw new Exception(e.Message, e);
             }
+        }
+
+        public bool MostrarBotonAsociarse(Usuario usuario)
+        {
+          // verificar que el usuario una solicitud aprobada o tenga una solicitud pendiente
+
+        // verifico si tiene alguna solicitud de asociacion con un historial sin fecha fin, eso significa que tiene alguna solicitud con estado
+         SolicitudAsociacion? solicitud = _db.SolicitudAsociacion
+                .Include(u => u.Usuario)
+                .Include(h=>h.SolicitudAsociacionHistoriales).
+                Where(s=> s.Usuario.Id == usuario.Id 
+                && s.SolicitudAsociacionHistoriales.Any(sah=>sah.FechaFin==null))
+                .FirstOrDefault();
+
+            if (solicitud != null)
+            {
+                // verifico el estado de la ultima solicitud que tenga, si es aprobada o pendiente no muestro boton
+                SolicitudAsociacionHistorial solicitudAsociacionHistorial = solicitud.SolicitudAsociacionHistoriales.Where(h => h.FechaFin == null).FirstOrDefault();
+                if (solicitudAsociacionHistorial.EstadoSolicitudAsociacion.Id == 1 || solicitudAsociacionHistorial.EstadoSolicitudAsociacion.Id == 2)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         public void EditarMiPerfil(MiPerfilDTO miPerfilDTO)
