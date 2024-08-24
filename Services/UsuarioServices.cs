@@ -533,6 +533,65 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
+        public void CambiarContrasena(string contrasena)
+        {
+            try
+            {
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                if (currentUser?.Id == null)
+                {
+                    throw new Exception("El id del usuario es nulo");
+                }
+
+                Usuario usuario = GetUsuarioById(currentUser.Id);
+
+                if (usuario == null)
+                {
+                    throw new Exception("no se encontró un usuario con el id" + currentUser.Id);
+                }
+
+                // hashear contrasena
+                var passwordEncriptado = obtenermd5(contrasena);
+
+                usuario.Contrasena = passwordEncriptado;
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    if (usuario.UsuarioHistoriales.Count != 0 && usuario.UsuarioHistoriales.Any(a => a.FechaFin == null))
+                    {
+                        // obtengo ultimo historial y lo doy de baja
+                        UsuarioHistorial historialAnterior = usuario.UsuarioHistoriales.FirstOrDefault(u => u.FechaFin == null);
+                        historialAnterior.FechaFin = DateTime.Now;
+                        _db.UsuarioHistorial.Update(historialAnterior);
+                    }
+
+                    // se crea nuevo historial
+                    UsuarioHistorial nuevoHistorial = new UsuarioHistorial
+                    {
+                        DetalleCambioEstado = "Usuario cambia contrasena",
+                        FechaInicio = DateTime.Now,
+                        UsuarioEditor = currentUser?.Id,
+                        UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1) // asigno estado ACTIVADO
+                    };
+
+                    // se asigna el historial al usuario
+                    usuario.UsuarioHistoriales.Add(nuevoHistorial);
+
+                    _db.UsuarioHistorial.Update(nuevoHistorial);
+                    _db.Usuario.Update(usuario);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
     }
 }
 

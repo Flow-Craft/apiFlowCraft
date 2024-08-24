@@ -18,5 +18,6 @@ namespace ApiNet8.Services.IServices
         MiPerfilDTO GetMiPerfil();
         void EditarMiPerfil(MiPerfilDTO miPerfilDTO);
         bool MostrarBotonAsociarse(Usuario usuario);
+        void CambiarContrasena(string contrasena);
     }
 }
