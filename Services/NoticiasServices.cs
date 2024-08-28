@@ -1,9 +1,14 @@
 ﻿using ApiNet8.Data;
+using ApiNet8.Models;
 using ApiNet8.Models.DTO;
 using ApiNet8.Models.NoticiasYNotificaciones;
+using ApiNet8.Models.Partidos;
 using ApiNet8.Models.Reservas;
+using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
+using ApiNet8.Utils;
 using AutoMapper;
+using XAct.Users;
 
 namespace ApiNet8.Services
 {
@@ -22,32 +27,128 @@ namespace ApiNet8.Services
             _httpContextAccessor = httpContextAccessor;
         }
 
-        Noticias INoticiasServices.ActualizarNoticia(NoticiaDTO noticiaDTO)
+        public void ActualizarNoticia(NoticiaDTO noticiaDTO)
         {
-            throw new NotImplementedException();
+            try
+            {
+                var existeNoticia = ExisteNoticia(noticiaDTO.Titulo);
+                if (existeNoticia)
+                {
+                    throw new Exception("Ya existe una noticia con ese titulo");
+                }
+                
+                if (noticiaDTO.FechaFin < noticiaDTO.FechaInicio)
+                {
+                    throw new Exception("La fecha fin no puede ser menor a la fecha inicio de la publicacion");
+                }
+
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    Noticias noti = GetNoticiaById(noticiaDTO.Id);
+
+                    noti.Titulo = noticiaDTO.Titulo ?? noti.Titulo;
+                    noti.Descripcion = noticiaDTO.Descripcion ?? noti.Descripcion;
+                    noti.Imagen = noticiaDTO.Imagen ?? noti.Imagen;
+                    noti.FechaInicio = noticiaDTO.FechaInicio ?? noti.FechaInicio;
+                    noti.FechaFin = noticiaDTO.FechaFin ?? noti.FechaFin;
+                    noti.tag = noticiaDTO.tag ?? noti.tag;
+                    noti.UsuarioEditor = currentUser.Id;
+                    noti.FechaModificacion = DateTime.Now;
+                   
+
+                    _db.Noticias.Update(noti);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
         }
 
-        Noticias INoticiasServices.CrearNoticia(NoticiaDTO noticiaDTO)
+        public Noticias CrearNoticia(NoticiaDTO noticiaDTO)
         {
-            throw new NotImplementedException();
+            try { 
+                var existeNoticia = ExisteNoticia(noticiaDTO.Titulo);
+                if (existeNoticia)
+                {
+                    throw new Exception("Ya existe una noticia con ese titulo");
+                }
+                if (noticiaDTO.FechaFin<noticiaDTO.FechaInicio)
+                {
+                    throw new Exception("La fecha fin no puede ser menor a la fecha inicio de la publicacion");
+                }
+
+                Noticias noti = _mapper.Map<Noticias>(noticiaDTO);
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                noti.FechaCreacion = DateTime.Now;
+                noti.UsuarioEditor = currentUser.Id;
+                _db.Add(noti);
+                _db.SaveChanges();
+                return noti;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
         }
 
-        Noticias INoticiasServices.EliminarNoticia(int id)
+        public Noticias EliminarNoticia(int id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Noticias noti = this.GetNoticiaById(id);
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    noti.FechaBaja = DateTime.Now;
+                    noti.UsuarioEditor = currentUser.Id;
+                    _db.Update(noti);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+                return noti;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
         }
 
-        bool INoticiasServices.ExisteNoticia(string nombre)
+        public bool ExisteNoticia(string titulo)
         {
-            throw new NotImplementedException();
+            var noti = _db.Noticias.FirstOrDefault(ee => ee.Titulo == titulo);
+            if (noti == null)
+            {
+                return false;
+            }
+            return true;
         }
 
-        Noticias INoticiasServices.GetNoticiaById(int Id)
+        public Noticias GetNoticiaById(int Id)
         {
-            throw new NotImplementedException();
+            try
+            {
+                Noticias noti = _db.Noticias.Find(Id);
+
+                if (noti == null)
+                {
+                    throw new Exception("No se encontro noticia");
+                }
+
+                return noti;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
         }
 
-        List<Noticias> INoticiasServices.GetNoticias()
+        public List<Noticias> GetNoticias()
         {
             try
             {
@@ -59,7 +160,7 @@ namespace ApiNet8.Services
             }
         }
 
-        List<Noticias> INoticiasServices.GetNoticiasActivas()
+        public List<Noticias> GetNoticiasActivas()
         {
             try
             {
