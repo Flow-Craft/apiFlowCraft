@@ -9,7 +9,7 @@ namespace ApiNet8.Services.IServices
         List<Noticias> GetNoticiasActivas();
         Noticias GetNoticiaById(int Id);
         Noticias CrearNoticia(NoticiaDTO noticiaDTO);
-        Noticias ActualizarNoticia(NoticiaDTO noticiaDTO);
+        void ActualizarNoticia(NoticiaDTO noticiaDTO);
         Noticias EliminarNoticia(int id);
         bool ExisteNoticia(string nombre);
     }

@@ -9,9 +9,9 @@ namespace ApiNet8.Services.IServices
         List<Instalacion> GetInstalaciones();
         List<Instalacion> GetInstalacionesActivas();
         Instalacion GetInstalacionById(int Id);
-        Instalacion CrearInstalacion(InstalacionDTO instalacionDTO);
-        Instalacion ActualizarInstalacion(InstalacionDTO instalacionDTO);
-        Instalacion EliminarInstalacion(int id);
+        void CrearInstalacion(InstalacionDTO instalacionDTO);
+        void ActualizarInstalacion(InstalacionDTO instalacionDTO);
+        void EliminarInstalacion(int id);
         bool ExisteInstalacion(string nombre);
     }
 }
