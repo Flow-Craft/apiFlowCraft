@@ -453,7 +453,8 @@ namespace ApiNet8.Services
         // verifico si tiene alguna solicitud de asociacion con un historial sin fecha fin, eso significa que tiene alguna solicitud con estado
          SolicitudAsociacion? solicitud = _db.SolicitudAsociacion
                 .Include(u => u.Usuario)
-                .Include(h=>h.SolicitudAsociacionHistoriales).
+                .Include(h=>h.SolicitudAsociacionHistoriales)
+                .ThenInclude(h => h.EstadoSolicitudAsociacion).
                 Where(s=> s.Usuario.Id == usuario.Id 
                 && s.SolicitudAsociacionHistoriales.Any(sah=>sah.FechaFin==null))
                 .FirstOrDefault();
