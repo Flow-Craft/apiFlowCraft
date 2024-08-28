@@ -15,5 +15,9 @@ namespace ApiNet8.Services.IServices
         Task<Usuario> Registro(UsuarioRegistroDTO usuarioRegistroDTO);
         Task<Usuario> GetUsuarioByEmailAndPassword(string email, string password);
         void Asociarse(Usuario usuario);
+        MiPerfilDTO GetMiPerfil();
+        void EditarMiPerfil(MiPerfilDTO miPerfilDTO);
+        bool MostrarBotonAsociarse(Usuario usuario);
+        void CambiarContrasena(string contrasena);
     }
 }

@@ -901,7 +901,7 @@ namespace ApiNet8.Controllers
             try
             {
                 TerminosYCondiciones tycACrear = _configuracionServices.CrearTYC(terminosYCondicionesDTO);
-                return Ok(tycACrear);
+                return Ok();
             }
             catch (Exception e)
             {
@@ -915,7 +915,7 @@ namespace ApiNet8.Controllers
             }
         }
 
-        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        
         [HttpGet]
         public IActionResult ObtenerTYC()
         {
