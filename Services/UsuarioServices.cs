@@ -351,6 +351,7 @@ namespace ApiNet8.Services
                     user.Provincia = usuario.Provincia ?? user.Provincia;
                     user.Localidad = usuario.Localidad ?? user.Localidad;
                     user.Telefono = usuario.Telefono ?? user.Telefono;
+                    user.Sexo = usuario.Sexo ?? user.Sexo;
 
                     _db.Usuario.Update(user);
                     _db.SaveChanges();

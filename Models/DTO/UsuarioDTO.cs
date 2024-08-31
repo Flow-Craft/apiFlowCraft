@@ -13,7 +13,9 @@ namespace ApiNet8.Models.DTO
         public string? Direccion { get; set; }
         public string? Telefono { get; set; }
         public int? Dni { get; set; }
-        public string? Email { get; set; }        
+        public string? Email { get; set; }
+        public string? Sexo { get; set; }
+        public bool Socio { get; set; }
         public DateTime? FechaNacimiento { get; set; }
         public byte[]? FotoPerfil { get; set; }
         public string? ImageType { get; set; } // Para almacenar el tipo de la imagen (image/jpeg, image/png)
