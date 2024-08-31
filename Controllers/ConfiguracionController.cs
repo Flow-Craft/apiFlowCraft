@@ -922,7 +922,12 @@ namespace ApiNet8.Controllers
             try
             {
                 TerminosYCondiciones tycActuales = _configuracionServices.ObtenerTYC();
-                return Ok(tycActuales.TYC);
+                // Crear un objeto anónimo que contenga la propiedad TYC
+                var response = new
+                {
+                    TYC = tycActuales.TYC
+                };
+                return Ok(response);
             }
             catch (Exception e)
             {
