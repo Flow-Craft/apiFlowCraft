@@ -662,11 +662,11 @@ namespace ApiNet8.Services
             // obtener usuario con mail
             Usuario? usuario = ExisteUsuarioActivobyEmail(verificarCodigoDTO.Mail);
 
-            // obtener instancia de codigoVerificacion asociada a ese usuario
+            // obtener instancia de codigoVerificacion asociada a ese usuario que este vigente y sea la ultima creada
             CodigoVerificacion? codigo = null;
             if (usuario != null)
             {
-                codigo = _db.CodigoVerificacion.Include(u => u.Usuario).Where(c => c.Usuario.Id == usuario.Id).FirstOrDefault();
+                codigo = _db.CodigoVerificacion.Include(u => u.Usuario).Where(c => c.Usuario.Id == usuario.Id && c.FechaExpiracion > DateTime.Now).OrderByDescending(c => c.FechaCreacion).FirstOrDefault();
             }            
 
             // verificar si el codigo es correcto
@@ -690,14 +690,25 @@ namespace ApiNet8.Services
 
                 if (usuario != null)
                 {
-                    usuario.Contrasena = passwordEncriptado;
+                    // verificar si para ese usuario existe un codigo de verificacion asociado igual al recibido
+                    VerificarCodigoDTO verificarCodigoDTO = new VerificarCodigoDTO 
+                    { 
+                        Mail = reestablecerContrasenaDTO.Mail,
+                        Codigo = reestablecerContrasenaDTO.Codigo
+                    };
+                    bool verificacionCodigo = VerificarCodigo(verificarCodigoDTO);
 
-                    using (var transaction = _db.Database.BeginTransaction())
+                    if (verificacionCodigo) 
                     {
-                        _db.Update(usuario);
-                        _db.SaveChanges(); ;
-                        transaction.Commit();
-                    }
+                        usuario.Contrasena = passwordEncriptado;
+
+                        using (var transaction = _db.Database.BeginTransaction())
+                        {
+                            _db.Update(usuario);
+                            _db.SaveChanges(); ;
+                            transaction.Commit();
+                        }
+                    }                   
                 }
             }
             catch (Exception ex)

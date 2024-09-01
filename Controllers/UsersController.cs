@@ -402,7 +402,7 @@ namespace ApiNet8.Controllers
                 bool mailEnviado = await _usuarioServices.ReestablecerContrasenaInit(mail.Email);
                 if (mailEnviado) 
                 {
-                    return Ok("Mail enviado correctamente");
+                    return Ok();
                 }
                 throw new Exception("Mail no enviado");
             }
@@ -426,7 +426,7 @@ namespace ApiNet8.Controllers
                 bool codigoCorrecto = _usuarioServices.VerificarCodigo(verificarCodigoDTO);
                 if (codigoCorrecto)
                 {
-                    return Ok();
+                    return Ok(verificarCodigoDTO);
                 }
                 throw new Exception("Código incorrecto");
             }
