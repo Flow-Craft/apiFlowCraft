@@ -717,6 +717,56 @@ namespace ApiNet8.Services
             }
            
         }
+
+        public void BloquearUsuario(BloquearUsuarioDTO bloquearUsuarioDTO)
+        {
+            try
+            {
+                Usuario usuarioABloquear = GetUsuarioById(bloquearUsuarioDTO.Id);
+
+                if (usuarioABloquear == null)
+                {
+                    throw new Exception("No se encontró el usuario.");
+                }
+
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    if (usuarioABloquear.UsuarioHistoriales.Count != 0 && usuarioABloquear.UsuarioHistoriales.Any(a => a.FechaFin == null))
+                    {
+                        // obtengo ultimo historial y lo doy de baja
+                        UsuarioHistorial historialAnterior = usuarioABloquear.UsuarioHistoriales.FirstOrDefault(u => u.FechaFin == null);
+                        historialAnterior.FechaFin = DateTime.Now;
+                        _db.UsuarioHistorial.Update(historialAnterior);
+                    }
+
+                    // se crea nuevo historial con estado desactivado
+                    UsuarioHistorial nuevoHistorial = new UsuarioHistorial
+                    {
+                        DetalleCambioEstado = bloquearUsuarioDTO.Razon,
+                        FechaInicio = DateTime.Now,
+                        UsuarioEditor = currentUser?.Id,
+                        UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(2) // asigno estado Bloqueado
+                    };
+
+                    // se asigna el historial al usuario
+                    usuarioABloquear.UsuarioHistoriales.Add(nuevoHistorial);
+
+
+                    _db.UsuarioHistorial.Update(nuevoHistorial);
+                    _db.Usuario.Update(usuarioABloquear);
+
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
     }
 }
 
