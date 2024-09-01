@@ -21,11 +21,20 @@ namespace ApiNet8.Controllers
         private const string JWT = "JWT";
         private const string CurrentUserJWT = "CurrentUserJWT";
         
-        private readonly IUsuarioServices _usuarioServices;        
+        private readonly IUsuarioServices _usuarioServices;
+        private readonly IEmailService _emailService;
 
-        public UsersController(IUsuarioServices usuarioServices)
+        public UsersController(IUsuarioServices usuarioServices, IEmailService emailService)
         {
-            _usuarioServices = usuarioServices;            
+            _usuarioServices = usuarioServices;
+            _emailService = emailService;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> SendMailTest([FromBody] EmailRequestDTO emailRequest)
+        {
+            await _emailService.SendEmailAsync(emailRequest.ToEmail, emailRequest.Subject, emailRequest.Body);
+            return Ok("Email sent successfully!");
         }
 
         #region Usuario
@@ -379,6 +388,74 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al cambiar contraseña",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> ReestablecerContrasenaInit([FromBody] PasswordInitDTO mail)
+        {
+            try
+            {
+                bool mailEnviado = await _usuarioServices.ReestablecerContrasenaInit(mail.Email);
+                if (mailEnviado) 
+                {
+                    return Ok("Mail enviado correctamente");
+                }
+                throw new Exception("Mail no enviado");
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al reestablecer la contraseña",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }           
+        }
+
+        [HttpPost]
+        public IActionResult VerificarCodigo([FromBody] VerificarCodigoDTO verificarCodigoDTO)
+        {
+            try
+            {
+                bool codigoCorrecto = _usuarioServices.VerificarCodigo(verificarCodigoDTO);
+                if (codigoCorrecto)
+                {
+                    return Ok();
+                }
+                throw new Exception("Código incorrecto");
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al verificar código",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [HttpPost]
+        public IActionResult ReestablecerContrasena([FromBody] ReestablecerContrasenaDTO reestablecerContrasenaDTO)
+        {
+            try
+            {
+               _usuarioServices.ReestablecerContrasena(reestablecerContrasenaDTO);
+               return Ok();               
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al reestablecer contraseña",
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
