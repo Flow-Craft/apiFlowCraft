@@ -25,15 +25,17 @@ namespace ApiNet8.Services
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUsuarioEstadoServices _usuarioEstadoServices;
+        private readonly IEmailService _emailService;
 
 
-        public UsuarioServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor, IUsuarioEstadoServices usuarioEstadoServices)
+        public UsuarioServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor, IUsuarioEstadoServices usuarioEstadoServices, IEmailService emailService)
         {          
             this._db = db;
             this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             this._usuarioEstadoServices = usuarioEstadoServices;
+            _emailService = emailService;
         }
 
         public List<Usuario> GetUsuarios()
@@ -593,6 +595,127 @@ namespace ApiNet8.Services
             {
                 throw new Exception(e.Message, e);
             }
+        }
+
+        public Usuario? ExisteUsuarioActivobyEmail (string email)
+        {
+            // obtener usuario
+            Usuario? usuario = _db.Usuario.Include(u => u.UsuarioHistoriales).ThenInclude(e => e.UsuarioEstado).Where(u => u.Email == email).FirstOrDefault();
+
+            // obtener ultimo historial del usuario
+            UsuarioHistorial? ultimoHistorial = usuario?.UsuarioHistoriales.Where(f => f.FechaFin == null).FirstOrDefault();
+
+            if (ultimoHistorial !=null && ultimoHistorial.UsuarioEstado.Id == 1) // verifico que tenga historial y que el estado sea activo
+            {
+                return usuario;
+            }
+
+            return null;
+        }
+
+        public async Task<bool> ReestablecerContrasenaInit(string mail)
+        {
+            try
+            {
+                // buscar si el mail pertenece a un usuario activo
+                Usuario usuario = ExisteUsuarioActivobyEmail(mail);
+
+                // creo codigo de verificacion y lo guardo en una instancia de codigo y lo asocio al usuario
+                if (usuario != null)
+                {
+                    Random random = new Random();
+                    int numeroAleatorio = random.Next(100000, 1000000);
+
+                    CodigoVerificacion codigoVerificacion = new CodigoVerificacion
+                    {
+                        FechaCreacion = DateTime.Now,
+                        FechaExpiracion = DateTime.Now.AddMinutes(15),
+                        Codigo = numeroAleatorio.ToString(),
+                        Usuario = usuario
+                    };
+
+
+                    using (var transaction = _db.Database.BeginTransaction())
+                    {
+                        _db.Add(codigoVerificacion);
+                        _db.SaveChanges();;
+                        transaction.Commit();
+                    }
+
+                    // envio mail al usuario con el codigo
+                    await _emailService.SendEmailAsync(mail, "Código de verificación", "Tu código de verificación es: " + codigoVerificacion.Codigo);
+                    return true;
+                }
+
+                return false;
+               
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+            
+        }
+
+        public bool VerificarCodigo (VerificarCodigoDTO verificarCodigoDTO)
+        {
+            // obtener usuario con mail
+            Usuario? usuario = ExisteUsuarioActivobyEmail(verificarCodigoDTO.Mail);
+
+            // obtener instancia de codigoVerificacion asociada a ese usuario que este vigente y sea la ultima creada
+            CodigoVerificacion? codigo = null;
+            if (usuario != null)
+            {
+                codigo = _db.CodigoVerificacion.Include(u => u.Usuario).Where(c => c.Usuario.Id == usuario.Id && c.FechaExpiracion > DateTime.Now).OrderByDescending(c => c.FechaCreacion).FirstOrDefault();
+            }            
+
+            // verificar si el codigo es correcto
+            if (codigo != null && codigo.Codigo == verificarCodigoDTO.Codigo)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public void ReestablecerContrasena(ReestablecerContrasenaDTO reestablecerContrasenaDTO)
+        {
+            try
+            {
+                // encriptar contraseña
+                var passwordEncriptado = obtenermd5(reestablecerContrasenaDTO.NuevaPassword);
+
+                // obtener usuario
+                Usuario? usuario = ExisteUsuarioActivobyEmail(reestablecerContrasenaDTO.Mail);
+
+                if (usuario != null)
+                {
+                    // verificar si para ese usuario existe un codigo de verificacion asociado igual al recibido
+                    VerificarCodigoDTO verificarCodigoDTO = new VerificarCodigoDTO 
+                    { 
+                        Mail = reestablecerContrasenaDTO.Mail,
+                        Codigo = reestablecerContrasenaDTO.Codigo
+                    };
+                    bool verificacionCodigo = VerificarCodigo(verificarCodigoDTO);
+
+                    if (verificacionCodigo) 
+                    {
+                        usuario.Contrasena = passwordEncriptado;
+
+                        using (var transaction = _db.Database.BeginTransaction())
+                        {
+                            _db.Update(usuario);
+                            _db.SaveChanges(); ;
+                            transaction.Commit();
+                        }
+                    }                   
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+           
         }
     }
 }
