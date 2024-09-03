@@ -3,6 +3,7 @@ using ApiNet8.Models;
 using ApiNet8.Models.DTO;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
+using ApiNet8.Utils;
 using AutoMapper;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.EntityFrameworkCore;
@@ -17,17 +18,20 @@ namespace ApiNet8.Services
         private readonly ApplicationDbContext _db;
         private string secretToken;
         private readonly IMapper _mapper;
-        public UsuarioEstadoServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public UsuarioEstadoServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             this._db = db;
             this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public UsuarioEstado ActualizarUsuarioEstado(UsuarioEstadoDTO usEst)
         {
             try
             {
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
                 UsuarioEstado usuarioEstado = GetUsuarioEstadoById(usEst.Id);
 
@@ -42,10 +46,10 @@ namespace ApiNet8.Services
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    usuarioEstado.NombreEstado = usEst.NombreEstado;
-                    usuarioEstado.DescripcionEstado = usEst.DescripcionEstado;
+                    usuarioEstado.NombreEstado = usEst.NombreEstado ?? usuarioEstado.NombreEstado;
+                    usuarioEstado.DescripcionEstado = usEst.DescripcionEstado ?? usuarioEstado.DescripcionEstado;
                     usuarioEstado.FechaModificacion = DateTime.Now;
-                    usuarioEstado.UsuarioEditor = usEst.UsuarioEditor;
+                    usuarioEstado.UsuarioEditor = currentUser.Id;
                     _db.Update(usuarioEstado);
                     _db.SaveChanges();
                     transaction.Commit();
@@ -64,6 +68,8 @@ namespace ApiNet8.Services
         {
             try
             {
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
                 var existeEstado = ExisteUsuarioEstado(usuarioEstado.NombreEstado);
                 if (existeEstado)
                 {
@@ -72,6 +78,7 @@ namespace ApiNet8.Services
 
                 UsuarioEstado estUs = _mapper.Map<UsuarioEstado>(usuarioEstado);
                 estUs.FechaCreacion = DateTime.Now;
+                estUs.UsuarioEditor = currentUser.Id;
                 _db.Add(estUs);
                 _db.SaveChanges();
                 return estUs;
@@ -83,15 +90,17 @@ namespace ApiNet8.Services
 
         }
 
-        public UsuarioEstado EliminarUsuarioEstado(int id, JwtToken currentUserJwt)
+        public UsuarioEstado EliminarUsuarioEstado(int id)
         {
             try
             {
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
                 UsuarioEstado usuarioEstado = this.GetUsuarioEstadoById(id);
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     usuarioEstado.FechaBaja = DateTime.Now;
-                    usuarioEstado.UsuarioEditor = currentUserJwt.Id;
+                    usuarioEstado.UsuarioEditor = currentUser.Id;
                     _db.Update(usuarioEstado);
                     _db.SaveChanges();
                     transaction.Commit();

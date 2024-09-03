@@ -4,6 +4,7 @@ using ApiNet8.Models.DTO;
 using ApiNet8.Models.Eventos;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
+using ApiNet8.Utils;
 using AutoMapper;
 
 namespace ApiNet8.Services
@@ -13,17 +14,21 @@ namespace ApiNet8.Services
         private readonly ApplicationDbContext _db;
         private string secretToken;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
-        public EventoEstadoService(ApplicationDbContext db, IConfiguration configuration, IMapper mapper)
+        public EventoEstadoService(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             this._db = db;
             this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
             _mapper = mapper;
+            _httpContextAccessor = httpContextAccessor;
         }
         public EstadoEvento ActualizarEventoEstado(EstadoEventoDTO eventoEstadoDTO)
         {
             try
             {
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
                 EstadoEvento eventoEstado = GetEventoEstadoById(eventoEstadoDTO.Id);
 
                 if (eventoEstado.NombreEstado != eventoEstadoDTO.NombreEstado)
@@ -37,10 +42,10 @@ namespace ApiNet8.Services
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    eventoEstado.NombreEstado = eventoEstadoDTO.NombreEstado;
-                    eventoEstado.DescripcionEstado = eventoEstadoDTO.DescripcionEstado;
+                    eventoEstado.NombreEstado = eventoEstadoDTO.NombreEstado ?? eventoEstado.NombreEstado;
+                    eventoEstado.DescripcionEstado = eventoEstadoDTO.DescripcionEstado ?? eventoEstado.DescripcionEstado;
                     eventoEstado.FechaModificacion = DateTime.Now;
-                    eventoEstado.UsuarioEditor = eventoEstadoDTO.UsuarioEditor;
+                    eventoEstado.UsuarioEditor = currentUser.Id;
                     _db.Update(eventoEstado);
                     _db.SaveChanges();
                     transaction.Commit();
@@ -59,6 +64,8 @@ namespace ApiNet8.Services
         {
             try
             {
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
                 var existeEstado = ExisteEventoEstado(eventoEstadoDTO.NombreEstado);
                 if (existeEstado)
                 {
@@ -68,6 +75,7 @@ namespace ApiNet8.Services
                 //mapper de usuariodto a usuario
                 EstadoEvento estEvent = _mapper.Map<EstadoEvento>(eventoEstadoDTO);
                 estEvent.FechaCreacion = DateTime.Now;
+                estEvent.UsuarioEditor = currentUser.Id;
                 _db.Add(estEvent);
                 _db.SaveChanges();
                 return estEvent;
@@ -78,15 +86,17 @@ namespace ApiNet8.Services
             }
         }
 
-        public EstadoEvento EliminarEventoEstado(int id, JwtToken currentUserJwt)
+        public EstadoEvento EliminarEventoEstado(int id)
         {
             try
             {
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
                 EstadoEvento eventoEstado = this.GetEventoEstadoById(id);
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     eventoEstado.FechaBaja = DateTime.Now;
-                    eventoEstado.UsuarioEditor = currentUserJwt.Id;
+                    eventoEstado.UsuarioEditor = currentUser.Id;
                     _db.Update(eventoEstado);
                     _db.SaveChanges();
                     transaction.Commit();
