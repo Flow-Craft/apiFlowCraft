@@ -19,5 +19,11 @@ namespace ApiNet8.Services.IServices
         void EditarMiPerfil(MiPerfilDTO miPerfilDTO);
         bool MostrarBotonAsociarse(Usuario usuario);
         void CambiarContrasena(string contrasena);
+        Usuario? ExisteUsuarioActivobyEmail(string email);
+        Task<bool> ReestablecerContrasenaInit(string mail);
+        bool VerificarCodigo(VerificarCodigoDTO verificarCodigoDTO);
+        public void ReestablecerContrasena(ReestablecerContrasenaDTO reestablecerContrasenaDTO);
+        void BloquearUsuario(BloquearUsuarioDTO bloquearUsuarioDTO);
+        void DesbloquearUsuario(BloquearUsuarioDTO bloquearUsuarioDTO);
     }
 }
