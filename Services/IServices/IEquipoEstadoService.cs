@@ -10,7 +10,7 @@ namespace ApiNet8.Services.IServices
         EquipoEstado GetEquipoEstadoById(int Id);
         EquipoEstado CrearEquipoEstado(EquipoEstadoDTO equipoEstadoDTO);
         EquipoEstado ActualizarEquipoEstado(EquipoEstadoDTO equipoEstadoDTO);
-        EquipoEstado EliminarEquipoEstado(int id, JwtToken currentUserJwt);
+        EquipoEstado EliminarEquipoEstado(int id);
         bool ExisteEquipoEstado(string nombre);
     }
 }

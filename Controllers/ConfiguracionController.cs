@@ -11,6 +11,7 @@ using System.Runtime.Intrinsics.X86;
 using ApiNet8.Models.Eventos;
 using ApiNet8.Models.Partidos;
 using ApiNet8.Models.TYC;
+using ApiNet8.Models.Reservas;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -27,13 +28,15 @@ namespace ApiNet8.Controllers
         private readonly IUsuarioEstadoServices _usuarioEstadoServices;
         private readonly IEventoEstadoService _eventoEstadoServices;
         private readonly IEquipoEstadoService _equipoEstadoServices;
+        private readonly IInstalacionEstadoServices _instalacionEstadoServices;
 
-        public ConfiguracionController(IConfiguracionServices configuracionServices, IUsuarioEstadoServices usuarioEstadoServices, IEventoEstadoService eventoEstadoServices, IEquipoEstadoService equipoEstadoServices)
+        public ConfiguracionController(IConfiguracionServices configuracionServices, IUsuarioEstadoServices usuarioEstadoServices, IEventoEstadoService eventoEstadoServices, IEquipoEstadoService equipoEstadoServices, IInstalacionEstadoServices instalacionEstadoServices)
         {
             this._configuracionServices = configuracionServices;
             this._usuarioEstadoServices = usuarioEstadoServices;
             this._eventoEstadoServices = eventoEstadoServices;
             this._equipoEstadoServices = equipoEstadoServices;
+            this._instalacionEstadoServices = instalacionEstadoServices;
         }
 
         /////////////////////////////////////////PERFIL///////////////////////////////////////////////////////
@@ -119,7 +122,7 @@ namespace ApiNet8.Controllers
         public class PerfilRequest
         {
             public PerfilDTO Perfil { get; set; }
-            public List<Permiso> Permisos { get; set; }
+            public List<int> Permisos { get; set; }
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
@@ -130,8 +133,6 @@ namespace ApiNet8.Controllers
             Response.Headers.Append(JWT, TOKEN);
 
             // obtengo datos de jwt para utilizar
-            JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-            form.Perfil.UsuarioEditor = currentUserJwt.Id;
 
             try
             {
@@ -157,9 +158,6 @@ namespace ApiNet8.Controllers
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
 
-            // obtengo datos de jwt para utilizar
-            JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-            form.Perfil.UsuarioEditor = currentUserJwt.Id;
             try
             {
                 Perfil perfilAActualizar = _configuracionServices.ActualizarPerfil(form.Perfil, form.Permisos);
@@ -184,12 +182,9 @@ namespace ApiNet8.Controllers
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
 
-            // obtengo datos de jwt para utilizar
-            JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-
             try
             {
-                Perfil perfilAEliminar = _configuracionServices.EliminarPerfil(id, currentUserJwt);
+                Perfil perfilAEliminar = _configuracionServices.EliminarPerfil(id);
                 return Ok(perfilAEliminar);
             }
             catch (Exception e)
@@ -399,7 +394,7 @@ namespace ApiNet8.Controllers
         }
 
         //////////////////////////////////USUARIO ESTADO/////////////////////////////////////////////////////
-
+        #region UsuarioEstado
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult GetUsuarioEstado()//LISTO
@@ -462,10 +457,6 @@ namespace ApiNet8.Controllers
 
             Response.Headers.Append(JWT, TOKEN);
 
-            // obtengo datos de jwt para utilizar
-            JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-            usuarioEstadoDTO.UsuarioEditor = currentUserJwt.Id;
-
             try
             {
                 UsuarioEstado estadoACrear = _usuarioEstadoServices.CrearUsuarioEstado(usuarioEstadoDTO);
@@ -491,9 +482,6 @@ namespace ApiNet8.Controllers
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
 
-            // obtengo datos de jwt para utilizar
-            JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-            usuarioEstadoDTO.UsuarioEditor = currentUserJwt.Id;
             try
             {
                 UsuarioEstado estadoAActualizar = _usuarioEstadoServices.ActualizarUsuarioEstado(usuarioEstadoDTO);
@@ -519,12 +507,9 @@ namespace ApiNet8.Controllers
 
             Response.Headers.Append(JWT, TOKEN);
 
-            // obtengo datos de jwt para utilizar
-            JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-
             try
             {
-                UsuarioEstado estadoAEliminar = _usuarioEstadoServices.EliminarUsuarioEstado(id, currentUserJwt);
+                UsuarioEstado estadoAEliminar = _usuarioEstadoServices.EliminarUsuarioEstado(id);
                 return Ok(estadoAEliminar);
             }
             catch (Exception e)
@@ -564,9 +549,9 @@ namespace ApiNet8.Controllers
             }
 
         }
-
+        #endregion
         //////////////////////////////////EVENTO ESTADO/////////////////////////////////////////////////////LISTO
-        
+        #region EventoEstado
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult GetEventoEstado()
@@ -627,10 +612,6 @@ namespace ApiNet8.Controllers
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
 
-            // obtengo datos de jwt para utilizar
-            JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-            eventoEstadoDTO.UsuarioEditor = currentUserJwt.Id;
-
             try
             {
                 EstadoEvento estadoACrear = _eventoEstadoServices.CrearEventoEstado(eventoEstadoDTO);
@@ -656,10 +637,6 @@ namespace ApiNet8.Controllers
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
 
-            // obtengo datos de jwt para utilizar
-            JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-            eventoEstadoDTO.UsuarioEditor = currentUserJwt.Id;
-
             try
             {
                 EstadoEvento estadoAActualizar = _eventoEstadoServices.ActualizarEventoEstado(eventoEstadoDTO);
@@ -684,12 +661,9 @@ namespace ApiNet8.Controllers
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
 
-            // obtengo datos de jwt para utilizar
-            JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-
             try
             {
-                EstadoEvento estadoAEliminar = _eventoEstadoServices.EliminarEventoEstado(id, currentUserJwt);
+                EstadoEvento estadoAEliminar = _eventoEstadoServices.EliminarEventoEstado(id);
                 return Ok(estadoAEliminar);
             }
             catch (Exception e)
@@ -728,9 +702,9 @@ namespace ApiNet8.Controllers
             }
 
         }
-
+        #endregion
         //////////////////////////////////EQUIPO ESTADO/////////////////////////////////////////////////////
-        
+        #region EquipoEstado
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult GetEquipoEstado()
@@ -791,10 +765,6 @@ namespace ApiNet8.Controllers
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
 
-            // obtengo datos de jwt para utilizar
-            JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-            equipoEstadoDTO.UsuarioEditor = currentUserJwt.Id;
-
             try
             {
                 EquipoEstado estadoACrear = _equipoEstadoServices.CrearEquipoEstado(equipoEstadoDTO);
@@ -820,10 +790,6 @@ namespace ApiNet8.Controllers
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
 
-            // obtengo datos de jwt para utilizar
-            JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-            equipoEstadoDTO.UsuarioEditor = currentUserJwt.Id;
-
             try
             {
                 EquipoEstado estadoAActualizar = _equipoEstadoServices.ActualizarEquipoEstado(equipoEstadoDTO);
@@ -848,12 +814,9 @@ namespace ApiNet8.Controllers
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
 
-            // obtengo datos de jwt para utilizar
-            JwtToken currentUserJwt = (JwtToken)HttpContext.Items[CurrentUserJWT];
-
             try
             {
-                EquipoEstado estadoAEliminar = _equipoEstadoServices.EliminarEquipoEstado(id, currentUserJwt);
+                EquipoEstado estadoAEliminar = _equipoEstadoServices.EliminarEquipoEstado(id);
                 return Ok(estadoAEliminar);
             }
             catch (Exception e)
@@ -892,6 +855,160 @@ namespace ApiNet8.Controllers
             }
 
         }
+        #endregion
+        //////////////////////////////////INSTALACION ESTADO/////////////////////////////////////////////////////
+        #region InstalacionEstado
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetInstalacionEstado()
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<InstalacionEstado> instEstados = _instalacionEstadoServices.GetInstalacionEstados();
+                return Ok(instEstados);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al buscar estados posibles de una instalación",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet("{id}")]
+        [TypeFilter(typeof(ValidateIdFilterAttribute))]
+        [EntityType(typeof(InstalacionEstado))]
+        public IActionResult GetInstalacionEstadoById(int id)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                InstalacionEstado instEstado = _instalacionEstadoServices.GetInstalacionEstadoById(id);
+                return Ok(instEstado);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al buscar estado posible de una instalación",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult CrearInstalacionEstado([FromBody] InstalacionEstadoDTO instEstadoDTO)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _instalacionEstadoServices.CrearInstalacionEstado(instEstadoDTO);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al crear estado para instalación",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult ActualizarInstalacionEstado([FromBody] InstalacionEstadoDTO instEstadoDTO)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _instalacionEstadoServices.ActualizarInstalacionEstado(instEstadoDTO);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al actualizar estado para instalación",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost("{id}")]
+        public IActionResult EliminarInstalacionEstado(int id)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _instalacionEstadoServices.EliminarInstalacionEstado(id);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al eliminar estado para instalación",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult ExisteInstalacionEstado(string nombre)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                bool exist = _instalacionEstadoServices.ExisteInstalacionEstado(nombre);
+                return Ok(exist);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al buscar estado de instalación",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+        #endregion
 
         #region terminos y condiciones
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
