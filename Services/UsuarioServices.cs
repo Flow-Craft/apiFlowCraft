@@ -642,6 +642,11 @@ namespace ApiNet8.Services
                 // buscar si el mail pertenece a un usuario activo
                 Usuario usuario = ExisteUsuarioActivobyEmail(mail);
 
+                if (usuario == null) 
+                {
+                    throw new Exception("No existe un usuario activo para el mail ingresado.");
+                }
+
                 // creo codigo de verificacion y lo guardo en una instancia de codigo y lo asocio al usuario
                 if (usuario != null)
                 {
@@ -689,10 +694,15 @@ namespace ApiNet8.Services
             if (usuario != null)
             {
                 codigo = _db.CodigoVerificacion.Include(u => u.Usuario).Where(c => c.Usuario.Id == usuario.Id && c.FechaExpiracion > DateTime.Now).OrderByDescending(c => c.FechaCreacion).FirstOrDefault();
-            }            
+            }
+
+            if (codigo == null)
+            {
+                throw new Exception("Código expirado");
+            }
 
             // verificar si el codigo es correcto
-            if (codigo != null && codigo.Codigo == verificarCodigoDTO.Codigo)
+            if (codigo.Codigo == verificarCodigoDTO.Codigo)
             {
                 return true;
             }
