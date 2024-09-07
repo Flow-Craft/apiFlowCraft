@@ -795,12 +795,13 @@ namespace ApiNet8.Services
 
             // filtro las solicitudes segun el filtro
             List<SolicitudAsociacion> solicitudesFiltradas = solicitudes
-            .Where(h=>h.SolicitudAsociacionHistoriales
-            .Any(a=>a.FechaFin==null && a.EstadoSolicitudAsociacion == _usuarioEstadoServices.GetEstadoSolicitudAsociacion(id))
+            .Where(h => h.SolicitudAsociacionHistoriales
+            .Any(a => a.FechaFin == null && a.EstadoSolicitudAsociacion == _usuarioEstadoServices.GetEstadoSolicitudAsociacion(id))
             ).ToList();
 
             // mapeo las solicitudes
             return SolicitudesAsociacionMapper(solicitudesFiltradas);
+        }
 
         public void BloquearUsuario(BloquearUsuarioDTO bloquearUsuarioDTO)
         {
