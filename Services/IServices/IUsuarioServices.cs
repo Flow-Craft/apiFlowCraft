@@ -27,5 +27,7 @@ namespace ApiNet8.Services.IServices
         List<SolicitudAsociacionDTO> GetSolicitudesAsociacion();
         List<SolicitudAsociacionDTO> SolicitudesAsociacionMapper(List<SolicitudAsociacion> solicitudes);
         List<SolicitudAsociacionDTO> GetSolicitudesAsociacionFiltro(int id);
+        void BloquearUsuario(BloquearUsuarioDTO bloquearUsuarioDTO);
+        void DesbloquearUsuario(BloquearUsuarioDTO bloquearUsuarioDTO);
     }
 }

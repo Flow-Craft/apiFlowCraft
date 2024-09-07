@@ -26,10 +26,11 @@ namespace ApiNet8.Services
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
-        public Perfil ActualizarPerfil(PerfilDTO perfil, List<Permiso> permisosNuevos)
+        public Perfil ActualizarPerfil(PerfilDTO perfil, List<int> permisosNuevos)
         {
             try
             {
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
                 Perfil per = GetPerfilById(perfil.Id);
 
                 if (per.NombrePerfil != perfil.NombrePerfil)
@@ -43,10 +44,10 @@ namespace ApiNet8.Services
                 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    per.NombrePerfil = perfil.NombrePerfil;
-                    per.DescripcionPerfil = perfil.DescripcionPerfil;
+                    per.NombrePerfil = perfil.NombrePerfil ?? per.NombrePerfil;
+                    per.DescripcionPerfil = perfil.DescripcionPerfil ?? per.DescripcionPerfil;
                     per.FechaModificacion = DateTime.Now;
-                    per.UsuarioEditor = perfil.UsuarioEditor;
+                    per.UsuarioEditor = currentUser.Id;
                     _db.Update(per);
                     _db.SaveChanges();
                     transaction.Commit();
@@ -60,18 +61,18 @@ namespace ApiNet8.Services
                     Permiso permisoExistente = null;
                     if (permisosViejos != null)
                     {
-                        permisoExistente = permisosViejos.FirstOrDefault(p => p.Id == nuevoPermiso.Id);
+                        permisoExistente = permisosViejos.FirstOrDefault(p => p.Id == nuevoPermiso);
                     }
 
                     if (permisoExistente == null)
                     {
-                        Permiso permisoAsoc = _db.Permiso.Where(p => p.Id == nuevoPermiso.Id).FirstOrDefault();
+                        Permiso permisoAsoc = _db.Permiso.Where(p => p.Id == nuevoPermiso).FirstOrDefault();
                         PerfilPermiso perfilPermiso = new PerfilPermiso
                         {
                             Perfil = per,
                             Permiso = permisoAsoc,
                             FechaCreacion = DateTime.Now,
-                            UsuarioEditor = perfil.UsuarioEditor
+                            UsuarioEditor = currentUser.Id
                         };
                         _db.Add(perfilPermiso);
                     }
@@ -79,8 +80,9 @@ namespace ApiNet8.Services
                 if (permisosViejos != null) { 
                     foreach (var permisoActual in permisosViejos)
                     {
-                        var permisoEnNuevaLista = permisosNuevos.FirstOrDefault(p => p.Id == permisoActual.Id);
-                        if (permisoEnNuevaLista == null)
+                        //var permisoEnNuevaLista = permisosNuevos.FirstOrDefault(p => p.Id == permisoActual.Id);
+                        bool permisoEnNuevaLista = permisosNuevos.Contains(permisoActual.Id);
+                        if (!permisoEnNuevaLista)
                         {
                             // Permiso ya no está en la nueva lista, establecer FechaBaja
                             PerfilPermiso perfilPermiso = _db.PerfilPermiso.FirstOrDefault(pp => pp.Permiso == permisoActual && pp.Perfil == per && pp.FechaBaja == null);
@@ -105,10 +107,12 @@ namespace ApiNet8.Services
             }
         }
 
-        public Perfil CrearPerfil(PerfilDTO perfil, List<Permiso> permisos) 
+        public Perfil CrearPerfil(PerfilDTO perfil, List<int> permisos) 
         {
             try
             {
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser"); 
+
                 var existePerfil = ExistePerfil(perfil.NombrePerfil);
                 if (existePerfil)
                 {
@@ -123,14 +127,14 @@ namespace ApiNet8.Services
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     Perfil perfilNuevo = _db.Perfil.Where(p => p.NombrePerfil == per.NombrePerfil).FirstOrDefault();
-                    foreach (Permiso perm in permisos)
+                    foreach (int perm in permisos)
                     {
-                        Permiso permisoAsoc = _db.Permiso.Where(p => p.Id == perm.Id).FirstOrDefault();
+                        Permiso permisoAsoc = _db.Permiso.Where(p => p.Id == perm).FirstOrDefault();
                         PerfilPermiso perfilPermiso = new PerfilPermiso();
                         perfilPermiso.Perfil = perfilNuevo;
                         perfilPermiso.Permiso = permisoAsoc;
                         perfilPermiso.FechaCreacion = DateTime.Now;
-                        perfilPermiso.UsuarioEditor = per.UsuarioEditor;
+                        perfilPermiso.UsuarioEditor = currentUser.Id;
                         _db.Add(perfilPermiso);
                         _db.SaveChanges();
 
@@ -397,15 +401,17 @@ namespace ApiNet8.Services
             }
         }
 
-        public Perfil EliminarPerfil(int id, JwtToken currentUserJwt)
+        public Perfil EliminarPerfil(int id)
         {
             try
             {
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
                 Perfil per = this.GetPerfilById(id);
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     per.FechaBaja = DateTime.Now;
-                    per.UsuarioEditor = currentUserJwt.Id;
+                    per.UsuarioEditor = currentUser.Id;
                     _db.Update(per);
                     _db.SaveChanges();
                     transaction.Commit();

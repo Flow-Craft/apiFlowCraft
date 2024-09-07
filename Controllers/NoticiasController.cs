@@ -130,6 +130,30 @@ namespace ApiNet8.Controllers
 
         }
 
+        [HttpGet("{id}")]
+        [TypeFilter(typeof(ValidateIdFilterAttribute))]
+        [EntityType(typeof(Noticias))]
+        public IActionResult GetNoticiaByIdSimpatizante(int id)//LISTO
+        {
+
+            try
+            {
+                Noticias noticia = _noticiasServices.GetNoticiaById(id);// guardar en sesion la entidad enciontrada en el filtro
+                return Ok(noticia);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al buscar noticia",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
         public IActionResult CrearNoticia([FromBody] NoticiaDTO noticiaDTO)//LISTO
