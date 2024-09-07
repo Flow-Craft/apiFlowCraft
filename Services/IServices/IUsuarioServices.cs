@@ -23,6 +23,10 @@ namespace ApiNet8.Services.IServices
         Task<bool> ReestablecerContrasenaInit(string mail);
         bool VerificarCodigo(VerificarCodigoDTO verificarCodigoDTO);
         public void ReestablecerContrasena(ReestablecerContrasenaDTO reestablecerContrasenaDTO);
+        List<SolicitudAsociacion> GetSolicitudesAsociacionDb();
+        List<SolicitudAsociacionDTO> GetSolicitudesAsociacion();
+        List<SolicitudAsociacionDTO> SolicitudesAsociacionMapper(List<SolicitudAsociacion> solicitudes);
+        List<SolicitudAsociacionDTO> GetSolicitudesAsociacionFiltro(int id);
         void BloquearUsuario(BloquearUsuarioDTO bloquearUsuarioDTO);
         void DesbloquearUsuario(BloquearUsuarioDTO bloquearUsuarioDTO);
     }

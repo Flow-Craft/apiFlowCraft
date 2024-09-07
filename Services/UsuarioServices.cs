@@ -119,6 +119,28 @@ namespace ApiNet8.Services
                 throw new Exception("Usuario o contrasena incorrecta");
             }
 
+            // verificar estado del usuario
+            UsuarioEstado? estado = usuario.UsuarioHistoriales.FirstOrDefault(f => f.FechaFin == null).UsuarioEstado;
+            if (estado == null || estado.Id == 2 || estado.Id == 3)
+            {
+                string mensajeError = "";
+
+                if (estado == null)
+                {
+                    mensajeError = "El estado del usuario no está definido.";
+                }
+                else if (estado.Id == 2)
+                {
+                    mensajeError = "El usuario está bloqueado.";
+                }
+                else if (estado.Id == 3)
+                {
+                    mensajeError = "El usuario ha sido eliminado.";
+                }
+
+                throw new Exception(mensajeError); 
+            }
+
             // jwt
             var token = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(secretToken);
@@ -325,7 +347,7 @@ namespace ApiNet8.Services
 
         public async Task<Usuario> GetUsuarioByEmailAndPassword(string email, string password)
         {
-             return await _db.Usuario.FirstOrDefaultAsync(u => u.Email == email && u.Contrasena == password);
+             return await _db.Usuario.Include(e=>e.UsuarioHistoriales).ThenInclude(s=>s.UsuarioEstado).FirstOrDefaultAsync(u => u.Email == email && u.Contrasena == password);
         }
 
         public void ActualizarUsuario(UsuarioDTO usuario)
@@ -620,6 +642,11 @@ namespace ApiNet8.Services
                 // buscar si el mail pertenece a un usuario activo
                 Usuario usuario = ExisteUsuarioActivobyEmail(mail);
 
+                if (usuario == null) 
+                {
+                    throw new Exception("No existe un usuario activo para el mail ingresado.");
+                }
+
                 // creo codigo de verificacion y lo guardo en una instancia de codigo y lo asocio al usuario
                 if (usuario != null)
                 {
@@ -667,10 +694,15 @@ namespace ApiNet8.Services
             if (usuario != null)
             {
                 codigo = _db.CodigoVerificacion.Include(u => u.Usuario).Where(c => c.Usuario.Id == usuario.Id && c.FechaExpiracion > DateTime.Now).OrderByDescending(c => c.FechaCreacion).FirstOrDefault();
-            }            
+            }
+
+            if (codigo == null)
+            {
+                throw new Exception("Código expirado");
+            }
 
             // verificar si el codigo es correcto
-            if (codigo != null && codigo.Codigo == verificarCodigoDTO.Codigo)
+            if (codigo.Codigo == verificarCodigoDTO.Codigo)
             {
                 return true;
             }
@@ -717,6 +749,58 @@ namespace ApiNet8.Services
             }
            
         }
+
+        public List<SolicitudAsociacion> GetSolicitudesAsociacionDb()
+        {
+            return _db.SolicitudAsociacion.Include(u=>u.Usuario).Include(h => h.SolicitudAsociacionHistoriales)
+                .ThenInclude(e => e.EstadoSolicitudAsociacion).ToList();           
+        }
+
+        public List<SolicitudAsociacionDTO> GetSolicitudesAsociacion()
+        {
+            List<SolicitudAsociacion> solicitudes = GetSolicitudesAsociacionDb();
+
+           return SolicitudesAsociacionMapper(solicitudes);
+        }
+
+        public List<SolicitudAsociacionDTO> SolicitudesAsociacionMapper(List<SolicitudAsociacion> solicitudes)
+        {
+            List<SolicitudAsociacionDTO> solicitudesDTO = new List<SolicitudAsociacionDTO>();
+            foreach (var item in solicitudes)
+            {
+                // obtengo ultimo historial
+                SolicitudAsociacionHistorial historial = item.SolicitudAsociacionHistoriales.Where(f => f.FechaFin == null)?.FirstOrDefault();
+                //mapper de usuariodto a usuario
+                SolicitudAsociacionDTO solicitud = new SolicitudAsociacionDTO
+                {
+                    Id = item.Id,
+                    Nombre = item.Usuario.Nombre,
+                    Apellido = item.Usuario.Apellido,
+                    Dni = item.Usuario.Dni,
+                    EMail = item.Usuario.Email,
+                    FechaCreacion = historial?.FechaInicio ?? null,
+                    MotivoRechazo = item.MotivoRechazo,
+                    Estado = historial?.EstadoSolicitudAsociacion?.NombreEstado ?? ""
+                };
+                solicitudesDTO.Add(solicitud);
+            }
+
+            return solicitudesDTO;
+        }
+
+        public List<SolicitudAsociacionDTO> GetSolicitudesAsociacionFiltro(int id)
+        {
+            // obtengo todas las solicitudes
+            List<SolicitudAsociacion> solicitudes = GetSolicitudesAsociacionDb();
+
+            // filtro las solicitudes segun el filtro
+            List<SolicitudAsociacion> solicitudesFiltradas = solicitudes
+            .Where(h=>h.SolicitudAsociacionHistoriales
+            .Any(a=>a.FechaFin==null && a.EstadoSolicitudAsociacion == _usuarioEstadoServices.GetEstadoSolicitudAsociacion(id))
+            ).ToList();
+
+            // mapeo las solicitudes
+            return SolicitudesAsociacionMapper(solicitudesFiltradas);
 
         public void BloquearUsuario(BloquearUsuarioDTO bloquearUsuarioDTO)
         {
@@ -816,6 +900,7 @@ namespace ApiNet8.Services
             {
                 throw new Exception(e.Message, e);
             }
+
         }
     }
 }
