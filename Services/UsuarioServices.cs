@@ -749,6 +749,59 @@ namespace ApiNet8.Services
             }
            
         }
+
+        public List<SolicitudAsociacion> GetSolicitudesAsociacionDb()
+        {
+            return _db.SolicitudAsociacion.Include(u=>u.Usuario).Include(h => h.SolicitudAsociacionHistoriales)
+                .ThenInclude(e => e.EstadoSolicitudAsociacion).ToList();           
+        }
+
+        public List<SolicitudAsociacionDTO> GetSolicitudesAsociacion()
+        {
+            List<SolicitudAsociacion> solicitudes = GetSolicitudesAsociacionDb();
+
+           return SolicitudesAsociacionMapper(solicitudes);
+        }
+
+        public List<SolicitudAsociacionDTO> SolicitudesAsociacionMapper(List<SolicitudAsociacion> solicitudes)
+        {
+            List<SolicitudAsociacionDTO> solicitudesDTO = new List<SolicitudAsociacionDTO>();
+            foreach (var item in solicitudes)
+            {
+                // obtengo ultimo historial
+                SolicitudAsociacionHistorial historial = item.SolicitudAsociacionHistoriales.Where(f => f.FechaFin == null)?.FirstOrDefault();
+                //mapper de usuariodto a usuario
+                SolicitudAsociacionDTO solicitud = new SolicitudAsociacionDTO
+                {
+                    Id = item.Id,
+                    Nombre = item.Usuario.Nombre,
+                    Apellido = item.Usuario.Apellido,
+                    Dni = item.Usuario.Dni,
+                    EMail = item.Usuario.Email,
+                    FechaCreacion = historial?.FechaInicio ?? null,
+                    MotivoRechazo = item.MotivoRechazo,
+                    Estado = historial?.EstadoSolicitudAsociacion?.NombreEstado ?? ""
+                };
+                solicitudesDTO.Add(solicitud);
+            }
+
+            return solicitudesDTO;
+        }
+
+        public List<SolicitudAsociacionDTO> GetSolicitudesAsociacionFiltro(int id)
+        {
+            // obtengo todas las solicitudes
+            List<SolicitudAsociacion> solicitudes = GetSolicitudesAsociacionDb();
+
+            // filtro las solicitudes segun el filtro
+            List<SolicitudAsociacion> solicitudesFiltradas = solicitudes
+            .Where(h=>h.SolicitudAsociacionHistoriales
+            .Any(a=>a.FechaFin==null && a.EstadoSolicitudAsociacion == _usuarioEstadoServices.GetEstadoSolicitudAsociacion(id))
+            ).ToList();
+
+            // mapeo las solicitudes
+            return SolicitudesAsociacionMapper(solicitudesFiltradas);
+        }
     }
 }
 
