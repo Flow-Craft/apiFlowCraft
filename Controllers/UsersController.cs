@@ -179,9 +179,6 @@ namespace ApiNet8.Controllers
 
                 Response.Headers.Append(JWT, login.JwtToken);
 
-
-                HttpContext.Session.SetString("pruebaKey", "holaaaaaa");
-
                 // creo el current user para guardar en session
                 CurrentUser currentUser = new CurrentUser
                 {

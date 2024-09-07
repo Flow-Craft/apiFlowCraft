@@ -119,6 +119,28 @@ namespace ApiNet8.Services
                 throw new Exception("Usuario o contrasena incorrecta");
             }
 
+            // verificar estado del usuario
+            UsuarioEstado? estado = usuario.UsuarioHistoriales.FirstOrDefault(f => f.FechaFin == null).UsuarioEstado;
+            if (estado == null || estado.Id == 2 || estado.Id == 3)
+            {
+                string mensajeError = "";
+
+                if (estado == null)
+                {
+                    mensajeError = "El estado del usuario no está definido.";
+                }
+                else if (estado.Id == 2)
+                {
+                    mensajeError = "El usuario está bloqueado.";
+                }
+                else if (estado.Id == 3)
+                {
+                    mensajeError = "El usuario ha sido eliminado.";
+                }
+
+                throw new Exception(mensajeError); 
+            }
+
             // jwt
             var token = new JwtSecurityTokenHandler();
             var key = Encoding.ASCII.GetBytes(secretToken);
@@ -325,7 +347,7 @@ namespace ApiNet8.Services
 
         public async Task<Usuario> GetUsuarioByEmailAndPassword(string email, string password)
         {
-             return await _db.Usuario.FirstOrDefaultAsync(u => u.Email == email && u.Contrasena == password);
+             return await _db.Usuario.Include(e=>e.UsuarioHistoriales).ThenInclude(s=>s.UsuarioEstado).FirstOrDefaultAsync(u => u.Email == email && u.Contrasena == password);
         }
 
         public void ActualizarUsuario(UsuarioDTO usuario)
