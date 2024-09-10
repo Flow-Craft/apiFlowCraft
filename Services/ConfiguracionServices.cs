@@ -53,7 +53,7 @@ namespace ApiNet8.Services
                     transaction.Commit();
                 }
 
-                List<Permiso> permisosViejos = GetPermisosByPerfil(per);
+                List<Permiso> permisosViejos = GetPermisosByPerfil(perfil);
 
                 // Comparar y actualizar permisos
                 foreach (var nuevoPermiso in permisosNuevos)
@@ -69,8 +69,8 @@ namespace ApiNet8.Services
                         Permiso permisoAsoc = _db.Permiso.Where(p => p.Id == nuevoPermiso).FirstOrDefault();
                         PerfilPermiso perfilPermiso = new PerfilPermiso
                         {
-                            Perfil = per,
-                            Permiso = permisoAsoc,
+                            PerfilId = per.Id,
+                            PermisoId = permisoAsoc.Id,
                             FechaCreacion = DateTime.Now,
                             UsuarioEditor = currentUser.Id
                         };
@@ -85,7 +85,7 @@ namespace ApiNet8.Services
                         if (!permisoEnNuevaLista)
                         {
                             // Permiso ya no está en la nueva lista, establecer FechaBaja
-                            PerfilPermiso perfilPermiso = _db.PerfilPermiso.FirstOrDefault(pp => pp.Permiso == permisoActual && pp.Perfil == per && pp.FechaBaja == null);
+                            PerfilPermiso perfilPermiso = _db.PerfilPermiso.FirstOrDefault(pp => pp.PermisoId == permisoActual.Id && pp.PerfilId == per.Id && pp.FechaBaja == null);
                             if (perfilPermiso != null)
                             {
                                 perfilPermiso.FechaBaja = DateTime.Now;
@@ -131,8 +131,8 @@ namespace ApiNet8.Services
                     {
                         Permiso permisoAsoc = _db.Permiso.Where(p => p.Id == perm).FirstOrDefault();
                         PerfilPermiso perfilPermiso = new PerfilPermiso();
-                        perfilPermiso.Perfil = perfilNuevo;
-                        perfilPermiso.Permiso = permisoAsoc;
+                        perfilPermiso.PerfilId = perfilNuevo.Id;
+                        perfilPermiso.PermisoId = permisoAsoc.Id;
                         perfilPermiso.FechaCreacion = DateTime.Now;
                         perfilPermiso.UsuarioEditor = currentUser.Id;
                         _db.Add(perfilPermiso);
@@ -476,11 +476,11 @@ namespace ApiNet8.Services
 
         }
 
-        public List<Permiso> GetPermisosByPerfil(Perfil perfil)
+        public List<Permiso> GetPermisosByPerfil(PerfilDTO perfil)
         {
             try
             {
-                List<PerfilPermiso> perfilPermisos = _db.PerfilPermiso.Include(pp => pp.Perfil).Include(pp => pp.Permiso).Where(pp => pp.Perfil.Id == perfil.Id && pp.FechaBaja==null).DefaultIfEmpty().ToList();
+                List<PerfilPermiso> perfilPermisos = _db.PerfilPermiso.Where(pp => pp.PerfilId == perfil.Id && pp.FechaBaja==null).DefaultIfEmpty().ToList();
                 
                 if (perfilPermisos.FirstOrDefault() == null)
                 {
@@ -489,7 +489,7 @@ namespace ApiNet8.Services
                 List<Permiso> permisos = new List<Permiso>();
 
                 foreach (PerfilPermiso perm in perfilPermisos) {
-                    permisos.Add(_db.Permiso.Where(p => p.Id == perm.Permiso.Id).FirstOrDefault()); 
+                    permisos.Add(_db.Permiso.Where(p => p.Id == perm.PermisoId).FirstOrDefault()); 
                 }
                 return permisos;
             }

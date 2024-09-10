@@ -15,7 +15,7 @@ namespace ApiNet8.Services.IServices
         Perfil ActualizarPerfil(PerfilDTO perfil, List<int> permisos);
         Perfil EliminarPerfil(int id);
         bool ExistePerfil(string nombre);
-        List<Permiso> GetPermisosByPerfil(Perfil perfil);
+        List<Permiso> GetPermisosByPerfil(PerfilDTO perfil);
         PerfilClub CrearPerfilClub(PerfilClubDTO perfilClubDTO);
         PerfilClub ActualizarPerfilClub(PerfilClubDTO perfilClubDTO);
         void EliminarPerfilClub(int id);

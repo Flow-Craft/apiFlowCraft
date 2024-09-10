@@ -201,7 +201,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
-        public IActionResult GetPermisosByPerfil(Perfil perfil)//LISTO
+        public IActionResult GetPermisosByPerfil(PerfilDTO perfil)//LISTO
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
