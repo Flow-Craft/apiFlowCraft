@@ -523,6 +523,7 @@ namespace ApiNet8.Services
                 usuario.FechaNacimiento = miPerfilDTO.FechaNacimiento ?? usuario.FechaNacimiento;
                 usuario.FotoPerfil = miPerfilDTO.FotoPerfil ?? usuario.FotoPerfil;
                 usuario.Nombre = miPerfilDTO.Nombre ?? usuario.Nombre;
+                usuario.Sexo = miPerfilDTO.Sexo ?? usuario.Sexo;
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
@@ -903,6 +904,29 @@ namespace ApiNet8.Services
             }
 
         }
+
+        //public void AceptarTermYCond(Usuario usu)
+        //{
+        //    try
+        //    {
+
+        //        using (var transaction = _db.Database.BeginTransaction())
+        //        {
+
+        //            instEst.NombreEstado = instalacionEstadoDTO.NombreEstado ?? instEst.NombreEstado;
+        //            instEst.DescripcionEstado = instalacionEstadoDTO.DescripcionEstado ?? instEst.DescripcionEstado;
+        //            instEst.FechaModificacion = DateTime.Now;
+        //            instEst.UsuarioEditor = currentUser.Id;
+        //            _db.Update(instEst);
+        //            _db.SaveChanges();
+        //            transaction.Commit();
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        throw new Exception(e.Message, e);
+        //    }
+        //}
     }
 }
 
