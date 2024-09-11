@@ -24,7 +24,6 @@
         public DateTime? UltimoAcceso { get; set; }        
 
         // Relaciones
-        public IList<PerfilUsuario> PerfilesUsuario { get; set; }
         public IList<UsuarioHistorial> UsuarioHistoriales { get; set; }
     }
 }
