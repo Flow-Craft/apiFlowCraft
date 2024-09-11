@@ -280,33 +280,33 @@ namespace ApiNet8.Controllers
             }
         }
 
-        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        [HttpPost]
-        public IActionResult EditarMiPerfil(MiPerfilDTO miPerfilDTO)
-        {
-            var TOKEN = HttpContext.Items[JWT].ToString();
+        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        //[HttpPost]
+        //public IActionResult EditarMiPerfil(MiPerfilDTO miPerfilDTO)
+        //{
+        //    var TOKEN = HttpContext.Items[JWT].ToString();
 
-            Response.Headers.Append(JWT, TOKEN);
+        //    Response.Headers.Append(JWT, TOKEN);
 
-            try
-            {
-                _usuarioServices.EditarMiPerfil(miPerfilDTO);
+        //    try
+        //    {
+        //        _usuarioServices.EditarMiPerfil(miPerfilDTO);
 
-                return Ok();
-            }
-            catch (Exception e)
-            {
-                RespuestaAPI respuestaAPI = new RespuestaAPI
-                {
-                    status = HttpStatusCode.InternalServerError,
-                    title = "Error al editar el perfil del usuario",
-                    errors = new List<string> { e.Message }
-                };
-                return StatusCode((int)respuestaAPI.status, respuestaAPI);
-            }
+        //        return Ok();
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        RespuestaAPI respuestaAPI = new RespuestaAPI
+        //        {
+        //            status = HttpStatusCode.InternalServerError,
+        //            title = "Error al editar el perfil del usuario",
+        //            errors = new List<string> { e.Message }
+        //        };
+        //        return StatusCode((int)respuestaAPI.status, respuestaAPI);
+        //    }
 
 
-        }
+        //}
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
