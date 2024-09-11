@@ -25,6 +25,5 @@ namespace ApiNet8.Services.IServices
         public void ReestablecerContrasena(ReestablecerContrasenaDTO reestablecerContrasenaDTO);
         void BloquearUsuario(BloquearUsuarioDTO bloquearUsuarioDTO);
         void DesbloquearUsuario(BloquearUsuarioDTO bloquearUsuarioDTO);
-        //void AceptarTermYCond();
     }
 }
