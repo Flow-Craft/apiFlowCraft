@@ -41,10 +41,19 @@ builder.Services.AddTransient<IEmailService, EmailService>();
 // se agrega session
 builder.Services.AddDistributedMemoryCache();
 
+//builder.Services.AddSession(options =>
+//{
+//    options.IdleTimeout = TimeSpan.FromMinutes(10);
+//});
+
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(10);
+    options.Cookie.HttpOnly = true; // Esto asegura que las cookies solo se puedan acceder a través del backend
+    options.Cookie.SameSite = SameSiteMode.None; // Esto permite compartir las cookies entre dominios
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Asegúrate de usar HTTPS
 });
+
 
 builder.Services.AddHttpContextAccessor();
 
@@ -77,16 +86,16 @@ builder.Services.AddSwaggerGen();
 //Se usa (*) para todos los dominios
 builder.Services.AddCors(p => p.AddPolicy("PoliticaCors", build =>
 {
-    build.WithOrigins("*").AllowAnyMethod().AllowAnyHeader().WithExposedHeaders("JWT");
+    build.WithOrigins("http://localhost:3001").AllowAnyMethod().AllowAnyHeader().AllowCredentials().WithExposedHeaders("JWT");
 }));
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+//Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
-    app.UseSwaggerUI();
+app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();

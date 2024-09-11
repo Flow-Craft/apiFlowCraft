@@ -26,6 +26,7 @@ namespace ApiNet8.Utils.Mappers
             CreateMap<Disciplina, DisciplinaDTO>().ReverseMap();
             CreateMap<Disciplina, DisciplinaMenuDTO>().ReverseMap();
             CreateMap<Usuario, MiPerfilDTO>().ReverseMap();
+            CreateMap<SolicitudAsociacion, SolicitudAsociacionDTO>().ReverseMap();
         }
     }
 }

@@ -8,6 +8,7 @@ using ApiNet8.Services;
 using ApiNet8.Services.IServices;
 using AutoMapper;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Net;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
@@ -184,9 +185,6 @@ namespace ApiNet8.Controllers
 
                 Response.Headers.Append(JWT, login.JwtToken);
 
-
-                HttpContext.Session.SetString("pruebaKey", "holaaaaaa");
-
                 // creo el current user para guardar en session
                 CurrentUser currentUser = new CurrentUser
                 {
@@ -287,33 +285,33 @@ namespace ApiNet8.Controllers
             }
         }
 
-        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        [HttpPost]
-        public IActionResult EditarMiPerfil(MiPerfilDTO miPerfilDTO)
-        {
-            var TOKEN = HttpContext.Items[JWT].ToString();
+        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        //[HttpPost]
+        //public IActionResult EditarMiPerfil(MiPerfilDTO miPerfilDTO)
+        //{
+        //    var TOKEN = HttpContext.Items[JWT].ToString();
 
-            Response.Headers.Append(JWT, TOKEN);
+        //    Response.Headers.Append(JWT, TOKEN);
 
-            try
-            {
-                _usuarioServices.EditarMiPerfil(miPerfilDTO);
+        //    try
+        //    {
+        //        _usuarioServices.EditarMiPerfil(miPerfilDTO);
 
-                return Ok();
-            }
-            catch (Exception e)
-            {
-                RespuestaAPI respuestaAPI = new RespuestaAPI
-                {
-                    status = HttpStatusCode.InternalServerError,
-                    title = "Error al editar el perfil del usuario",
-                    errors = new List<string> { e.Message }
-                };
-                return StatusCode((int)respuestaAPI.status, respuestaAPI);
-            }
+        //        return Ok();
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        RespuestaAPI respuestaAPI = new RespuestaAPI
+        //        {
+        //            status = HttpStatusCode.InternalServerError,
+        //            title = "Error al editar el perfil del usuario",
+        //            errors = new List<string> { e.Message }
+        //        };
+        //        return StatusCode((int)respuestaAPI.status, respuestaAPI);
+        //    }
 
 
-        }
+        //}
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
@@ -512,6 +510,58 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al dar bloquear usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetSolicitudesAsociacion()
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<SolicitudAsociacionDTO> solicitudes = _usuarioServices.GetSolicitudesAsociacion();
+
+                return Ok(solicitudes);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener las solicitudes de asociacion",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetSolicitudesAsociacionFiltradas(int id)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<SolicitudAsociacionDTO> solicitudes = _usuarioServices.GetSolicitudesAsociacionFiltro(id);
+
+                return Ok(solicitudes);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener las solicitudes de asociacion",
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
