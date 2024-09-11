@@ -2,11 +2,14 @@
 using ApiNet8.Models;
 using ApiNet8.Models.Club;
 using ApiNet8.Models.DTO;
+using ApiNet8.Models.Reservas;
+using ApiNet8.Models.TYC;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
 using ApiNet8.Utils;
 using AutoMapper;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
@@ -119,6 +122,7 @@ namespace ApiNet8.Services
                 throw new Exception("Usuario o contrasena incorrecta");
             }
 
+
             // verificar estado del usuario
             UsuarioEstado? estado = usuario.UsuarioHistoriales.FirstOrDefault(f => f.FechaFin == null).UsuarioEstado;
             if (estado == null || estado.Id == 2 || estado.Id == 3)
@@ -139,6 +143,30 @@ namespace ApiNet8.Services
                 }
 
                 throw new Exception(mensajeError); 
+
+            if (usuarioLoginDTO.ReaceptarTyC == true)
+            {
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    usuario.FechaAceptacionTYC = DateTime.Now;
+                    _db.Update(usuario);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+
+            HistorialTerminosYCondiciones historialTYC = _db.HistorialTerminosYCondiciones.Where(t => t.FechaBaja == null).FirstOrDefault();
+
+            if (usuario.FechaAceptacionTYC < historialTYC.FechaInicioVigencia)
+            {
+                return new UsuarioLoginResponseDTO
+                {
+                    JwtToken = null,
+                    Usuario = null,
+                    EsError = true,
+                    MensajeError = "Aceptación de términos y condiciones vencida"
+                };
+
             }
 
             // jwt
@@ -904,29 +932,6 @@ namespace ApiNet8.Services
             }
 
         }
-
-        //public void AceptarTermYCond(Usuario usu)
-        //{
-        //    try
-        //    {
-
-        //        using (var transaction = _db.Database.BeginTransaction())
-        //        {
-
-        //            instEst.NombreEstado = instalacionEstadoDTO.NombreEstado ?? instEst.NombreEstado;
-        //            instEst.DescripcionEstado = instalacionEstadoDTO.DescripcionEstado ?? instEst.DescripcionEstado;
-        //            instEst.FechaModificacion = DateTime.Now;
-        //            instEst.UsuarioEditor = currentUser.Id;
-        //            _db.Update(instEst);
-        //            _db.SaveChanges();
-        //            transaction.Commit();
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        throw new Exception(e.Message, e);
-        //    }
-        //}
     }
 }
 

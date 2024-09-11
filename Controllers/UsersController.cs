@@ -178,6 +178,11 @@ namespace ApiNet8.Controllers
             {
                 var login = await _usuarioServices.Login(usuarioLoginDTO);
 
+                if (login.EsError==true)
+                {
+                    return new StatusCodeResult(StatusCodes.Status403Forbidden);
+                }
+
                 Response.Headers.Append(JWT, login.JwtToken);
 
                 // creo el current user para guardar en session
