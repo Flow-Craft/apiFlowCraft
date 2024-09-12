@@ -50,7 +50,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-                List<Usuario> partidos = _usuarioServices.GetUsuarios();
+                List<UsuarioDTO> partidos = _usuarioServices.GetUsuarios();
                 return Ok(partidos);
             }
             catch (Exception e)

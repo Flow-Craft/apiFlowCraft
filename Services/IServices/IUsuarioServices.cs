@@ -5,7 +5,7 @@ namespace ApiNet8.Services.IServices
 {
     public interface IUsuarioServices
     {
-        List<Usuario> GetUsuarios();
+        List<UsuarioDTO> GetUsuarios();
         Usuario? GetUsuarioById(int id);
         void CrearUsuario(UsuarioDTO usuario);
         void ActualizarUsuario(UsuarioDTO usuario);

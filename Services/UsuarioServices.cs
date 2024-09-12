@@ -38,9 +38,25 @@ namespace ApiNet8.Services
             _emailService = emailService;
         }
 
-        public List<Usuario> GetUsuarios()
+        public List<UsuarioDTO> GetUsuarios()
         {
-            return _db.Usuario.ToList();
+            List <Usuario> ls = _db.Usuario.Include(h=>h.UsuarioHistoriales).ThenInclude(u=>u.UsuarioEstado).ToList();
+            List <UsuarioDTO> listaUsuarios = new List<UsuarioDTO>();
+            foreach (var item in ls)
+            {
+                //mapper de usuario a usuarioDTO
+                UsuarioDTO user = _mapper.Map<UsuarioDTO>(item);
+
+                // obtengo ultimo historial
+                UsuarioHistorial? historial = item.UsuarioHistoriales.Where(f=>f.FechaFin==null).FirstOrDefault();
+                if (historial != null) 
+                {
+                    user.Estado = historial.UsuarioEstado.NombreEstado;
+                }
+                listaUsuarios.Add(user);
+            }
+           
+            return listaUsuarios;
         }
 
         public Usuario? GetUsuarioById(int id)
