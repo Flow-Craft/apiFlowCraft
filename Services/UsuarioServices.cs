@@ -158,7 +158,9 @@ namespace ApiNet8.Services
                     mensajeError = "El usuario ha sido eliminado.";
                 }
 
-                throw new Exception(mensajeError); 
+                throw new Exception(mensajeError);
+
+            }
 
             if (usuarioLoginDTO.ReaceptarTyC == true)
             {
