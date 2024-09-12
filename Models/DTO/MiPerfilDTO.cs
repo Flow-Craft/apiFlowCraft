@@ -13,6 +13,6 @@
         public DateTime? FechaNacimiento { get; set; }
         public byte[]? FotoPerfil { get; set; }
         public string? ImageType { get; set; } // Para almacenar el tipo de la imagen (image/jpeg, image/png)
-        public bool? mostrarBotonAsociarse { get; set; }
+        public int Asociado { get; set; }
      }
 }

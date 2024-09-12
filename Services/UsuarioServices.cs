@@ -507,7 +507,7 @@ namespace ApiNet8.Services
                 MiPerfilDTO miPerfilDTO = _mapper.Map<MiPerfilDTO>(usuario);
 
                 // verificar si el usuario es socio
-                miPerfilDTO.mostrarBotonAsociarse = MostrarBotonAsociarse(usuario);
+                miPerfilDTO.Asociado = MostrarBotonAsociarse(usuario);
 
                 return miPerfilDTO;
             }
@@ -517,11 +517,11 @@ namespace ApiNet8.Services
             }
         }
 
-        public bool MostrarBotonAsociarse(Usuario usuario)
+        public int MostrarBotonAsociarse(Usuario usuario)
         {
-          // verificar que el usuario una solicitud aprobada o tenga una solicitud pendiente
-
-        // verifico si tiene alguna solicitud de asociacion con un historial sin fecha fin, eso significa que tiene alguna solicitud con estado
+            // obtengo ultima solicitud de asociacion del usuario
+            // verifico el estado de la solicitud
+          
          SolicitudAsociacion? solicitud = _db.SolicitudAsociacion
                 .Include(u => u.Usuario)
                 .Include(h=>h.SolicitudAsociacionHistoriales)
@@ -534,13 +534,20 @@ namespace ApiNet8.Services
             {
                 // verifico el estado de la ultima solicitud que tenga, si es aprobada o pendiente no muestro boton
                 SolicitudAsociacionHistorial solicitudAsociacionHistorial = solicitud.SolicitudAsociacionHistoriales.Where(h => h.FechaFin == null).FirstOrDefault();
-                if (solicitudAsociacionHistorial.EstadoSolicitudAsociacion.Id == 1 || solicitudAsociacionHistorial.EstadoSolicitudAsociacion.Id == 2)
+
+                switch (solicitudAsociacionHistorial?.EstadoSolicitudAsociacion.Id)
                 {
-                    return false;
-                }
+                    case 1:
+                        return 1;
+                    case 2:
+                        return 2;
+                    default:
+                        return 0;
+                }               
             }
 
-            return true;
+            return 0;
+
         }
 
         public void EditarMiPerfil(MiPerfilDTO miPerfilDTO)
