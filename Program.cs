@@ -50,7 +50,7 @@ builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(10);
     options.Cookie.HttpOnly = true; // Esto asegura que las cookies solo se puedan acceder a través del backend
-    options.Cookie.SameSite = SameSiteMode.None; // Esto permite compartir las cookies entre dominios
+    options.Cookie.SameSite = SameSiteMode.None; // Esto permite compartir las cookies entre dominios    
     options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Asegúrate de usar HTTPS
 });
 
@@ -103,9 +103,9 @@ app.UseHttpsRedirection();
 //Soporte para CORS
 app.UseCors("PoliticaCors");
 
-app.UseAuthorization();
-
 app.UseSession();
+
+app.UseAuthorization();
 
 app.MapControllers();
 

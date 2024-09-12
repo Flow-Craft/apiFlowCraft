@@ -543,69 +543,69 @@ namespace ApiNet8.Services
             return true;
         }
 
-        //public void EditarMiPerfil(MiPerfilDTO miPerfilDTO)
-        //{
-        //    try
-        //    {
-        //        // Obtener el usuario actual desde la sesión
-        //        var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+        public void EditarMiPerfil(MiPerfilDTO miPerfilDTO)
+        {
+            try
+            {
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
-        //        if (currentUser?.Id == null)
-        //        {
-        //            throw new Exception("El id del usuario es nulo");
-        //        }
+                if (currentUser?.Id == null)
+                {
+                    throw new Exception("El id del usuario es nulo");
+                }
 
-        //        Usuario usuario = GetUsuarioById(currentUser.Id);
+                Usuario? usuario = GetUsuarioById(currentUser.Id);
 
-        //        if (usuario == null)
-        //        {
-        //            throw new Exception("no se encontró un usuario con el id" + currentUser.Id);
-        //        }
+                if (usuario == null)
+                {
+                    throw new Exception("no se encontró un usuario con el id" + currentUser.Id);
+                }
 
-        //        usuario.Apellido = miPerfilDTO.Apellido ?? usuario.Apellido;
-        //        usuario.Telefono = miPerfilDTO.Telefono ?? usuario.Telefono;
-        //        usuario.Direccion = miPerfilDTO.Direccion ?? usuario.Direccion;
-        //        usuario.Email = miPerfilDTO.Email ?? usuario.Email;
-        //        usuario.FechaNacimiento = miPerfilDTO.FechaNacimiento ?? usuario.FechaNacimiento;
-        //        usuario.FotoPerfil = miPerfilDTO.FotoPerfil ?? usuario.FotoPerfil;
-        //        usuario.Nombre = miPerfilDTO.Nombre ?? usuario.Nombre;
-        //        usuario.Sexo = miPerfilDTO.Sexo ?? usuario.Sexo;
+                usuario.Apellido = miPerfilDTO.Apellido ?? usuario.Apellido;
+                usuario.Telefono = miPerfilDTO.Telefono ?? usuario.Telefono;
+                usuario.Direccion = miPerfilDTO.Direccion ?? usuario.Direccion;
+                usuario.Email = miPerfilDTO.Email ?? usuario.Email;
+                usuario.FechaNacimiento = miPerfilDTO.FechaNacimiento ?? usuario.FechaNacimiento;
+                usuario.FotoPerfil = miPerfilDTO.FotoPerfil ?? usuario.FotoPerfil;
+                usuario.Nombre = miPerfilDTO.Nombre ?? usuario.Nombre;
+                usuario.Sexo = miPerfilDTO.Sexo ?? usuario.Sexo;
 
-        //        using (var transaction = _db.Database.BeginTransaction())
-        //        {
-        //            if (usuario.UsuarioHistoriales.Count != 0 && usuario.UsuarioHistoriales.Any(a => a.FechaFin == null))
-        //            {
-        //                // obtengo ultimo historial y lo doy de baja
-        //                UsuarioHistorial historialAnterior = usuario.UsuarioHistoriales.FirstOrDefault(u => u.FechaFin == null);
-        //                historialAnterior.FechaFin = DateTime.Now;
-        //                _db.UsuarioHistorial.Update(historialAnterior);
-        //            }
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    if (usuario.UsuarioHistoriales.Count != 0 && usuario.UsuarioHistoriales.Any(a => a.FechaFin == null))
+                    {
+                        // obtengo ultimo historial y lo doy de baja
+                        UsuarioHistorial? historialAnterior = usuario.UsuarioHistoriales.FirstOrDefault(u => u.FechaFin == null);
+                        historialAnterior.FechaFin = DateTime.Now;
+                        _db.UsuarioHistorial.Update(historialAnterior);
+                    }
 
-        //            // se crea nuevo historial
-        //            UsuarioHistorial nuevoHistorial = new UsuarioHistorial
-        //            {
-        //                DetalleCambioEstado = "Usuario actualiza datos",
-        //                FechaInicio = DateTime.Now,
-        //                UsuarioEditor = currentUser?.Id,
-        //                UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1) // asigno estado ACTIVADO
-        //            };
+                    // se crea nuevo historial
+                    UsuarioHistorial nuevoHistorial = new UsuarioHistorial
+                    {
+                        DetalleCambioEstado = "Usuario actualiza datos",
+                        FechaInicio = DateTime.Now,
+                        UsuarioEditor = currentUser?.Id,
+                        UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1) // asigno estado ACTIVADO
+                    };
 
-        //            // se asigna el historial al usuario
-        //            usuario.UsuarioHistoriales.Add(nuevoHistorial);
+                    // se asigna el historial al usuario
+                    usuario.UsuarioHistoriales.Add(nuevoHistorial);
 
 
-        //            _db.UsuarioHistorial.Update(nuevoHistorial);    
-        //            _db.Usuario.Update(usuario);
-        //            _db.SaveChanges();
-        //            transaction.Commit();
-        //        }
+                    _db.UsuarioHistorial.Update(nuevoHistorial);
+                    _db.Usuario.Update(usuario);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
 
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        throw new Exception(e.Message, e);
-        //    }
-        //}
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
 
         public void CambiarContrasena(string contrasena)
         {
