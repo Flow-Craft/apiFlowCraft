@@ -86,7 +86,7 @@ builder.Services.AddSwaggerGen();
 //Se usa (*) para todos los dominios
 builder.Services.AddCors(p => p.AddPolicy("PoliticaCors", build =>
 {
-    build.WithOrigins("http://localhost:3001").AllowAnyMethod().AllowAnyHeader().AllowCredentials().WithExposedHeaders("JWT");
+    build.WithOrigins("http://localhost:3001", "http://192.168.1.20:3000").AllowAnyMethod().AllowAnyHeader().AllowCredentials().WithExposedHeaders("JWT");
 }));
 
 var app = builder.Build();
