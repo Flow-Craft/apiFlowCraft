@@ -51,7 +51,13 @@ namespace ApiNet8.Controllers
             try
             {
                 List<UsuarioDTO> partidos = _usuarioServices.GetUsuarios();
-                return Ok(partidos);
+                        // Crea un objeto para envolver los usuarios
+                var response = new
+                {
+                    usuarios = partidos // Coloca el array en una propiedad "usuarios"
+                };
+
+                return Ok(response);
             }
             catch (Exception e)
             {
