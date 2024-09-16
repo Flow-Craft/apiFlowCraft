@@ -193,18 +193,18 @@ namespace ApiNet8.Services
             try
             {
                 List<Instalacion> listComp = _db.Instalacion.ToList();
-                List<Instalacion> listFiltrada = new List<Instalacion>();
+                //List<Instalacion> listFiltrada = new List<Instalacion>();
 
-                foreach (var instalacion in listComp)
-                {
-                    InstalacionHistorial estado = _db.InstalacionHistorial.Where(i => i.InstalacionEstado.Id != 2 && i.FechaFin == null && i.Instalacion.Id==instalacion.Id).FirstOrDefault();
-                    if (estado != null)
-                    {
-                        listFiltrada.Add(instalacion);
-                    }
-                }
+                //foreach (var instalacion in listComp)
+                //{
+                //    InstalacionHistorial estado = _db.InstalacionHistorial.Where(i => i.InstalacionEstado.Id != 2 && i.FechaFin == null && i.Instalacion.Id==instalacion.Id).FirstOrDefault();
+                //    if (estado != null)
+                //    {
+                //        listFiltrada.Add(instalacion);
+                //    }
+                //}
 
-                return listFiltrada;
+                return listComp;
             }
             catch (Exception e)
             {
