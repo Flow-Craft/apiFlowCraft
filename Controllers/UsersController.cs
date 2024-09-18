@@ -186,7 +186,8 @@ namespace ApiNet8.Controllers
 
                 if (login.EsError==true)
                 {
-                    return new StatusCodeResult(StatusCodes.Status403Forbidden);
+                    //return new StatusCodeResult(StatusCodes.Status403Forbidden);
+                    return Ok(login);
                 }
 
                 Response.Headers.Append(JWT, login.JwtToken);

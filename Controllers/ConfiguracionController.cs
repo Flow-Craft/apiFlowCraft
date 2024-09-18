@@ -125,55 +125,55 @@ namespace ApiNet8.Controllers
             public List<int> Permisos { get; set; }
         }
 
-        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        //[HttpPost]
-        //public IActionResult CrearPerfil([FromBody] PerfilRequest form)//LISTO
-        //{
-        //    var TOKEN = HttpContext.Items[JWT].ToString();
-        //    Response.Headers.Append(JWT, TOKEN);
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult CrearPerfil([FromBody] PerfilRequest form)//LISTO
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
 
-        //    // obtengo datos de jwt para utilizar
+            // obtengo datos de jwt para utilizar
 
-        //    try
-        //    {
-        //    Perfil perfilACrear = _configuracionServices.CrearPerfil(form.Perfil, form.Permisos);
-        //    return Ok(perfilACrear);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        RespuestaAPI respuestaAPI = new RespuestaAPI
-        //        {
-        //            status = HttpStatusCode.InternalServerError,
-        //            title = "Error al crear perfil",
-        //            errors = new List<string> { e.Message }
-        //        };
-        //        return StatusCode((int)respuestaAPI.status, respuestaAPI);
-        //    }            
-        //}
+            try
+            {
+                Perfil perfilACrear = _configuracionServices.CrearPerfil(form.Perfil, form.Permisos);
+                return Ok(perfilACrear);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al crear perfil",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
 
-        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        //[HttpPost]
-        //public IActionResult ActualizarPerfil([FromBody] PerfilRequest form)//LISTO
-        //{
-        //    var TOKEN = HttpContext.Items[JWT].ToString();
-        //    Response.Headers.Append(JWT, TOKEN);
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult ActualizarPerfil([FromBody] PerfilRequest form)//LISTO
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
 
-        //    try
-        //    {
-        //        Perfil perfilAActualizar = _configuracionServices.ActualizarPerfil(form.Perfil, form.Permisos);
-        //        return Ok(perfilAActualizar);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        RespuestaAPI respuestaAPI = new RespuestaAPI
-        //        {
-        //            status = HttpStatusCode.InternalServerError,
-        //            title = "Error al actualizar perfil",
-        //            errors = new List<string> { e.Message }
-        //        };
-        //        return StatusCode((int)respuestaAPI.status, respuestaAPI);
-        //    }
-        //}
+            try
+            {
+                Perfil perfilAActualizar = _configuracionServices.ActualizarPerfil(form.Perfil, form.Permisos);
+                return Ok(perfilAActualizar);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al actualizar perfil",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost("{id}")]
@@ -199,30 +199,30 @@ namespace ApiNet8.Controllers
             }
         }
 
-        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        //[HttpPost]
-        //public IActionResult GetPermisosByPerfil(PerfilDTO perfil)//LISTO
-        //{
-        //    var TOKEN = HttpContext.Items[JWT].ToString();
-        //    Response.Headers.Append(JWT, TOKEN);
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult GetPermisosByPerfil(PerfilDTO perfil)//LISTO
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
 
-        //    try
-        //    {
-        //        List<Permiso> permisos = _configuracionServices.GetPermisosByPerfil(perfil);// guardar en sesion la entidad enciontrada en el filtro
-        //        return Ok(permisos);
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        RespuestaAPI respuestaAPI = new RespuestaAPI
-        //        {
-        //            status = HttpStatusCode.InternalServerError,
-        //            title = "Error al buscar permisos del perfil",
-        //            errors = new List<string> { e.Message }
-        //        };
-        //        return StatusCode((int)respuestaAPI.status, respuestaAPI);
-        //    }
+            try
+            {
+                List<Permiso> permisos = _configuracionServices.GetPermisosByPerfil(perfil);// guardar en sesion la entidad enciontrada en el filtro
+                return Ok(permisos);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al buscar permisos del perfil",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
 
-        //}
+        }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]

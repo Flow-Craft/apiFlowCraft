@@ -159,7 +159,6 @@ namespace ApiNet8.Services
                 }
 
                 throw new Exception(mensajeError);
-
             }
 
             if (usuarioLoginDTO.ReaceptarTyC == true)
@@ -182,7 +181,7 @@ namespace ApiNet8.Services
                     JwtToken = null,
                     Usuario = null,
                     EsError = true,
-                    MensajeError = "Aceptación de términos y condiciones vencida"
+                    MensajeError = "ATyC vencida"
                 };
 
             }

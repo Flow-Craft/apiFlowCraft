@@ -31,12 +31,6 @@ namespace ApiNet8.Services
         {
             try
             {
-                var existeNoticia = ExisteNoticia(noticiaDTO.Titulo);
-                if (existeNoticia)
-                {
-                    throw new Exception("Ya existe una noticia con ese titulo");
-                }
-                
                 if (noticiaDTO.FechaFin < noticiaDTO.FechaInicio)
                 {
                     throw new Exception("La fecha fin no puede ser menor a la fecha inicio de la publicacion");
@@ -72,11 +66,6 @@ namespace ApiNet8.Services
         public Noticias CrearNoticia(NoticiaDTO noticiaDTO)
         {
             try { 
-                var existeNoticia = ExisteNoticia(noticiaDTO.Titulo);
-                if (existeNoticia)
-                {
-                    throw new Exception("Ya existe una noticia con ese titulo");
-                }
                 if (noticiaDTO.FechaFin<noticiaDTO.FechaInicio)
                 {
                     throw new Exception("La fecha fin no puede ser menor a la fecha inicio de la publicacion");
