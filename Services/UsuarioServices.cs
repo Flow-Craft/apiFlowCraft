@@ -41,9 +41,25 @@ namespace ApiNet8.Services
             _emailService = emailService;
         }
 
-        public List<Usuario> GetUsuarios()
+        public List<UsuarioDTO> GetUsuarios()
         {
-            return _db.Usuario.ToList();
+            List <Usuario> ls = _db.Usuario.Include(h=>h.UsuarioHistoriales).ThenInclude(u=>u.UsuarioEstado).ToList();
+            List <UsuarioDTO> listaUsuarios = new List<UsuarioDTO>();
+            foreach (var item in ls)
+            {
+                //mapper de usuario a usuarioDTO
+                UsuarioDTO user = _mapper.Map<UsuarioDTO>(item);
+
+                // obtengo ultimo historial
+                UsuarioHistorial? historial = item.UsuarioHistoriales.Where(f=>f.FechaFin==null).FirstOrDefault();
+                if (historial != null) 
+                {
+                    user.Estado = historial.UsuarioEstado.NombreEstado;
+                }
+                listaUsuarios.Add(user);
+            }
+           
+            return listaUsuarios;
         }
 
         public Usuario? GetUsuarioById(int id)
@@ -490,7 +506,7 @@ namespace ApiNet8.Services
                 MiPerfilDTO miPerfilDTO = _mapper.Map<MiPerfilDTO>(usuario);
 
                 // verificar si el usuario es socio
-                miPerfilDTO.mostrarBotonAsociarse = MostrarBotonAsociarse(usuario);
+                miPerfilDTO.Asociado = MostrarBotonAsociarse(usuario);
 
                 return miPerfilDTO;
             }
@@ -500,11 +516,11 @@ namespace ApiNet8.Services
             }
         }
 
-        public bool MostrarBotonAsociarse(Usuario usuario)
+        public int MostrarBotonAsociarse(Usuario usuario)
         {
-          // verificar que el usuario una solicitud aprobada o tenga una solicitud pendiente
-
-        // verifico si tiene alguna solicitud de asociacion con un historial sin fecha fin, eso significa que tiene alguna solicitud con estado
+            // obtengo ultima solicitud de asociacion del usuario
+            // verifico el estado de la solicitud
+          
          SolicitudAsociacion? solicitud = _db.SolicitudAsociacion
                 .Include(u => u.Usuario)
                 .Include(h=>h.SolicitudAsociacionHistoriales)
@@ -517,78 +533,85 @@ namespace ApiNet8.Services
             {
                 // verifico el estado de la ultima solicitud que tenga, si es aprobada o pendiente no muestro boton
                 SolicitudAsociacionHistorial solicitudAsociacionHistorial = solicitud.SolicitudAsociacionHistoriales.Where(h => h.FechaFin == null).FirstOrDefault();
-                if (solicitudAsociacionHistorial.EstadoSolicitudAsociacion.Id == 1 || solicitudAsociacionHistorial.EstadoSolicitudAsociacion.Id == 2)
+
+                switch (solicitudAsociacionHistorial?.EstadoSolicitudAsociacion.Id)
                 {
-                    return false;
-                }
+                    case 1:
+                        return 1;
+                    case 2:
+                        return 2;
+                    default:
+                        return 0;
+                }               
             }
 
-            return true;
+            return 0;
+
         }
 
-        //public void EditarMiPerfil(MiPerfilDTO miPerfilDTO)
-        //{
-        //    try
-        //    {
-        //        // Obtener el usuario actual desde la sesión
-        //        var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+        public void EditarMiPerfil(MiPerfilDTO miPerfilDTO)
+        {
+            try
+            {
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
-        //        if (currentUser?.Id == null)
-        //        {
-        //            throw new Exception("El id del usuario es nulo");
-        //        }
+                if (currentUser?.Id == null)
+                {
+                    throw new Exception("El id del usuario es nulo");
+                }
 
-        //        Usuario usuario = GetUsuarioById(currentUser.Id);
+                Usuario? usuario = GetUsuarioById(currentUser.Id);
 
-        //        if (usuario == null)
-        //        {
-        //            throw new Exception("no se encontró un usuario con el id" + currentUser.Id);
-        //        }
+                if (usuario == null)
+                {
+                    throw new Exception("no se encontró un usuario con el id" + currentUser.Id);
+                }
 
-        //        usuario.Apellido = miPerfilDTO.Apellido ?? usuario.Apellido;
-        //        usuario.Telefono = miPerfilDTO.Telefono ?? usuario.Telefono;
-        //        usuario.Direccion = miPerfilDTO.Direccion ?? usuario.Direccion;
-        //        usuario.Email = miPerfilDTO.Email ?? usuario.Email;
-        //        usuario.FechaNacimiento = miPerfilDTO.FechaNacimiento ?? usuario.FechaNacimiento;
-        //        usuario.FotoPerfil = miPerfilDTO.FotoPerfil ?? usuario.FotoPerfil;
-        //        usuario.Nombre = miPerfilDTO.Nombre ?? usuario.Nombre;
-        //        usuario.Sexo = miPerfilDTO.Sexo ?? usuario.Sexo;
+                usuario.Apellido = miPerfilDTO.Apellido ?? usuario.Apellido;
+                usuario.Telefono = miPerfilDTO.Telefono ?? usuario.Telefono;
+                usuario.Direccion = miPerfilDTO.Direccion ?? usuario.Direccion;
+                usuario.Email = miPerfilDTO.Email ?? usuario.Email;
+                usuario.FechaNacimiento = miPerfilDTO.FechaNacimiento ?? usuario.FechaNacimiento;
+                usuario.FotoPerfil = miPerfilDTO.FotoPerfil ?? usuario.FotoPerfil;
+                usuario.Nombre = miPerfilDTO.Nombre ?? usuario.Nombre;
+                usuario.Sexo = miPerfilDTO.Sexo ?? usuario.Sexo;
 
-        //        using (var transaction = _db.Database.BeginTransaction())
-        //        {
-        //            if (usuario.UsuarioHistoriales.Count != 0 && usuario.UsuarioHistoriales.Any(a => a.FechaFin == null))
-        //            {
-        //                // obtengo ultimo historial y lo doy de baja
-        //                UsuarioHistorial historialAnterior = usuario.UsuarioHistoriales.FirstOrDefault(u => u.FechaFin == null);
-        //                historialAnterior.FechaFin = DateTime.Now;
-        //                _db.UsuarioHistorial.Update(historialAnterior);
-        //            }
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    if (usuario.UsuarioHistoriales.Count != 0 && usuario.UsuarioHistoriales.Any(a => a.FechaFin == null))
+                    {
+                        // obtengo ultimo historial y lo doy de baja
+                        UsuarioHistorial? historialAnterior = usuario.UsuarioHistoriales.FirstOrDefault(u => u.FechaFin == null);
+                        historialAnterior.FechaFin = DateTime.Now;
+                        _db.UsuarioHistorial.Update(historialAnterior);
+                    }
 
-        //            // se crea nuevo historial
-        //            UsuarioHistorial nuevoHistorial = new UsuarioHistorial
-        //            {
-        //                DetalleCambioEstado = "Usuario actualiza datos",
-        //                FechaInicio = DateTime.Now,
-        //                UsuarioEditor = currentUser?.Id,
-        //                UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1) // asigno estado ACTIVADO
-        //            };
+                    // se crea nuevo historial
+                    UsuarioHistorial nuevoHistorial = new UsuarioHistorial
+                    {
+                        DetalleCambioEstado = "Usuario actualiza datos",
+                        FechaInicio = DateTime.Now,
+                        UsuarioEditor = currentUser?.Id,
+                        UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1) // asigno estado ACTIVADO
+                    };
 
-        //            // se asigna el historial al usuario
-        //            usuario.UsuarioHistoriales.Add(nuevoHistorial);
+                    // se asigna el historial al usuario
+                    usuario.UsuarioHistoriales.Add(nuevoHistorial);
 
 
-        //            _db.UsuarioHistorial.Update(nuevoHistorial);    
-        //            _db.Usuario.Update(usuario);
-        //            _db.SaveChanges();
-        //            transaction.Commit();
-        //        }
+                    _db.UsuarioHistorial.Update(nuevoHistorial);
+                    _db.Usuario.Update(usuario);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
 
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        throw new Exception(e.Message, e);
-        //    }
-        //}
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
 
         public void CambiarContrasena(string contrasena)
         {

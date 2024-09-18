@@ -50,8 +50,14 @@ namespace ApiNet8.Controllers
 
             try
             {
-                List<Usuario> partidos = _usuarioServices.GetUsuarios();
-                return Ok(partidos);
+                List<UsuarioDTO> partidos = _usuarioServices.GetUsuarios();
+                        // Crea un objeto para envolver los usuarios
+                var response = new
+                {
+                    usuarios = partidos // Coloca el array en una propiedad "usuarios"
+                };
+
+                return Ok(response);
             }
             catch (Exception e)
             {
@@ -195,6 +201,8 @@ namespace ApiNet8.Controllers
                 };
                 SetCurrentUser(currentUser);
 
+                CurrentUser cu = GetCurrentUser();
+
                 return Ok(login.Usuario);
             }
             catch (Exception e)
@@ -286,33 +294,33 @@ namespace ApiNet8.Controllers
             }
         }
 
-        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        //[HttpPost]
-        //public IActionResult EditarMiPerfil(MiPerfilDTO miPerfilDTO)
-        //{
-        //    var TOKEN = HttpContext.Items[JWT].ToString();
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult EditarMiPerfil(MiPerfilDTO miPerfilDTO)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
 
-        //    Response.Headers.Append(JWT, TOKEN);
+            Response.Headers.Append(JWT, TOKEN);
 
-        //    try
-        //    {
-        //        _usuarioServices.EditarMiPerfil(miPerfilDTO);
+            try
+            {
+                _usuarioServices.EditarMiPerfil(miPerfilDTO);
 
-        //        return Ok();
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        RespuestaAPI respuestaAPI = new RespuestaAPI
-        //        {
-        //            status = HttpStatusCode.InternalServerError,
-        //            title = "Error al editar el perfil del usuario",
-        //            errors = new List<string> { e.Message }
-        //        };
-        //        return StatusCode((int)respuestaAPI.status, respuestaAPI);
-        //    }
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al editar el perfil del usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
 
 
-        //}
+        }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]

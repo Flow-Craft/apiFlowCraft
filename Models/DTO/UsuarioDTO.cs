@@ -24,6 +24,8 @@ namespace ApiNet8.Models.DTO
         public string? Localidad { get; set; }
         public DateTime? FechaAceptacionTYC { get; set; }
         public DateTime? FechaCambioContrasena { get; set; }
+        public DateTime? UltimoAcceso { get; set; }
+        public string? Estado {  get; set; }
         //public IList<PerfilUsuario>? PerfilesUsuario { get; set; }
     }
 }
