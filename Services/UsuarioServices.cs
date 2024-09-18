@@ -142,7 +142,8 @@ namespace ApiNet8.Services
                     mensajeError = "El usuario ha sido eliminado.";
                 }
 
-                throw new Exception(mensajeError); 
+                throw new Exception(mensajeError);
+            }
 
             if (usuarioLoginDTO.ReaceptarTyC == true)
             {
@@ -164,7 +165,7 @@ namespace ApiNet8.Services
                     JwtToken = null,
                     Usuario = null,
                     EsError = true,
-                    MensajeError = "Aceptación de términos y condiciones vencida"
+                    MensajeError = "ATyC vencida"
                 };
 
             }

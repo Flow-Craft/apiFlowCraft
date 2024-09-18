@@ -11,11 +11,11 @@ namespace ApiNet8.Services.IServices
         List<Perfil> GetPerfiles();
         List<Permiso> GetPermisos();
         Perfil GetPerfilById(int Id);
-        //Perfil CrearPerfil(PerfilDTO perfil, List<int> permisos);
-        //Perfil ActualizarPerfil(PerfilDTO perfil, List<int> permisos);
+        Perfil CrearPerfil(PerfilDTO perfil, List<int> permisos);
+        Perfil ActualizarPerfil(PerfilDTO perfil, List<int> permisos);
         Perfil EliminarPerfil(int id);
         bool ExistePerfil(string nombre);
-        //List<Permiso> GetPermisosByPerfil(PerfilDTO perfil);
+        List<Permiso> GetPermisosByPerfil(PerfilDTO perfil);
         PerfilClub CrearPerfilClub(PerfilClubDTO perfilClubDTO);
         PerfilClub ActualizarPerfilClub(PerfilClubDTO perfilClubDTO);
         void EliminarPerfilClub(int id);

@@ -26,132 +26,118 @@ namespace ApiNet8.Services
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
-        //public Perfil ActualizarPerfil(PerfilDTO perfil, List<int> permisosNuevos)
-        //{
-        //    try
-        //    {
-        //        var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
-        //        Perfil per = GetPerfilById(perfil.Id);
+        public Perfil ActualizarPerfil(PerfilDTO perfil, List<int> permisosNuevos)
+        {
+            try
+            {
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+                Perfil per = GetPerfilById(perfil.Id);
 
-        //        if (per.NombrePerfil != perfil.NombrePerfil)
-        //        {
-        //            var existePerfil = ExistePerfil(perfil.NombrePerfil);
-        //            if (existePerfil)
-        //            {
-        //                throw new Exception("Ya existe un perfil con ese nombre");
-        //            }
-        //        }
-                
-        //        using (var transaction = _db.Database.BeginTransaction())
-        //        {
-        //            per.NombrePerfil = perfil.NombrePerfil ?? per.NombrePerfil;
-        //            per.DescripcionPerfil = perfil.DescripcionPerfil ?? per.DescripcionPerfil;
-        //            per.FechaModificacion = DateTime.Now;
-        //            per.UsuarioEditor = currentUser.Id;
-        //            _db.Update(per);
-        //            _db.SaveChanges();
-        //            transaction.Commit();
-        //        }
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    per.NombrePerfil = perfil.NombrePerfil ?? per.NombrePerfil;
+                    per.DescripcionPerfil = perfil.DescripcionPerfil ?? per.DescripcionPerfil;
+                    per.FechaModificacion = DateTime.Now;
+                    per.UsuarioEditor = currentUser.Id;
+                    _db.Update(per);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
 
-        //        List<Permiso> permisosViejos = GetPermisosByPerfil(perfil);
+                List<Permiso> permisosViejos = GetPermisosByPerfil(perfil);
 
-        //        // Comparar y actualizar permisos
-        //        foreach (var nuevoPermiso in permisosNuevos)
-        //        {
-        //            Permiso permisoExistente = null;
-        //            if (permisosViejos != null)
-        //            {
-        //                permisoExistente = permisosViejos.FirstOrDefault(p => p.Id == nuevoPermiso);
-        //            }
+                // Comparar y actualizar permisos
+                foreach (var nuevoPermiso in permisosNuevos)
+                {
+                    Permiso permisoExistente = null;
+                    if (permisosViejos != null)
+                    {
+                        permisoExistente = permisosViejos.FirstOrDefault(p => p.Id == nuevoPermiso);
+                    }
 
-        //            if (permisoExistente == null)
-        //            {
-        //                Permiso permisoAsoc = _db.Permiso.Where(p => p.Id == nuevoPermiso).FirstOrDefault();
-        //                PerfilPermiso perfilPermiso = new PerfilPermiso
-        //                {
-        //                    PerfilId = per.Id,
-        //                    PermisoId = permisoAsoc.Id,
-        //                    FechaCreacion = DateTime.Now,
-        //                    UsuarioEditor = currentUser.Id
-        //                };
-        //                _db.Add(perfilPermiso);
-        //            }
-        //        }
-        //        if (permisosViejos != null) { 
-        //            foreach (var permisoActual in permisosViejos)
-        //            {
-        //                //var permisoEnNuevaLista = permisosNuevos.FirstOrDefault(p => p.Id == permisoActual.Id);
-        //                bool permisoEnNuevaLista = permisosNuevos.Contains(permisoActual.Id);
-        //                if (!permisoEnNuevaLista)
-        //                {
-        //                    // Permiso ya no está en la nueva lista, establecer FechaBaja
-        //                    PerfilPermiso perfilPermiso = _db.PerfilPermiso.FirstOrDefault(pp => pp.PermisoId == permisoActual.Id && pp.PerfilId == per.Id && pp.FechaBaja == null);
-        //                    if (perfilPermiso != null)
-        //                    {
-        //                        perfilPermiso.FechaBaja = DateTime.Now;
-        //                        _db.Update(perfilPermiso);
-        //                    }
-        //                }
-        //            }
-        //        }
-        //        // Guardar cambios en la base de datos
-        //        _db.SaveChanges();
+                    if (permisoExistente == null)
+                    {
+                        Permiso permisoAsoc = _db.Permiso.Where(p => p.Id == nuevoPermiso).FirstOrDefault();
+                        PerfilPermiso perfilPermiso = new PerfilPermiso
+                        {
+                            Perfil = per,
+                            Permiso = permisoAsoc,
+                            FechaCreacion = DateTime.Now,
+                            UsuarioEditor = currentUser.Id
+                        };
+                        _db.Add(perfilPermiso);
+                    }
+                }
+                if (permisosViejos != null)
+                {
+                    foreach (var permisoActual in permisosViejos)
+                    {
+                        bool permisoEnNuevaLista = permisosNuevos.Contains(permisoActual.Id);
+                        if (!permisoEnNuevaLista)
+                        {
+                            // Permiso ya no está en la nueva lista, establecer FechaBaja
+                            PerfilPermiso perfilPermiso = _db.PerfilPermiso.Include(pp => pp.Permiso).Include(pp => pp.Perfil).FirstOrDefault(pp => pp.Permiso.Id == permisoActual.Id && pp.Perfil.Id == per.Id && pp.FechaBaja == null);
+                            if (perfilPermiso != null)
+                            {
+                                perfilPermiso.FechaBaja = DateTime.Now;
+                                _db.Update(perfilPermiso);
+                            }
+                        }
+                    }
+                }
+                // Guardar cambios en la base de datos
+                _db.SaveChanges();
 
 
-        //        return per;
-        //    }
-        //    catch (Exception e)
-        //    {
+                return per;
+            }
+            catch (Exception e)
+            {
 
-        //        throw new Exception(e.Message, e);
-        //    }
-        //}
+                throw new Exception(e.Message, e);
+            }
+        }
 
-        //public Perfil CrearPerfil(PerfilDTO perfil, List<int> permisos) 
-        //{
-        //    try
-        //    {
-        //        var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser"); 
+        public Perfil CrearPerfil(PerfilDTO perfil, List<int> permisos)
+        {
+            try
+            {
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
-        //        var existePerfil = ExistePerfil(perfil.NombrePerfil);
-        //        if (existePerfil)
-        //        {
-        //            throw new Exception("Ya existe un perfil con ese nombre");
-        //        }
+                Perfil per = _mapper.Map<Perfil>(perfil);
+                per.UsuarioEditor = currentUser.Id;
+                per.FechaCreacion = DateTime.Now;
+                _db.Add(per);
+                _db.SaveChanges();
 
-        //        Perfil per = _mapper.Map<Perfil>(perfil);
-        //        per.FechaCreacion = DateTime.Now;
-        //        _db.Add(per);
-        //        _db.SaveChanges();
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    Perfil perfilNuevo = _db.Perfil.Where(p => p.NombrePerfil == per.NombrePerfil).FirstOrDefault();
+                    foreach (int perm in permisos)
+                    {
+                        Permiso permisoAsoc = _db.Permiso.Where(p => p.Id == perm).FirstOrDefault();
+                        PerfilPermiso perfilPermiso = new PerfilPermiso();
+                        perfilPermiso.Perfil = perfilNuevo;
+                        perfilPermiso.Permiso = permisoAsoc;
+                        perfilPermiso.FechaCreacion = DateTime.Now;
+                        perfilPermiso.UsuarioEditor = currentUser.Id;
+                        _db.Add(perfilPermiso);
+                        _db.SaveChanges();
 
-        //        using (var transaction = _db.Database.BeginTransaction())
-        //        {
-        //            Perfil perfilNuevo = _db.Perfil.Where(p => p.NombrePerfil == per.NombrePerfil).FirstOrDefault();
-        //            foreach (int perm in permisos)
-        //            {
-        //                Permiso permisoAsoc = _db.Permiso.Where(p => p.Id == perm).FirstOrDefault();
-        //                PerfilPermiso perfilPermiso = new PerfilPermiso();
-        //                perfilPermiso.PerfilId = perfilNuevo.Id;
-        //                perfilPermiso.PermisoId = permisoAsoc.Id;
-        //                perfilPermiso.FechaCreacion = DateTime.Now;
-        //                perfilPermiso.UsuarioEditor = currentUser.Id;
-        //                _db.Add(perfilPermiso);
-        //                _db.SaveChanges();
+                    }
+                    transaction.Commit();
+                }
 
-        //            }
-        //            transaction.Commit();
-        //        }
 
-                
 
-        //        return per;
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        throw new Exception(e.Message, e);
-        //    }
+                return per;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
 
-        //}
+        }
 
         public bool ExistePerfilClub(PerfilClubDTO perfilClubDTO)
         {
@@ -476,30 +462,30 @@ namespace ApiNet8.Services
 
         }
 
-        //public List<Permiso> GetPermisosByPerfil(PerfilDTO perfil)
-        //{
-        //    try
-        //    {
-        //        List<PerfilPermiso> perfilPermisos = _db.PerfilPermiso.Where(pp => pp.PerfilId == perfil.Id && pp.FechaBaja==null).DefaultIfEmpty().ToList();
+        public List<Permiso> GetPermisosByPerfil(PerfilDTO perfil)
+        {
+            try
+            {
+                List<PerfilPermiso> perfilPermisos = _db.PerfilPermiso.Include(pp => pp.Perfil).Include(pp => pp.Permiso).Where(pp => pp.Perfil.Id == perfil.Id && pp.FechaBaja==null).DefaultIfEmpty().ToList();
                 
-        //        if (perfilPermisos.FirstOrDefault() == null)
-        //        {
-        //            return null;
-        //        }
-        //        List<Permiso> permisos = new List<Permiso>();
+                if (perfilPermisos.FirstOrDefault() == null)
+                {
+                    return null;
+                }
+                List<Permiso> permisos = new List<Permiso>();
 
-        //        foreach (PerfilPermiso perm in perfilPermisos) {
-        //            permisos.Add(_db.Permiso.Where(p => p.Id == perm.PermisoId).FirstOrDefault()); 
-        //        }
-        //        return permisos;
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        throw new Exception(e.Message, e);
-        //    }
+                foreach (PerfilPermiso perm in perfilPermisos) {
+                    permisos.Add(_db.Permiso.Where(p => p.Id == perm.Permiso.Id).FirstOrDefault()); 
+                }
+                return permisos;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
 
-        //    throw new NotImplementedException();
-        //}
+            throw new NotImplementedException();
+        }
 
         public bool ExisteTYC(TerminosYCondicionesDTO tyc)
         {
