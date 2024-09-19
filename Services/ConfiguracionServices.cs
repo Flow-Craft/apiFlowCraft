@@ -527,13 +527,15 @@ namespace ApiNet8.Services
                     if (tycHistorial != null)
                     {
                         tycHistorial.FechaBaja = DateTime.Now;
+                        tycHistorial.FechaFinVigencia = DateTime.Now;
                         _db.Update(tycHistorial);
                     }
 
                     HistorialTerminosYCondiciones historialTerminosYCondiciones = new HistorialTerminosYCondiciones
                     {
                         FechaCreacion = DateTime.Now,
-                        UsuarioEditor = currentUser != null ? currentUser.Id : 0
+                        UsuarioEditor = currentUser != null ? currentUser.Id : 0,
+                        FechaInicioVigencia = DateTime.Now,
                     };
 
                     terminosYCondiciones.HistorialTerminosYCondiciones = historialTerminosYCondiciones;

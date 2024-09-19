@@ -176,13 +176,14 @@ namespace ApiNet8.Services
 
             if (usuario.FechaAceptacionTYC < historialTYC.FechaInicioVigencia)
             {
-                return new UsuarioLoginResponseDTO
-                {
-                    JwtToken = null,
-                    Usuario = null,
-                    EsError = true,
-                    MensajeError = "ATyC vencida"
-                };
+                //return new UsuarioLoginResponseDTO
+                //{
+                //    JwtToken = null,
+                //    Usuario = null,
+                //    EsError = true,
+                //    MensajeError = "ATyC vencida"
+                //};
+                throw new Exception("Usuario debe aceptar los nuevos términos y condiciones");
 
             }
 

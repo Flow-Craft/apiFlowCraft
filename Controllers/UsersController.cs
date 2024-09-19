@@ -209,7 +209,11 @@ namespace ApiNet8.Controllers
             {
                 RespuestaAPI respuestaAPI = new RespuestaAPI
                 {
-                    status = e.Message == "Usuario o contrasena incorrecta" ? HttpStatusCode.BadRequest : HttpStatusCode.InternalServerError,
+                    status = e.Message == "Usuario o contrasena incorrecta"
+                    ? HttpStatusCode.BadRequest
+    :                   e.Message == "Usuario debe aceptar los nuevos términos y condiciones"
+                         ? HttpStatusCode.Forbidden
+                        : HttpStatusCode.InternalServerError,
                     title = "Error en login",
                     errors = new List<string> { e.Message }
                 };
