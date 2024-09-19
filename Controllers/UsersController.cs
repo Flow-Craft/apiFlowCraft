@@ -210,10 +210,12 @@ namespace ApiNet8.Controllers
                 RespuestaAPI respuestaAPI = new RespuestaAPI
                 {
                     status = e.Message == "Usuario o contrasena incorrecta"
-                    ? HttpStatusCode.BadRequest
-    :                   e.Message == "Usuario debe aceptar los nuevos términos y condiciones"
-                         ? HttpStatusCode.Forbidden
-                        : HttpStatusCode.InternalServerError,
+    ? HttpStatusCode.BadRequest
+    : e.Message == "Usuario debe aceptar los nuevos términos y condiciones"
+        ? HttpStatusCode.Forbidden
+        : e.Message == "Contraseña vencida"
+            ? HttpStatusCode.Forbidden
+            : HttpStatusCode.InternalServerError,
                     title = "Error en login",
                     errors = new List<string> { e.Message }
                 };
@@ -596,6 +598,31 @@ namespace ApiNet8.Controllers
             catch (Exception e)
             {
                 return BadRequest(e.ToString());
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult BlanquearContrasena([FromBody] UsuarioDTO usuarioDTO)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _usuarioServices.BlanquearContrasena(usuarioDTO);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al blanquear contraseña de usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
         }
 

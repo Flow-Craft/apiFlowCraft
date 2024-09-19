@@ -138,6 +138,11 @@ namespace ApiNet8.Services
                 throw new Exception("Usuario o contrasena incorrecta");
             }
 
+            if (usuario.FechaCambioContrasena.HasValue && usuario.FechaCambioContrasena.Value.AddDays(90) < DateTime.Now)
+            {
+                throw new Exception("Contraseña vencida");
+            }
+
 
             // verificar estado del usuario
             UsuarioEstado? estado = usuario.UsuarioHistoriales.FirstOrDefault(f => f.FechaFin == null).UsuarioEstado;
@@ -176,15 +181,7 @@ namespace ApiNet8.Services
 
             if (usuario.FechaAceptacionTYC < historialTYC.FechaInicioVigencia)
             {
-                //return new UsuarioLoginResponseDTO
-                //{
-                //    JwtToken = null,
-                //    Usuario = null,
-                //    EsError = true,
-                //    MensajeError = "ATyC vencida"
-                //};
                 throw new Exception("Usuario debe aceptar los nuevos términos y condiciones");
-
             }
 
             // jwt
@@ -957,6 +954,64 @@ namespace ApiNet8.Services
             }
 
         }
+
+        public async void BlanquearContrasena(UsuarioDTO usuarioDTO)
+        {
+            Usuario? usuario = ExisteUsuarioActivobyEmail(usuarioDTO.Email);
+
+            if (usuario == null) 
+            {
+                throw new Exception("No se encontró usuario con mail " + usuarioDTO.Email);
+            }
+
+            // genero nueva contraseña
+            string newPassword = GenerateRandomPassword(8);
+
+            string newPasswordHash = obtenermd5(newPassword);
+
+            usuario.Contrasena = newPasswordHash;
+
+            // venzo la contraseña
+            usuario.FechaCambioContrasena = usuario.FechaCambioContrasena.Value.AddDays(-90);
+
+            // actualizo la contraseña
+            using (var transaction = _db.Database.BeginTransaction())
+            {
+                _db.Update(usuario);
+                _db.SaveChanges(); ;
+                transaction.Commit();
+            }
+
+            // envio mail con la nueva contraseña
+            // envio mail al usuario con el codigo
+            await _emailService.SendEmailAsync(usuario.Email, "Nueva contraseña", "Tu contraseña temporal es: " + newPassword);
+        }
+
+        public string GenerateRandomPassword(int length)
+        {
+            const string letters = "abcdefghijklmnopqrstuvwxyz";
+            const string numbers = "0123456789";
+            Random random = new Random();
+
+            // Asegurar que el primer carácter es una letra mayúscula
+            char firstChar = char.ToUpper(letters[random.Next(letters.Length)]);
+
+            // Generar el resto de los caracteres
+            string middleChars = new string(Enumerable.Repeat(letters + numbers, length - 2)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
+
+            // Asegurar que al menos uno de los caracteres es un número
+            char numberChar = numbers[random.Next(numbers.Length)];
+
+            // Combinar el primer carácter, el número, y los caracteres restantes
+            string result = firstChar + middleChars + numberChar;
+
+            // Mezclar los caracteres excepto el primero (para mantener la mayúscula al principio)
+            string shuffledResult = firstChar + new string(result.Skip(1).OrderBy(x => random.Next()).ToArray());
+
+            return shuffledResult;
+        }
+
     }
 }
 
