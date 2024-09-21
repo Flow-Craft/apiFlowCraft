@@ -31,6 +31,8 @@ builder.Services.AddTransient<IInstalacionServices, InstalacionServices>();
 builder.Services.AddTransient<IInstalacionEstadoServices, InstalacionEstadoServices>();
 builder.Services.AddTransient<INoticiasServices, NoticiasServices>();
 builder.Services.AddTransient<IDisciplinasYLeccionesServices, DisciplinasYLeccionesServices>();
+builder.Services.AddTransient<IBackupServices, BackupServices>();
+
 builder.Services.AddTransient<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddTransient<ValidateJwtAndRefreshFilter>();
 
