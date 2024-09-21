@@ -32,5 +32,6 @@ namespace ApiNet8.Services.IServices
         void BlanquearContrasena(UsuarioDTO usuarioDTO);
         string GenerateRandomPassword(int length);
         Usuario? GetUsuarioByDni(int dni);
+        void GestionarSolicitudSocio(SolicitudDTO solicitudDTO);
     }
 }

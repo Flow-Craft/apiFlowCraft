@@ -2,17 +2,23 @@
 {
     public class Enums
     {
-        public enum Modulos
+
+        public enum SolicitudAsociacionEstado
         {
-            Usuario,
-            Lecciones,            
+            Aprobada = 1,
+            Rechazada = 2,
+            Pendiente = 3
         }
 
-
-        public enum Funcionalidades
+        public enum Perfiles
         {
-            AltaUsuario = 1,
-            BajaUsuario = 2
+            Simpatizante = 1,
+            Socio = 2,
+            Admin = 3,
+            Administrativo,
+            Profesor,
+            Arbitro,
+            Planillero
         }
     }
 }

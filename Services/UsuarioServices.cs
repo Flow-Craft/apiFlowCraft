@@ -18,12 +18,13 @@ using System.Text;
 using XAct.Library.Settings;
 using XAct.Users;
 using XSystem.Security.Cryptography;
+using static ApiNet8.Utils.Enums;
 
 namespace ApiNet8.Services
 {
     public class UsuarioServices : IUsuarioServices
     {
-        private readonly ApplicationDbContext _db;        
+        private readonly ApplicationDbContext _db;
         private string secretToken;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
@@ -33,7 +34,7 @@ namespace ApiNet8.Services
 
 
         public UsuarioServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor, IUsuarioEstadoServices usuarioEstadoServices, IEmailService emailService, IConfiguracionServices configuracionServices)
-        {          
+        {
             this._db = db;
             this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
             _mapper = mapper;
@@ -45,22 +46,22 @@ namespace ApiNet8.Services
 
         public List<UsuarioDTO> GetUsuarios()
         {
-            List <Usuario> ls = _db.Usuario.Include(h=>h.UsuarioHistoriales).ThenInclude(u=>u.UsuarioEstado).ToList();
-            List <UsuarioDTO> listaUsuarios = new List<UsuarioDTO>();
+            List<Usuario> ls = _db.Usuario.Include(h => h.UsuarioHistoriales).ThenInclude(u => u.UsuarioEstado).ToList();
+            List<UsuarioDTO> listaUsuarios = new List<UsuarioDTO>();
             foreach (var item in ls)
             {
                 //mapper de usuario a usuarioDTO
                 UsuarioDTO user = _mapper.Map<UsuarioDTO>(item);
 
                 // obtengo ultimo historial
-                UsuarioHistorial? historial = item.UsuarioHistoriales.Where(f=>f.FechaFin==null).FirstOrDefault();
-                if (historial != null) 
+                UsuarioHistorial? historial = item.UsuarioHistoriales.Where(f => f.FechaFin == null).FirstOrDefault();
+                if (historial != null)
                 {
                     user.Estado = historial.UsuarioEstado.NombreEstado;
                 }
                 listaUsuarios.Add(user);
             }
-           
+
             return listaUsuarios;
         }
 
@@ -130,12 +131,12 @@ namespace ApiNet8.Services
                         UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1) // asigno estado ACTIVO
                     };
 
-                   user.UsuarioHistoriales = new List<UsuarioHistorial>();            
-                   user.UsuarioHistoriales.Add(historial);
+                    user.UsuarioHistoriales = new List<UsuarioHistorial>();
+                    user.UsuarioHistoriales.Add(historial);
 
                     _db.PerfilUsuario.Add(perfilUsuario);
                     _db.Add(historial);
-                    _db.Add(user);                    
+                    _db.Add(user);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
@@ -144,7 +145,7 @@ namespace ApiNet8.Services
             {
                 throw new Exception(ex.Message, ex);
             }
-            
+
         }
 
         public bool ExisteUsuario(UsuarioRegistroDTO usuario)
@@ -157,7 +158,7 @@ namespace ApiNet8.Services
             return true;
         }
 
-       public async Task<UsuarioLoginResponseDTO> Login(UsuarioLoginDTO usuarioLoginDTO)
+        public async Task<UsuarioLoginResponseDTO> Login(UsuarioLoginDTO usuarioLoginDTO)
         {
             var passwordEncriptado = obtenermd5(usuarioLoginDTO.Contrasena);
             Usuario usuario = await GetUsuarioByEmailAndPassword(usuarioLoginDTO.Email, passwordEncriptado);
@@ -232,7 +233,7 @@ namespace ApiNet8.Services
                 }),
                 Expires = tokenExpiry,
                 // se firma el token con la clave secreta
-                SigningCredentials = new (new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
+                SigningCredentials = new(new SymmetricSecurityKey(key), SecurityAlgorithms.HmacSha256Signature)
             };
 
             var jwt = token.CreateToken(tokenDescriptor);
@@ -271,7 +272,7 @@ namespace ApiNet8.Services
                 Usuario = user,
                 Perfil = perfil.Perfil.NombrePerfil,
                 Permisos = permisos
-            };          
+            };
 
             return response;
         }
@@ -345,19 +346,19 @@ namespace ApiNet8.Services
                     await _db.SaveChangesAsync();
                     transaction.Commit();
                 }
-               
+
                 if (usuarioRegistroDTO.Socio)
                 {
                     Asociarse(usuario);
                 }
-              
+
                 return usuario;
             }
             catch (Exception e)
             {
-                throw new Exception(e.Message,e);
+                throw new Exception(e.Message, e);
             }
-          
+
         }
 
         public void Asociarse(Usuario usuario)
@@ -436,7 +437,7 @@ namespace ApiNet8.Services
 
         public async Task<Usuario> GetUsuarioByEmailAndPassword(string email, string password)
         {
-             return await _db.Usuario.Include(e=>e.UsuarioHistoriales).ThenInclude(s=>s.UsuarioEstado).FirstOrDefaultAsync(u => u.Email == email && u.Contrasena == password);
+            return await _db.Usuario.Include(e => e.UsuarioHistoriales).ThenInclude(s => s.UsuarioEstado).FirstOrDefaultAsync(u => u.Email == email && u.Contrasena == password);
         }
 
         public void ActualizarUsuario(UsuarioDTO usuario)
@@ -473,20 +474,20 @@ namespace ApiNet8.Services
                     }
 
                     user.Nombre = usuario.Nombre ?? user.Nombre;
-                user.Apellido = usuario.Apellido ?? user.Apellido;
-                user.Direccion = usuario.Direccion ?? user.Direccion;
-                user.Dni = usuario.Dni ?? user.Dni;
-                user.Email = usuario.Email ?? user.Email;
-                user.FechaNacimiento = usuario.FechaNacimiento ?? user.FechaNacimiento;
-                user.CodPostal = usuario.CodPostal ?? user.CodPostal;
-                user.DeporteFavorito = usuario.DeporteFavorito ?? user.DeporteFavorito;
-                user.FotoPerfil = usuario.FotoPerfil ?? user.FotoPerfil;
-                user.ImageType = usuario.ImageType ?? user.ImageType;
-                user.Pais = usuario.Pais ?? user.Pais;
-                user.Provincia = usuario.Provincia ?? user.Provincia;
-                user.Localidad = usuario.Localidad ?? user.Localidad;
-                user.Telefono = usuario.Telefono ?? user.Telefono;
-                user.Sexo = usuario.Sexo ?? user.Sexo;
+                    user.Apellido = usuario.Apellido ?? user.Apellido;
+                    user.Direccion = usuario.Direccion ?? user.Direccion;
+                    user.Dni = usuario.Dni ?? user.Dni;
+                    user.Email = usuario.Email ?? user.Email;
+                    user.FechaNacimiento = usuario.FechaNacimiento ?? user.FechaNacimiento;
+                    user.CodPostal = usuario.CodPostal ?? user.CodPostal;
+                    user.DeporteFavorito = usuario.DeporteFavorito ?? user.DeporteFavorito;
+                    user.FotoPerfil = usuario.FotoPerfil ?? user.FotoPerfil;
+                    user.ImageType = usuario.ImageType ?? user.ImageType;
+                    user.Pais = usuario.Pais ?? user.Pais;
+                    user.Provincia = usuario.Provincia ?? user.Provincia;
+                    user.Localidad = usuario.Localidad ?? user.Localidad;
+                    user.Telefono = usuario.Telefono ?? user.Telefono;
+                    user.Sexo = usuario.Sexo ?? user.Sexo;
 
                     _db.Usuario.Update(user);
                     _db.SaveChanges();
@@ -515,17 +516,17 @@ namespace ApiNet8.Services
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    if (usuarioAEliminar.UsuarioHistoriales.Count != 0 && usuarioAEliminar.UsuarioHistoriales.Any(a=>a.FechaFin == null))
+                    if (usuarioAEliminar.UsuarioHistoriales.Count != 0 && usuarioAEliminar.UsuarioHistoriales.Any(a => a.FechaFin == null))
                     {
                         // obtengo ultimo historial y lo doy de baja
                         UsuarioHistorial historialAnterior = usuarioAEliminar.UsuarioHistoriales.FirstOrDefault(u => u.FechaFin == null);
                         historialAnterior.FechaFin = DateTime.Now;
                         _db.UsuarioHistorial.Update(historialAnterior);
-                    }                    
+                    }
 
                     // se crea nuevo historial con estado desactivado
-                    UsuarioHistorial nuevoHistorial = new UsuarioHistorial                    
-                    { 
+                    UsuarioHistorial nuevoHistorial = new UsuarioHistorial
+                    {
                         DetalleCambioEstado = "Se elimina usuario",
                         FechaInicio = DateTime.Now,
                         UsuarioEditor = currentUser?.Id,
@@ -535,12 +536,12 @@ namespace ApiNet8.Services
                     // se asigna el historial al usuario
                     usuarioAEliminar.UsuarioHistoriales.Add(nuevoHistorial);
 
-                    
+
                     _db.UsuarioHistorial.Update(nuevoHistorial);
                     _db.Usuario.Update(usuarioAEliminar);
 
                     _db.SaveChanges();
-                    transaction.Commit();                  
+                    transaction.Commit();
                 }
             }
             catch (Exception e)
@@ -586,14 +587,14 @@ namespace ApiNet8.Services
         {
             // obtengo ultima solicitud de asociacion del usuario
             // verifico el estado de la solicitud
-          
-         SolicitudAsociacion? solicitud = _db.SolicitudAsociacion
-                .Include(u => u.Usuario)
-                .Include(h=>h.SolicitudAsociacionHistoriales)
-                .ThenInclude(h => h.EstadoSolicitudAsociacion).
-                Where(s=> s.Usuario.Id == usuario.Id 
-                && s.SolicitudAsociacionHistoriales.Any(sah=>sah.FechaFin==null))
-                .FirstOrDefault();
+
+            SolicitudAsociacion? solicitud = _db.SolicitudAsociacion
+                   .Include(u => u.Usuario)
+                   .Include(h => h.SolicitudAsociacionHistoriales)
+                   .ThenInclude(h => h.EstadoSolicitudAsociacion).
+                   Where(s => s.Usuario.Id == usuario.Id
+                   && s.SolicitudAsociacionHistoriales.Any(sah => sah.FechaFin == null))
+                   .FirstOrDefault();
 
             if (solicitud != null)
             {
@@ -608,7 +609,7 @@ namespace ApiNet8.Services
                         return 2;
                     default:
                         return 0;
-                }               
+                }
             }
 
             return 0;
@@ -702,6 +703,7 @@ namespace ApiNet8.Services
                 var passwordEncriptado = obtenermd5(contrasena);
 
                 usuario.Contrasena = passwordEncriptado;
+                usuario.FechaCambioContrasena = DateTime.Now;
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
@@ -738,7 +740,7 @@ namespace ApiNet8.Services
             }
         }
 
-        public Usuario? ExisteUsuarioActivobyEmail (string email)
+        public Usuario? ExisteUsuarioActivobyEmail(string email)
         {
             // obtener usuario
             Usuario? usuario = _db.Usuario.Include(u => u.UsuarioHistoriales).ThenInclude(e => e.UsuarioEstado).Where(u => u.Email == email).FirstOrDefault();
@@ -746,7 +748,7 @@ namespace ApiNet8.Services
             // obtener ultimo historial del usuario
             UsuarioHistorial? ultimoHistorial = usuario?.UsuarioHistoriales.Where(f => f.FechaFin == null).FirstOrDefault();
 
-            if (ultimoHistorial !=null && ultimoHistorial.UsuarioEstado.Id == 1) // verifico que tenga historial y que el estado sea activo
+            if (ultimoHistorial != null && ultimoHistorial.UsuarioEstado.Id == 1) // verifico que tenga historial y que el estado sea activo
             {
                 return usuario;
             }
@@ -761,7 +763,7 @@ namespace ApiNet8.Services
                 // buscar si el mail pertenece a un usuario activo
                 Usuario usuario = ExisteUsuarioActivobyEmail(mail);
 
-                if (usuario == null) 
+                if (usuario == null)
                 {
                     throw new Exception("No existe un usuario activo para el mail ingresado.");
                 }
@@ -784,7 +786,7 @@ namespace ApiNet8.Services
                     using (var transaction = _db.Database.BeginTransaction())
                     {
                         _db.Add(codigoVerificacion);
-                        _db.SaveChanges();;
+                        _db.SaveChanges(); ;
                         transaction.Commit();
                     }
 
@@ -794,16 +796,16 @@ namespace ApiNet8.Services
                 }
 
                 return false;
-               
+
             }
             catch (Exception e)
             {
                 throw new Exception(e.Message);
             }
-            
+
         }
 
-        public bool VerificarCodigo (VerificarCodigoDTO verificarCodigoDTO)
+        public bool VerificarCodigo(VerificarCodigoDTO verificarCodigoDTO)
         {
             // obtener usuario con mail
             Usuario? usuario = ExisteUsuarioActivobyEmail(verificarCodigoDTO.Mail);
@@ -842,16 +844,17 @@ namespace ApiNet8.Services
                 if (usuario != null)
                 {
                     // verificar si para ese usuario existe un codigo de verificacion asociado igual al recibido
-                    VerificarCodigoDTO verificarCodigoDTO = new VerificarCodigoDTO 
-                    { 
+                    VerificarCodigoDTO verificarCodigoDTO = new VerificarCodigoDTO
+                    {
                         Mail = reestablecerContrasenaDTO.Mail,
                         Codigo = reestablecerContrasenaDTO.Codigo
                     };
                     bool verificacionCodigo = VerificarCodigo(verificarCodigoDTO);
 
-                    if (verificacionCodigo) 
+                    if (verificacionCodigo)
                     {
                         usuario.Contrasena = passwordEncriptado;
+                        usuario.FechaCambioContrasena = DateTime.Now;
 
                         using (var transaction = _db.Database.BeginTransaction())
                         {
@@ -859,31 +862,33 @@ namespace ApiNet8.Services
                             _db.SaveChanges(); ;
                             transaction.Commit();
                         }
-                    }                   
+                    }
                 }
             }
             catch (Exception ex)
             {
                 throw new Exception(ex.Message);
             }
-           
+
         }
 
         public List<SolicitudAsociacion> GetSolicitudesAsociacionDb()
         {
-            return _db.SolicitudAsociacion.Include(u=>u.Usuario).Include(h => h.SolicitudAsociacionHistoriales)
-                .ThenInclude(e => e.EstadoSolicitudAsociacion).ToList();           
+            return _db.SolicitudAsociacion.Include(u => u.Usuario).Include(h => h.SolicitudAsociacionHistoriales)
+                .ThenInclude(e => e.EstadoSolicitudAsociacion).ToList();
         }
 
         public List<SolicitudAsociacionDTO> GetSolicitudesAsociacion()
         {
             List<SolicitudAsociacion> solicitudes = GetSolicitudesAsociacionDb();
 
-           return SolicitudesAsociacionMapper(solicitudes);
+            return SolicitudesAsociacionMapper(solicitudes);
         }
 
         public List<SolicitudAsociacionDTO> SolicitudesAsociacionMapper(List<SolicitudAsociacion> solicitudes)
         {
+            // para mostrar cada solicitud con el ultimo estado
+
             List<SolicitudAsociacionDTO> solicitudesDTO = new List<SolicitudAsociacionDTO>();
             foreach (var item in solicitudes)
             {
@@ -905,6 +910,82 @@ namespace ApiNet8.Services
             }
 
             return solicitudesDTO;
+        }
+
+        public SolicitudAsociacion GetSolicitudAsociacionById(int id)
+        {
+            try
+            {
+                return _db.SolicitudAsociacion.Include(u => u.Usuario).Include(a => a.SolicitudAsociacionHistoriales).ThenInclude(h => h.EstadoSolicitudAsociacion).Where(i => i.Id == id).FirstOrDefault();
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        public void GestionarSolicitudSocio(SolicitudDTO solicitudDTO)
+        {
+            // Obtener el usuario actual desde la sesión
+            var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+            // obtener la solicitud
+            SolicitudAsociacion solicitud = GetSolicitudAsociacionById(solicitudDTO.Id);
+            solicitud.MotivoRechazo = solicitudDTO.MotivoRechazo;
+
+            // si se aprueba asignar nuevo perfil de socio y dar de baja el anterior
+
+            if (solicitudDTO.Accion == SolicitudAsociacionEstado.Aprobada.ToString())
+            {
+                Perfil perfilSocio = _configuracionServices.GetPerfilByNombre(Perfiles.Socio.ToString());
+
+                // busco perfil anterior y lo doy de baja
+                PerfilUsuario perfilAnterior = _configuracionServices.GetPerfilUsuario(solicitud.Usuario);
+                perfilAnterior.FechaModificacion = DateTime.Now;
+                perfilAnterior.FechaBaja = DateTime.Now;
+
+                // doy de alta el nuevo perfil
+                PerfilUsuario nuevoPerfil = new PerfilUsuario
+                {
+                    FechaCreacion = DateTime.Now,
+                    Perfil = perfilSocio,
+                    Usuario = solicitud.Usuario
+                };
+
+                _db.PerfilUsuario.Update(perfilAnterior);
+                _db.PerfilUsuario.Add(nuevoPerfil);
+            }
+
+            // crear historial para la solicitud y agregarlo a la solicitud
+            EstadoSolicitudAsociacion nuevoEstadoSolicitud = solicitudDTO.Accion == SolicitudAsociacionEstado.Aprobada.ToString() ? _usuarioEstadoServices.GetEstadoSolicitudAsociacion(2) : _usuarioEstadoServices.GetEstadoSolicitudAsociacion(3);
+
+            SolicitudAsociacionHistorial nuevoHistorial = new SolicitudAsociacionHistorial
+            {
+                FechaInicio = DateTime.Now,
+                UsuarioEditor = currentUser?.Id,
+                DetalleCambioEstado = "Solicitud de socio " + solicitudDTO.Accion,
+                EstadoSolicitudAsociacion = nuevoEstadoSolicitud,
+
+            };
+
+            solicitud.SolicitudAsociacionHistoriales.Add(nuevoHistorial);
+
+            // dar de baja el historial anterior
+            SolicitudAsociacionHistorial? ultimoHistorial = _db.SolicitudAsociacionHistorial.Where(f => f.FechaFin == null).FirstOrDefault();
+            if (ultimoHistorial != null)
+            {
+                ultimoHistorial.FechaFin = DateTime.Now;
+                _db.SolicitudAsociacionHistorial.Update(ultimoHistorial);
+            }
+
+            using (var transaction = _db.Database.BeginTransaction())
+            {
+                _db.SolicitudAsociacionHistorial.Add(nuevoHistorial);
+                _db.SolicitudAsociacion.Update(solicitud);
+                _db.SaveChanges();
+                transaction.Commit();
+            }
+
         }
 
         public List<SolicitudAsociacionDTO> GetSolicitudesAsociacionFiltro(int id)
@@ -1027,7 +1108,7 @@ namespace ApiNet8.Services
         {
             Usuario? usuario = ExisteUsuarioActivobyEmail(usuarioDTO.Email);
 
-            if (usuario == null) 
+            if (usuario == null)
             {
                 throw new Exception("No se encontró usuario con mail " + usuarioDTO.Email);
             }
