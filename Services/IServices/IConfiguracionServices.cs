@@ -24,6 +24,7 @@ namespace ApiNet8.Services.IServices
         TerminosYCondiciones ObtenerTYC();
         PerfilClubResponseDTO GetPerfilClubActivo();
         PerfilClubQuienesSomosDTO GetPerfilClubQuienesSomos();
-        PerfilUsuario GetPerfilUusario(Usuario usuario);
+        PerfilUsuario GetPerfilUsuario(Usuario usuario);
+        Perfil GetPerfilByNombre(string nombre);
     }
 }

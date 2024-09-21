@@ -433,7 +433,21 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
-                
+
+        public Perfil GetPerfilByNombre(string nombre)
+        {
+            try
+            {
+                Perfil perfil = _db.Perfil.Where(p=>p.NombrePerfil == nombre).FirstOrDefault();
+
+                return perfil;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
         public List<Perfil> GetPerfiles()
         {
             try
@@ -460,7 +474,7 @@ namespace ApiNet8.Services
 
         }
 
-        public PerfilUsuario GetPerfilUusario (Usuario usuario)
+        public PerfilUsuario GetPerfilUsuario (Usuario usuario)
         {
             try
             {

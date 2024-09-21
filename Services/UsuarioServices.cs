@@ -108,6 +108,17 @@ namespace ApiNet8.Services
                 // Obtener el usuario actual desde la sesión
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
+                // obtener perfil seleccionado
+                Perfil perfil = _configuracionServices.GetPerfilByNombre(usuario.Perfil);
+
+                // crear relacion de perfil
+                PerfilUsuario perfilUsuario = new PerfilUsuario
+                {
+                    FechaCreacion = DateTime.Now,
+                    Perfil = perfil,
+                    Usuario = user
+                };
+
                 // crear en la base
                 using (var transaction = _db.Database.BeginTransaction())
                 {
@@ -122,6 +133,7 @@ namespace ApiNet8.Services
                    user.UsuarioHistoriales = new List<UsuarioHistorial>();            
                    user.UsuarioHistoriales.Add(historial);
 
+                    _db.PerfilUsuario.Add(perfilUsuario);
                     _db.Add(historial);
                     _db.Add(user);                    
                     _db.SaveChanges();
@@ -155,7 +167,7 @@ namespace ApiNet8.Services
                 throw new Exception("Usuario o contrasena incorrecta");
             }
 
-            if (usuario.FechaCambioContrasena.HasValue && usuario.FechaCambioContrasena.Value.AddDays(90) < DateTime.Now)
+            if ((usuario.FechaCambioContrasena.HasValue && usuario.FechaCambioContrasena.Value.AddDays(90) < DateTime.Now) || usuario.FechaCambioContrasena == null)
             {
                 throw new Exception("Contraseña vencida");
             }
@@ -195,7 +207,7 @@ namespace ApiNet8.Services
 
             HistorialTerminosYCondiciones historialTYC = _db.HistorialTerminosYCondiciones.Where(t => t.FechaBaja == null).FirstOrDefault();
 
-            if (usuario.FechaAceptacionTYC < historialTYC.FechaInicioVigencia)
+            if (usuario.FechaAceptacionTYC < historialTYC.FechaInicioVigencia || usuario.FechaAceptacionTYC == null)
             {
                 throw new Exception("Usuario debe aceptar los nuevos términos y condiciones");
             }
@@ -247,7 +259,7 @@ namespace ApiNet8.Services
             };
 
             // obtengo perfil
-            PerfilUsuario perfil = _configuracionServices.GetPerfilUusario(usuario);
+            PerfilUsuario perfil = _configuracionServices.GetPerfilUsuario(usuario);
 
             // obtengo lista de permisos
             PerfilDTO perfilDto = _mapper.Map<PerfilDTO>(perfil.Perfil);
@@ -431,28 +443,50 @@ namespace ApiNet8.Services
         {
             try
             {
-                Usuario user;
-              
+                // obtengo usuario a modificar y lo actualizo
+                Usuario user = GetUsuarioById((int)usuario.Id);
+
+
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    // obtengo usuario a modificar y lo actualizo
-                    user = GetUsuarioById((int)usuario.Id);                  
+                    // verifico si el perfil cambio
+                    if (usuario.Perfil != null)
+                    {
+                        Perfil perfilACambiar = _configuracionServices.GetPerfilByNombre(usuario.Perfil);
+
+                        // busco perfil anterior y lo doy de baja
+                        PerfilUsuario perfilAnterior = _configuracionServices.GetPerfilUsuario(user);
+                        perfilAnterior.FechaModificacion = DateTime.Now;
+                        perfilAnterior.FechaBaja = DateTime.Now;
+
+                        // doy de alta el nuevo perfil
+                        PerfilUsuario nuevoPerfil = new PerfilUsuario
+                        {
+                            FechaCreacion = DateTime.Now,
+                            Perfil = perfilACambiar,
+                            Usuario = user
+                        };
+
+                        _db.PerfilUsuario.Update(perfilAnterior);
+                        _db.PerfilUsuario.Add(nuevoPerfil);
+
+                    }
 
                     user.Nombre = usuario.Nombre ?? user.Nombre;
-                    user.Apellido = usuario.Apellido ?? user.Apellido;
-                    user.Direccion = usuario.Direccion ?? user.Direccion;
-                    user.Dni = usuario.Dni ?? user.Dni;
-                    user.Email = usuario.Email ?? user.Email;
-                    user.FechaNacimiento = usuario.FechaNacimiento ?? user.FechaNacimiento;
-                    user.CodPostal = usuario.CodPostal ?? user.CodPostal;
-                    user.DeporteFavorito = usuario.DeporteFavorito ?? user.DeporteFavorito;
-                    user.FotoPerfil = usuario.FotoPerfil ?? user.FotoPerfil;
-                    user.ImageType = usuario.ImageType ?? user.ImageType;
-                    user.Pais = usuario.Pais ?? user.Pais;
-                    user.Provincia = usuario.Provincia ?? user.Provincia;
-                    user.Localidad = usuario.Localidad ?? user.Localidad;
-                    user.Telefono = usuario.Telefono ?? user.Telefono;
-                    user.Sexo = usuario.Sexo ?? user.Sexo;
+                user.Apellido = usuario.Apellido ?? user.Apellido;
+                user.Direccion = usuario.Direccion ?? user.Direccion;
+                user.Dni = usuario.Dni ?? user.Dni;
+                user.Email = usuario.Email ?? user.Email;
+                user.FechaNacimiento = usuario.FechaNacimiento ?? user.FechaNacimiento;
+                user.CodPostal = usuario.CodPostal ?? user.CodPostal;
+                user.DeporteFavorito = usuario.DeporteFavorito ?? user.DeporteFavorito;
+                user.FotoPerfil = usuario.FotoPerfil ?? user.FotoPerfil;
+                user.ImageType = usuario.ImageType ?? user.ImageType;
+                user.Pais = usuario.Pais ?? user.Pais;
+                user.Provincia = usuario.Provincia ?? user.Provincia;
+                user.Localidad = usuario.Localidad ?? user.Localidad;
+                user.Telefono = usuario.Telefono ?? user.Telefono;
+                user.Sexo = usuario.Sexo ?? user.Sexo;
 
                     _db.Usuario.Update(user);
                     _db.SaveChanges();
