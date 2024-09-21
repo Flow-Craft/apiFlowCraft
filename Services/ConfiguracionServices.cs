@@ -128,8 +128,6 @@ namespace ApiNet8.Services
                     transaction.Commit();
                 }
 
-
-
                 return per;
             }
             catch (Exception e)
@@ -435,7 +433,7 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
-
+                
         public List<Perfil> GetPerfiles()
         {
             try
@@ -462,6 +460,18 @@ namespace ApiNet8.Services
 
         }
 
+        public PerfilUsuario GetPerfilUusario (Usuario usuario)
+        {
+            try
+            {
+                return _db.PerfilUsuario.Include(p => p.Perfil).Include(u => u.Usuario).Where(pu => pu.FechaBaja == null && pu.Usuario.Id == usuario.Id).FirstOrDefault();
+            }
+            catch (Exception e)
+            {
+                throw new Exception (e.Message);
+            }
+        }
+
         public List<Permiso> GetPermisosByPerfil(PerfilDTO perfil)
         {
             try
@@ -483,8 +493,6 @@ namespace ApiNet8.Services
             {
                 throw new Exception(e.Message, e);
             }
-
-            throw new NotImplementedException();
         }
 
         public bool ExisteTYC(TerminosYCondicionesDTO tyc)

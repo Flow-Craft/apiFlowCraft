@@ -29,9 +29,10 @@ namespace ApiNet8.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IUsuarioEstadoServices _usuarioEstadoServices;
         private readonly IEmailService _emailService;
+        private readonly IConfiguracionServices _configuracionServices;
 
 
-        public UsuarioServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor, IUsuarioEstadoServices usuarioEstadoServices, IEmailService emailService)
+        public UsuarioServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor, IUsuarioEstadoServices usuarioEstadoServices, IEmailService emailService, IConfiguracionServices configuracionServices)
         {          
             this._db = db;
             this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
@@ -39,6 +40,7 @@ namespace ApiNet8.Services
             _httpContextAccessor = httpContextAccessor;
             this._usuarioEstadoServices = usuarioEstadoServices;
             _emailService = emailService;
+            _configuracionServices = configuracionServices;
         }
 
         public List<UsuarioDTO> GetUsuarios()
@@ -69,6 +71,21 @@ namespace ApiNet8.Services
                 return _db.Usuario
                     .Include(u => u.UsuarioHistoriales)
                     .Where(u => u.Id == id)
+                    .FirstOrDefault();
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
+        public Usuario? GetUsuarioByDni(int dni)
+        {
+            try
+            {
+                return _db.Usuario
+                    .Include(u => u.UsuarioHistoriales)
+                    .Where(u => u.Dni == dni)
                     .FirstOrDefault();
             }
             catch (Exception e)
@@ -142,7 +159,6 @@ namespace ApiNet8.Services
             {
                 throw new Exception("Contraseña vencida");
             }
-
 
             // verificar estado del usuario
             UsuarioEstado? estado = usuario.UsuarioHistoriales.FirstOrDefault(f => f.FechaFin == null).UsuarioEstado;
@@ -230,10 +246,19 @@ namespace ApiNet8.Services
                 FechaCambioContrasena = usuario.FechaCambioContrasena
             };
 
+            // obtengo perfil
+            PerfilUsuario perfil = _configuracionServices.GetPerfilUusario(usuario);
+
+            // obtengo lista de permisos
+            PerfilDTO perfilDto = _mapper.Map<PerfilDTO>(perfil.Perfil);
+            List<Permiso> permisos = _configuracionServices.GetPermisosByPerfil(perfilDto);
+
             UsuarioLoginResponseDTO response = new UsuarioLoginResponseDTO
             {
                 JwtToken = token.WriteToken(jwt),
                 Usuario = user,
+                Perfil = perfil.Perfil.NombrePerfil,
+                Permisos = permisos
             };          
 
             return response;
@@ -280,6 +305,14 @@ namespace ApiNet8.Services
                 // Obtener el usuario actual desde la sesión
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
+                // asigno perfil simpatizante
+                PerfilUsuario perfilUsuario = new PerfilUsuario
+                {
+                    FechaCreacion = DateTime.Now,
+                    Perfil = _configuracionServices.GetPerfilById(3),
+                    Usuario = usuario
+                };
+
                 // crear en la base
                 using (var transaction = _db.Database.BeginTransaction())
                 {
@@ -294,6 +327,7 @@ namespace ApiNet8.Services
                     usuario.UsuarioHistoriales = new List<UsuarioHistorial>();
                     usuario.UsuarioHistoriales.Add(historial);
 
+                    _db.PerfilUsuario.Add(perfilUsuario);
                     _db.UsuarioHistorial.Add(historial);
                     _db.Usuario.Add(usuario);
                     await _db.SaveChangesAsync();

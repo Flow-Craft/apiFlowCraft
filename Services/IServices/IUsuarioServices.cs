@@ -31,5 +31,6 @@ namespace ApiNet8.Services.IServices
         void DesbloquearUsuario(BloquearUsuarioDTO bloquearUsuarioDTO);
         void BlanquearContrasena(UsuarioDTO usuarioDTO);
         string GenerateRandomPassword(int length);
+        Usuario? GetUsuarioByDni(int dni);
     }
 }
