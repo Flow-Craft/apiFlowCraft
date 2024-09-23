@@ -9,6 +9,7 @@ using System.Text;
 using AutoMapper;
 using ApiNet8.Utils.Mappers;
 using ApiNet8.Models;
+using sib_api_v3_sdk.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +19,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("flowCraft"));
 });
 
-// Obtener la secret key desde la configuraci�n
+// configurar envio de mail
+Configuration.Default.ApiKey.Add("api-key", builder.Configuration["BrevoApi:ApiKey"]);
+
+// Obtener la secret key de jwt desde la configuraci�n
 var secretKey = builder.Configuration["ApiSettings:secretToken"];
 
 // agregar servicio e interfaz
@@ -39,7 +43,7 @@ builder.Services.AddTransient<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddTransient<ValidateJwtAndRefreshFilter>();
 
 // Load SMTP settings from configuration
-builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("SmtpSettings"));
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("BrevoApi"));
 builder.Services.AddTransient<IEmailService, EmailService>();
 
 // se agrega session

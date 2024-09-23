@@ -34,9 +34,9 @@ namespace ApiNet8.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SendMailTest([FromBody] EmailRequestDTO emailRequest)
+        public IActionResult SendMailTest([FromBody] EmailRequestDTO emailRequest)
         {
-            await _emailService.SendEmailAsync(emailRequest.ToEmail, emailRequest.Subject, emailRequest.Body);
+            _emailService.SendEmail(emailRequest.receiverEmail, emailRequest.receiverName, emailRequest.subject, emailRequest.message);
             return Ok("Email sent successfully!");
         }
 

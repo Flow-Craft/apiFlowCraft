@@ -262,16 +262,25 @@ namespace ApiNet8.Services
             // obtengo perfil
             PerfilUsuario perfil = _configuracionServices.GetPerfilUsuario(usuario);
 
-            // obtengo lista de permisos
-            PerfilDTO perfilDto = _mapper.Map<PerfilDTO>(perfil.Perfil);
-            List<Permiso> permisos = _configuracionServices.GetPermisosByPerfil(perfilDto);
+            string perfilResponse = "No tiene perfi seteado";
+            List<Permiso> permisosResponse = new List<Permiso>();
+
+            if (perfil != null)
+            {
+                perfilResponse = perfil.Perfil.NombrePerfil;
+                // obtengo lista de permisos
+                PerfilDTO perfilDto = _mapper.Map<PerfilDTO>(perfil.Perfil);
+                permisosResponse = _configuracionServices.GetPermisosByPerfil(perfilDto);
+            }
+
+            
 
             UsuarioLoginResponseDTO response = new UsuarioLoginResponseDTO
             {
                 JwtToken = token.WriteToken(jwt),
                 Usuario = user,
-                Perfil = perfil.Perfil.NombrePerfil,
-                Permisos = permisos
+                Perfil = perfilResponse,
+                Permisos = permisosResponse
             };
 
             return response;
@@ -791,7 +800,7 @@ namespace ApiNet8.Services
                     }
 
                     // envio mail al usuario con el codigo
-                    await _emailService.SendEmailAsync(mail, "Código de verificación", "Tu código de verificación es: " + codigoVerificacion.Codigo);
+                    _emailService.SendEmail(mail,usuario.Nombre + usuario.Apellido, "Código de verificación", "Tu código de verificación es: " + codigoVerificacion.Codigo);
                     return true;
                 }
 
@@ -1132,8 +1141,7 @@ namespace ApiNet8.Services
             }
 
             // envio mail con la nueva contraseña
-            // envio mail al usuario con el codigo
-            await _emailService.SendEmailAsync(usuario.Email, "Nueva contraseña", "Tu contraseña temporal es: " + newPassword);
+            _emailService.SendEmail(usuario.Email, usuario.Nombre + usuario.Apellido, "Nueva contraseña", "Tu contraseña temporal es: " + newPassword);
         }
 
         public string GenerateRandomPassword(int length)

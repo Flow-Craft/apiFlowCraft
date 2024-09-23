@@ -4,35 +4,48 @@ using Microsoft.Extensions.Options;
 using System.Net.Mail;
 using System.Net;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+using sib_api_v3_sdk.Api;
+using sib_api_v3_sdk.Model;
+using System.Diagnostics;
 
 public class EmailService : IEmailService
 {
-    private readonly EmailSettings _emailSettings;
+    private readonly EmailSettings _emailSettings;   
 
     public EmailService(IOptions<EmailSettings> emailSettings)
     {
         _emailSettings = emailSettings.Value;
     }
 
-    public async Task SendEmailAsync(string toEmail, string subject, string body)
+    public void SendEmail(string receiverEmail, string receiverName, string subject, string message)
     {
-        var smtpClient = new SmtpClient(_emailSettings.Host, _emailSettings.Port)
+
+        var apiInstance = new TransactionalEmailsApi();
+      
+        // configuro quien envia el mail
+        SendSmtpEmailSender sender = new SendSmtpEmailSender(_emailSettings.senderName, _emailSettings.senderEmail);
+
+        // quien lo recibe
+        SendSmtpEmailTo receiver1 = new SendSmtpEmailTo(receiverEmail, receiverName);
+
+        // lista de recibidores
+        List<SendSmtpEmailTo> To = new List<SendSmtpEmailTo>();
+        To.Add(receiver1);
+             
+        string HtmlContent = null;
+        string TextContent = message;
+       
+        try
         {
-            Credentials = new NetworkCredential(_emailSettings.UserName, _emailSettings.Password),
-            EnableSsl = _emailSettings.EnableSsl,
-            UseDefaultCredentials = false
-        };
-
-        var mailMessage = new MailMessage
+            var sendSmtpEmail = new SendSmtpEmail(sender, To, null, null, HtmlContent, TextContent, subject);
+            CreateSmtpEmail result = apiInstance.SendTransacEmail(sendSmtpEmail);
+            Console.WriteLine("Brevo response: " + result.ToJson());
+        }
+        catch (Exception e)
         {
-            From = new MailAddress(_emailSettings.FromEmail, _emailSettings.FromName),
-            Subject = subject,
-            Body = body,
-            IsBodyHtml = false // Set to true if sending HTML email
-        };
+            throw new Exception(e.Message, e);
+        }
 
-        mailMessage.To.Add(toEmail);
-
-        await smtpClient.SendMailAsync(mailMessage);
     }
 }
