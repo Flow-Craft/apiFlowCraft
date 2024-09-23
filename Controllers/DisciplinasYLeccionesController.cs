@@ -14,8 +14,7 @@ namespace ApiNet8.Controllers
     [ApiController]
     public class DisciplinasYLeccionesController : CustomController
     {
-        private const string JWT = "JWT";
-        private const string CurrentUserJWT = "CurrentUserJWT";
+        private const string JWT = "JWT";        
 
         private readonly IDisciplinasYLeccionesServices _disciplinasYLeccionesServices;
         private readonly ILeccionEstadoServices _leccionEstadoServices;

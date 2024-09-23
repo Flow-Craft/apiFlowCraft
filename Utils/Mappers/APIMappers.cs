@@ -7,6 +7,7 @@ using ApiNet8.Models.Usuarios;
 using ApiNet8.Models.NoticiasYNotificaciones;
 using AutoMapper;
 using ApiNet8.Models.Reservas;
+using ApiNet8.Models.Torneos;
 
 namespace ApiNet8.Utils.Mappers
 {
@@ -28,6 +29,8 @@ namespace ApiNet8.Utils.Mappers
             CreateMap<Usuario, MiPerfilDTO>().ReverseMap();
             CreateMap<SolicitudAsociacion, SolicitudAsociacionDTO>().ReverseMap();
             CreateMap<LeccionEstado, LeccionEstadoDTO>().ReverseMap();
+            CreateMap<TorneoEstado, TorneoEstadoDTO>().ReverseMap();
+
 
         }
     }

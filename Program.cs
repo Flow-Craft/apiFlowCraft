@@ -32,6 +32,7 @@ builder.Services.AddTransient<IInstalacionEstadoServices, InstalacionEstadoServi
 builder.Services.AddTransient<INoticiasServices, NoticiasServices>();
 builder.Services.AddTransient<IDisciplinasYLeccionesServices, DisciplinasYLeccionesServices>();
 builder.Services.AddTransient<ILeccionEstadoServices, DisciplinasYLeccionesServices>();
+builder.Services.AddTransient<ITorneoEstadoServices, TorneoEstadoServices>();
 builder.Services.AddTransient<IBackupServices, BackupServices>();
 
 builder.Services.AddTransient<IRefreshTokenService, RefreshTokenService>();
