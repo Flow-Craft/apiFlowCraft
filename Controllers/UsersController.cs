@@ -632,7 +632,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
-        public IActionResult BlanquearContrasena([FromBody] UsuarioDTO usuarioDTO)
+        public IActionResult BlanquearContrasena(string mail)
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -640,7 +640,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-                _usuarioServices.BlanquearContrasena(usuarioDTO);
+                _usuarioServices.BlanquearContrasena(mail);
                 return Ok();
             }
             catch (Exception e)
@@ -656,11 +656,11 @@ namespace ApiNet8.Controllers
         }
 
         [HttpGet]
-        public IActionResult RecuperarUsuarioByDni([FromBody] UsuarioDTO usuarioDTO)
+        public IActionResult RecuperarUsuarioByDni(int dni)
         { 
             try
             {
-               Usuario user = _usuarioServices.GetUsuarioByDni((int)usuarioDTO.Dni);
+               Usuario user = _usuarioServices.GetUsuarioByDni(dni);
 
                 // Crear un objeto anónimo que contenga la propiedad TYC
                 var response = new

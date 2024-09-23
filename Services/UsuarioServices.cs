@@ -1111,13 +1111,13 @@ namespace ApiNet8.Services
 
         }
 
-        public async void BlanquearContrasena(UsuarioDTO usuarioDTO)
+        public async void BlanquearContrasena(string mail)
         {
-            Usuario? usuario = ExisteUsuarioActivobyEmail(usuarioDTO.Email);
+            Usuario? usuario = ExisteUsuarioActivobyEmail(mail);
 
             if (usuario == null)
             {
-                throw new Exception("No se encontró usuario con mail " + usuarioDTO.Email);
+                throw new Exception("No se encontró usuario con mail " + mail);
             }
 
             // genero nueva contraseña

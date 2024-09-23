@@ -11,7 +11,7 @@ using System.Diagnostics;
 
 public class EmailService : IEmailService
 {
-    private readonly EmailSettings _emailSettings;   
+    private readonly EmailSettings _emailSettings;
 
     public EmailService(IOptions<EmailSettings> emailSettings)
     {
@@ -22,7 +22,7 @@ public class EmailService : IEmailService
     {
 
         var apiInstance = new TransactionalEmailsApi();
-      
+
         // configuro quien envia el mail
         SendSmtpEmailSender sender = new SendSmtpEmailSender(_emailSettings.senderName, _emailSettings.senderEmail);
 
@@ -32,19 +32,19 @@ public class EmailService : IEmailService
         // lista de recibidores
         List<SendSmtpEmailTo> To = new List<SendSmtpEmailTo>();
         To.Add(receiver1);
-             
+
         string HtmlContent = null;
         string TextContent = message;
-        long template = 1;      
+        long template = 1;
 
         JObject Params = new JObject
-    {
-        { "message", TextContent }
-    };
+        {
+            { "message", TextContent }
+        };
 
         try
         {
-            var sendSmtpEmail = new SendSmtpEmail(sender, To, null, null, HtmlContent, TextContent, subject, null, null, null, template,Params);
+            var sendSmtpEmail = new SendSmtpEmail(sender, To, null, null, HtmlContent, TextContent, subject, null, null, null, template, Params);
             CreateSmtpEmail result = apiInstance.SendTransacEmail(sendSmtpEmail);
             Console.WriteLine("Brevo response: " + result.ToJson());
         }

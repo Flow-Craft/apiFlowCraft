@@ -29,7 +29,7 @@ namespace ApiNet8.Services.IServices
         List<SolicitudAsociacionDTO> GetSolicitudesAsociacionFiltro(int id);
         void BloquearUsuario(BloquearUsuarioDTO bloquearUsuarioDTO);
         void DesbloquearUsuario(BloquearUsuarioDTO bloquearUsuarioDTO);
-        void BlanquearContrasena(UsuarioDTO usuarioDTO);
+        void BlanquearContrasena(string mail);
         string GenerateRandomPassword(int length);
         Usuario? GetUsuarioByDni(int dni);
         void GestionarSolicitudSocio(SolicitudDTO solicitudDTO);
