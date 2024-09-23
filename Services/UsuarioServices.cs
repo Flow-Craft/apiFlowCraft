@@ -273,8 +273,6 @@ namespace ApiNet8.Services
                 permisosResponse = _configuracionServices.GetPermisosByPerfil(perfilDto);
             }
 
-            
-
             UsuarioLoginResponseDTO response = new UsuarioLoginResponseDTO
             {
                 JwtToken = token.WriteToken(jwt),

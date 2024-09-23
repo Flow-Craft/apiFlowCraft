@@ -35,10 +35,16 @@ public class EmailService : IEmailService
              
         string HtmlContent = null;
         string TextContent = message;
-       
+        long template = 1;      
+
+        JObject Params = new JObject
+    {
+        { "message", TextContent }
+    };
+
         try
         {
-            var sendSmtpEmail = new SendSmtpEmail(sender, To, null, null, HtmlContent, TextContent, subject);
+            var sendSmtpEmail = new SendSmtpEmail(sender, To, null, null, HtmlContent, TextContent, subject, null, null, null, template,Params);
             CreateSmtpEmail result = apiInstance.SendTransacEmail(sendSmtpEmail);
             Console.WriteLine("Brevo response: " + result.ToJson());
         }
