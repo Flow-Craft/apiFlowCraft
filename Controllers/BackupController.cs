@@ -1,6 +1,8 @@
-﻿using ApiNet8.Services;
+﻿using ApiNet8.Models;
+using ApiNet8.Services;
 using ApiNet8.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
+using System.Net;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -10,6 +12,7 @@ namespace ApiNet8.Controllers
     [ApiController]
     public class BackupController : ControllerBase
     {
+        private const string JWT = "JWT";
         private readonly IBackupServices _backupServices;
 
         public BackupController(IBackupServices backupServices)
@@ -17,30 +20,60 @@ namespace ApiNet8.Controllers
             this._backupServices = backupServices;
         }
 
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
         public async Task<IActionResult> SubirBackup(IFormFile file)
         {
             try
             {
+                // seteo jwt en header de respuesta
+                var TOKEN = HttpContext.Items[JWT].ToString();
+                Response.Headers.Append(JWT, TOKEN);
+
                 string fullPath = await _backupServices.SubirPDF(file);
 
                 return Ok(new { Message = "Archivo subido exitosamente", FilePath = fullPath });
             }
-            catch (Exception ex)
+            catch (Exception e)
             {
-                return StatusCode(500, $"Error al guardar el archivo: {ex.Message}");
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = $"Error al guardar el archivo: {e.Message}",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
         }
 
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult DescargarBackup(string fileName)
         {
-            var (fileBytes, name, error) = _backupServices.DescargarBackup(fileName);
+            try
+            {
+                // seteo jwt en header de respuesta
+                var TOKEN = HttpContext.Items[JWT].ToString();
+                Response.Headers.Append(JWT, TOKEN);
 
-            if (error != null)
-                return NotFound(error);
+                var (fileBytes, name, error) = _backupServices.DescargarBackup(fileName);
 
-            return File(fileBytes, "application/pdf", name);
+                if (error != null)
+                    return NotFound(error);
+
+                return File(fileBytes, "application/pdf", name);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = $"Error al obtener el archivo: {e.Message}",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+           
         }
     }
 }
