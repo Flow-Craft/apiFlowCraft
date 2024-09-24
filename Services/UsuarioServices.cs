@@ -784,7 +784,7 @@ namespace ApiNet8.Services
                     CodigoVerificacion codigoVerificacion = new CodigoVerificacion
                     {
                         FechaCreacion = DateTime.Now,
-                        FechaExpiracion = DateTime.Now.AddMinutes(15),
+                        FechaExpiracion = DateTime.Now.AddMinutes(200),
                         Codigo = numeroAleatorio.ToString(),
                         Usuario = usuario
                     };
