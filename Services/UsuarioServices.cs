@@ -102,8 +102,11 @@ namespace ApiNet8.Services
                 //mapper de usuariodto a usuario
                 Usuario user = _mapper.Map<Usuario>(usuario);
 
+                // generar contraseña aleatoria
+                string passAleatoria = GenerateRandomPassword(8);
+
                 // Hash de la contraseña
-                var password = obtenermd5(user.Contrasena);
+                var password = obtenermd5(passAleatoria);
                 user.Contrasena = password;
 
                 // Obtener el usuario actual desde la sesión
@@ -140,6 +143,9 @@ namespace ApiNet8.Services
                     _db.SaveChanges();
                     transaction.Commit();
                 }
+
+                // enviar password por mail
+                _emailService.SendEmail(user.Email, user.Nombre + " " + user.Apellido, "Nuevo usuario registrado", "Tu contraseña temporal es: " + passAleatoria);
             }
             catch (Exception ex)
             {
