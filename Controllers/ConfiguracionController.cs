@@ -51,7 +51,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-            List<Perfil> perfiles = _configuracionServices.GetPerfiles();
+            List<PerfilResponseDTO> perfiles = _configuracionServices.GetPerfiles();
             return Ok(perfiles);
             }
             catch (Exception e)
@@ -104,7 +104,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-                Perfil perfil = _configuracionServices.GetPerfilById(id);// guardar en sesion la entidad enciontrada en el filtro
+                PerfilResponseDTO perfil = _configuracionServices.GetPerfilYPermisosById(id);
                 return Ok(perfil);
             }
             catch (Exception e)

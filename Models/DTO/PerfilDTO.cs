@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ApiNet8.Models.Usuarios;
+using System.ComponentModel.DataAnnotations;
 
 namespace ApiNet8.Models.DTO
 {

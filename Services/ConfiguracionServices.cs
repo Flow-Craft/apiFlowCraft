@@ -419,14 +419,32 @@ namespace ApiNet8.Services
             return true;
         }
 
+        public PerfilResponseDTO GetPerfilYPermisosById(int Id)
+        {
+            try
+            {
+                // obtengo perfil
+                Perfil perfil = _db.Perfil.Find(Id);
+
+                // busco permisos del perfil
+                PerfilDTO perfilDTO = new PerfilDTO { Id = perfil.Id };
+                List<Permiso> permisos = GetPermisosByPerfil(perfilDTO);
+
+                PerfilResponseDTO responseDTO = new PerfilResponseDTO { Perfil = perfil, Permisos = permisos};
+
+                return responseDTO;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
         public Perfil GetPerfilById(int Id)
         {
             try
             {
-                // en el filter action ya verificamos que el id es valido y que el perfil existe, la unica validacion que hacemos aca es por si rompe el llamado a la base
-                Perfil perfil = _db.Perfil.Find(Id);
-
-                return perfil;
+                return _db.Perfil.Find(Id);  
             }
             catch (Exception e)
             {
@@ -448,11 +466,25 @@ namespace ApiNet8.Services
             }
         }
 
-        public List<Perfil> GetPerfiles()
+        public List<PerfilResponseDTO> GetPerfiles()
         {
             try
             {
-                return _db.Perfil.Where(p => p.FechaBaja == null).ToList();// podriamos devolverlos ordenados por id
+                List<Perfil> perfiles = _db.Perfil.Where(p => p.FechaBaja == null).ToList();
+
+                List<PerfilResponseDTO> responseDTO = new List<PerfilResponseDTO>();
+
+                foreach (var perfil in perfiles)
+                {
+                    // busco los permisos de cada perfil
+                    PerfilDTO perfilDTO = new PerfilDTO {Id = perfil.Id };
+                    List<Permiso> permisos = GetPermisosByPerfil(perfilDTO);
+
+                    PerfilResponseDTO perfilResponseDTO = new PerfilResponseDTO { Perfil = perfil, Permisos = permisos };
+                    responseDTO.Add(perfilResponseDTO);
+                }
+
+                return responseDTO;
             }
             catch (Exception e)
             {
