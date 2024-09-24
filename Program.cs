@@ -38,7 +38,7 @@ builder.Services.AddTransient<IDisciplinasYLeccionesServices, DisciplinasYLeccio
 builder.Services.AddTransient<ILeccionEstadoServices, DisciplinasYLeccionesServices>();
 builder.Services.AddTransient<ITorneoEstadoServices, TorneoEstadoServices>();
 builder.Services.AddTransient<IBackupServices, BackupServices>();
-
+builder.Services.AddTransient<ITipoEventoServices, TipoEventoServices>();
 builder.Services.AddTransient<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddTransient<ValidateJwtAndRefreshFilter>();
 

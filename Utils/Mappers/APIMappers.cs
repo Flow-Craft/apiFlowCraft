@@ -30,8 +30,7 @@ namespace ApiNet8.Utils.Mappers
             CreateMap<SolicitudAsociacion, SolicitudAsociacionDTO>().ReverseMap();
             CreateMap<LeccionEstado, LeccionEstadoDTO>().ReverseMap();
             CreateMap<TorneoEstado, TorneoEstadoDTO>().ReverseMap();
-
-
+            CreateMap<TipoEvento, TipoEventoDTO>().ReverseMap();
         }
     }
 }
