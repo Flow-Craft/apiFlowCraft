@@ -33,5 +33,6 @@ namespace ApiNet8.Services.IServices
         string GenerateRandomPassword(int length);
         Usuario? GetUsuarioByDni(int dni);
         void GestionarSolicitudSocio(SolicitudDTO solicitudDTO);
+        void ReestablecerContrasenaVencimiento(ReestablecerContrasenaDTO reestablecerContrasenaDTO);
     }
 }

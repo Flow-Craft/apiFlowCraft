@@ -168,10 +168,10 @@ namespace ApiNet8.Services
                 throw new Exception("Usuario o contrasena incorrecta");
             }
 
-            if ((usuario.FechaCambioContrasena.HasValue && usuario.FechaCambioContrasena.Value.AddDays(90) < DateTime.Now) || usuario.FechaCambioContrasena == null)
-            {
-                throw new Exception("Contraseña vencida");
-            }
+            //if ((usuario.FechaCambioContrasena.HasValue && usuario.FechaCambioContrasena.Value.AddDays(90) < DateTime.Now) || usuario.FechaCambioContrasena == null)
+            //{
+            //    throw new Exception("Contraseña vencida");
+            //}
 
             // verificar estado del usuario
             UsuarioEstado? estado = usuario.UsuarioHistoriales.FirstOrDefault(f => f.FechaFin == null).UsuarioEstado;
@@ -280,6 +280,13 @@ namespace ApiNet8.Services
                 Perfil = perfilResponse,
                 Permisos = permisosResponse
             };
+
+            if ((usuario.FechaCambioContrasena.HasValue && usuario.FechaCambioContrasena.Value.AddDays(90) < DateTime.Now) || usuario.FechaCambioContrasena == null)
+            {
+                response.EsError = true;
+                response.MensajeError = "Contraseña vencida";
+            }
+
 
             return response;
         }
@@ -838,6 +845,7 @@ namespace ApiNet8.Services
             return false;
         }
 
+
         public void ReestablecerContrasena(ReestablecerContrasenaDTO reestablecerContrasenaDTO)
         {
             try
@@ -869,6 +877,37 @@ namespace ApiNet8.Services
                             _db.SaveChanges(); ;
                             transaction.Commit();
                         }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message);
+            }
+
+        }
+
+
+        public void ReestablecerContrasenaVencimiento(ReestablecerContrasenaDTO reestablecerContrasenaDTO)
+        {
+            try
+            {
+                // encriptar contraseña
+                var passwordEncriptado = obtenermd5(reestablecerContrasenaDTO.NuevaPassword);
+
+                // obtener usuario
+                Usuario? usuario = ExisteUsuarioActivobyEmail(reestablecerContrasenaDTO.Mail);
+
+                if (usuario != null)
+                {
+                    usuario.Contrasena = passwordEncriptado;
+                    usuario.FechaCambioContrasena = DateTime.Now;
+
+                    using (var transaction = _db.Database.BeginTransaction())
+                    {
+                        _db.Update(usuario);
+                        _db.SaveChanges(); ;
+                        transaction.Commit();
                     }
                 }
             }

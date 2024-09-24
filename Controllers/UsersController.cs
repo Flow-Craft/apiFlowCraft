@@ -8,6 +8,7 @@ using ApiNet8.Models.Usuarios;
 using ApiNet8.Services;
 using ApiNet8.Services.IServices;
 using AutoMapper;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Net;
@@ -202,8 +203,18 @@ namespace ApiNet8.Controllers
                 {
                     Usuario = login.Usuario,
                     Perfil = login.Perfil,
-                    Permisos = login.Permisos,
+                    Permisos = login.Permisos                   
                 };
+
+                if (login.EsError)
+                {
+                    var responseError = new
+                    {
+                        Error = login.MensajeError
+                    };
+
+                    return Ok(responseError);
+                }
 
                 return Ok(response);
             }
@@ -482,6 +493,32 @@ namespace ApiNet8.Controllers
             }
         }
 
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult ReestablecerContrasenaPorVencimiento([FromBody] ReestablecerContrasenaDTO reestablecerContrasenaDTO)
+        {
+            try
+            {
+                // seteo jwt en header de respuesta
+                JwtToken TOKEN = (JwtToken)HttpContext.Items[CurrentUserJWT];
+                if (TOKEN.Email != reestablecerContrasenaDTO.Mail)
+                {
+                    throw new Exception("JWT no coincide con el usuario al que le quieres cambiar la contraseña");
+                }
+                _usuarioServices.ReestablecerContrasenaVencimiento(reestablecerContrasenaDTO);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al reestablecer contraseña",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
