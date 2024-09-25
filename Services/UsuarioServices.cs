@@ -53,6 +53,10 @@ namespace ApiNet8.Services
                 //mapper de usuario a usuarioDTO
                 UsuarioDTO user = _mapper.Map<UsuarioDTO>(item);
 
+                PerfilUsuario perfil = _configuracionServices.GetPerfilUsuario(item);
+
+                user.Perfil = perfil.Perfil.NombrePerfil;
+
                 // obtengo ultimo historial
                 UsuarioHistorial? historial = item.UsuarioHistoriales.Where(f => f.FechaFin == null).FirstOrDefault();
                 if (historial != null)
