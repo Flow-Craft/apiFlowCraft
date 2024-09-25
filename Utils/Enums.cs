@@ -20,5 +20,13 @@
             Arbitro,
             Planillero
         }
+
+        public enum LeccionEstado
+        {
+            Vigente = 1,
+            ClaseIniciada = 2,
+            Terminada = 3,
+            Eliminada = 4
+        }
     }
 }
