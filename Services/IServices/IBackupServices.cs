@@ -6,7 +6,6 @@ namespace ApiNet8.Services.IServices
     {
         Task<string> SubirPDF(IFormFile file);
         (byte[] fileBytes, string fileName, string error) DescargarBackup(string fileName);
-        //Task ObtenerGuiaBackup();
-        //Task ObtenerGuiarRecuperacion();
+        bool VerificarArchivoExiste(string fileName);
     }
 }

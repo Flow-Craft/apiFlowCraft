@@ -1,4 +1,5 @@
 ﻿using ApiNet8.Models;
+using ApiNet8.Models.Partidos;
 using ApiNet8.Services;
 using ApiNet8.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
@@ -74,6 +75,38 @@ namespace ApiNet8.Controllers
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
            
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult VerificarArchivo(string fileName)
+        {
+            try
+            {
+                // seteo jwt en header de respuesta
+                var TOKEN = HttpContext.Items[JWT].ToString();
+                Response.Headers.Append(JWT, TOKEN);
+
+                bool archivoExiste = _backupServices.VerificarArchivoExiste(fileName);
+
+                var response = new
+                {
+                    Existe = archivoExiste
+                };
+
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = $"Error al obtener el archivo: {e.Message}",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
         }
     }
 }

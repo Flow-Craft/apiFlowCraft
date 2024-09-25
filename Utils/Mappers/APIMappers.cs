@@ -33,6 +33,7 @@ namespace ApiNet8.Utils.Mappers
             CreateMap<TipoEvento, TipoEventoDTO>().ReverseMap();
             CreateMap<TipoAccionPartido, TipoAccionPartidoDTO>().ReverseMap();
             CreateMap<Categoria, CategoriaDTO>().ReverseMap();
+            CreateMap<Leccion, LeccionDTO>().ReverseMap();
         }
     }
 }

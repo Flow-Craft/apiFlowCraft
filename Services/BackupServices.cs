@@ -67,5 +67,14 @@ namespace ApiNet8.Services
             return (fileBytes, fileName, null);
         }
 
+        public bool VerificarArchivoExiste(string fileName)
+        {
+            // Combinar la ruta con el nombre del archivo
+            string fullPath = Path.Combine(_filePath, fileName);
+
+            // Verificar si el archivo existe
+            return File.Exists(fullPath);        }
+
+
     }
 }
