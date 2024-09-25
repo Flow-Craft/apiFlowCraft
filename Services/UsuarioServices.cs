@@ -55,7 +55,15 @@ namespace ApiNet8.Services
 
                 PerfilUsuario perfil = _configuracionServices.GetPerfilUsuario(item);
 
-                user.Perfil = perfil.Perfil.NombrePerfil;
+                if (perfil == null)
+                {
+                    user.Perfil = "Simpatizante";
+                }
+                else
+                {
+                    user.Perfil = perfil.Perfil.NombrePerfil;
+                }
+                
 
                 // obtengo ultimo historial
                 UsuarioHistorial? historial = item.UsuarioHistoriales.Where(f => f.FechaFin == null).FirstOrDefault();
