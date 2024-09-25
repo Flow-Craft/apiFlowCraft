@@ -479,7 +479,6 @@ namespace ApiNet8.Services
                 // obtengo usuario a modificar y lo actualizo
                 Usuario user = GetUsuarioById((int)usuario.Id);
 
-
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     // verifico si el perfil cambio
