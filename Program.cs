@@ -42,6 +42,7 @@ builder.Services.AddTransient<ITipoEventoServices, TipoEventoServices>();
 builder.Services.AddTransient<ITipoAccionPartidoServices, TipoAccionPartidoServices>();
 builder.Services.AddTransient<IRefreshTokenService, RefreshTokenService>();
 builder.Services.AddTransient<ICategoriaServices, CategoriaServices>();
+builder.Services.AddTransient<ILeccionesServices, LeccionesServices>();
 builder.Services.AddTransient<ValidateJwtAndRefreshFilter>();
 
 // Load SMTP settings from configuration

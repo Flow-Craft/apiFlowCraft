@@ -19,12 +19,14 @@ namespace ApiNet8.Controllers
         private readonly IDisciplinasYLeccionesServices _disciplinasYLeccionesServices;
         private readonly ILeccionEstadoServices _leccionEstadoServices;
         private readonly ICategoriaServices _categoriaServices;
+        private readonly ILeccionesServices _leccionesServices;
 
-        public DisciplinasYLeccionesController(IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ILeccionEstadoServices leccionEstadoServices, ICategoriaServices categoriaServices)
+        public DisciplinasYLeccionesController(IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ILeccionEstadoServices leccionEstadoServices, ICategoriaServices categoriaServices, ILeccionesServices leccionesServices)
         {
             _disciplinasYLeccionesServices = disciplinasYLeccionesServices;
             _leccionEstadoServices = leccionEstadoServices;
             _categoriaServices = categoriaServices;
+            _leccionesServices = leccionesServices;
         }
 
         // crear disciplina
@@ -510,6 +512,167 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al eliminar categoria",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetLecciones()
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<Leccion> lecciones = _leccionesServices.GetLecciones();
+                return Ok(lecciones);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener lecciones",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetLeccionesActivas()
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<Leccion> lecciones = _leccionesServices.GetLeccionesActivas();
+                return Ok(lecciones);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener lecciones",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetLeccionById(LeccionDTO leccionDTO)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                Leccion leccion = _leccionesServices.GetLeccionById(leccionDTO.Id);
+
+                if (leccion == null)
+                {
+                    var problemDetails = new ValidationProblemDetails() { Status = StatusCodes.Status404NotFound, Title = "Leccion no encontrado" };
+
+                    return new NotFoundObjectResult(problemDetails);
+                }
+
+                return Ok(leccion);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener leccion con id: " + leccionDTO.Id,
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult CrearLeccion([FromBody] LeccionDTO leccionDTO)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _leccionesServices.CrearLeccion(leccionDTO);
+
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al crear leccion",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult ActualizarLeccion([FromBody] LeccionDTO leccionDTO)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _leccionesServices.ActualizarLeccion(leccionDTO);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al actualizar leccion",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult EliminarLeccion(LeccionDTO leccionDTO)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _leccionesServices.EliminarLeccion(leccionDTO);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al eliminar leccion",
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
