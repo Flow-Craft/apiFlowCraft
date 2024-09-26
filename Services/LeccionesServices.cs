@@ -41,7 +41,7 @@ namespace ApiNet8.Services
                 .ThenInclude(le => le.LeccionEstado)
             .Where(l => l.LeccionHistoriales.Any(h =>
                 h.FechaFin == null && 
-                (h.LeccionEstado.NombreEstado == "Vigente" || h.LeccionEstado.NombreEstado == "Clase Iniciada"))) 
+                (h.LeccionEstado.NombreEstado == Enums.LeccionEstado.Vigente.ToString() || h.LeccionEstado.NombreEstado == Enums.LeccionEstado.ClaseIniciada.ToString()))) 
             .ToList();
 
             return lecciones;
@@ -63,7 +63,7 @@ namespace ApiNet8.Services
         {
             Leccion? leccion = _db.Leccion.Include(lh => lh.LeccionHistoriales).ThenInclude(le => le.LeccionEstado)
                 .Where(n => n.Nombre.Equals(nombre) && n.LeccionHistoriales.Any(h => h.FechaFin == null &&
-                (h.LeccionEstado.NombreEstado == "Vigente" || h.LeccionEstado.NombreEstado == "Clase Iniciada")))
+                (h.LeccionEstado.NombreEstado == Enums.LeccionEstado.Vigente.ToString() || h.LeccionEstado.NombreEstado == Enums.LeccionEstado.ClaseIniciada.ToString())))
                 .FirstOrDefault();
 
             return leccion != null ? true : false;

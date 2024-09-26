@@ -16,15 +16,13 @@ namespace ApiNet8.Services
     public class InstalacionServices : IInstalacionServices
     {
         private readonly ApplicationDbContext _db;
-        private string secretToken;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IInstalacionEstadoServices _instalacionEstadoServices;
 
-        public InstalacionServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor, IInstalacionEstadoServices instalacionEstadoServices)
+        public InstalacionServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IInstalacionEstadoServices instalacionEstadoServices)
         {
-            this._db = db;
-            this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
+            this._db = db;           
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _instalacionEstadoServices = instalacionEstadoServices;
@@ -49,25 +47,31 @@ namespace ApiNet8.Services
                     inst.HoraInicio = instalacionDTO.HoraInicio ?? inst.HoraInicio;
                     inst.HoraCierre = instalacionDTO.HoraCierre ?? inst.HoraCierre;
 
-                    InstalacionHistorial instalacionHistorial = _db.InstalacionHistorial.Include(i => i.InstalacionEstado).Where(i => i.Instalacion.Id == instalacionDTO.Id && i.FechaFin == null).FirstOrDefault();
+                    // obtengo ultimo historial y lo doy de baja
+                    InstalacionHistorial? ultimoHistorial = inst.instalacionHistoriales.Where(ih => ih.FechaFin == null).FirstOrDefault();
 
-                    if (instalacionDTO.EstadoId != instalacionHistorial.InstalacionEstado.Id)
+                    if (ultimoHistorial != null)
                     {
-                        instalacionHistorial.FechaFin = DateTime.Now;
-                        instalacionHistorial.UsuarioEditor = currentUser?.Id;
-                        _db.InstalacionHistorial.Update(instalacionHistorial);
-
-                        InstalacionHistorial historial = new InstalacionHistorial()
-                        {
-                            FechaInicio = DateTime.Now,
-                            DetalleCambioEstado = "Se actualizó instalación",
-                            UsuarioEditor = currentUser?.Id,
-                            Instalacion = inst,
-                            InstalacionEstado = _instalacionEstadoServices.GetInstalacionEstadoById(instalacionDTO.EstadoId) // asigno estado ACTIVO
-                        };
-                        _db.Add(historial);
+                        ultimoHistorial.FechaFin = DateTime.Now;
+                        _db.InstalacionHistorial.Update(ultimoHistorial);
+                    }
+                    else
+                    {
+                        inst.instalacionHistoriales = new List<InstalacionHistorial>();
                     }
 
+                    // creo nuevo historial y lo asigno
+                    InstalacionHistorial nuevoHistorial = new InstalacionHistorial
+                    {
+                        FechaInicio = DateTime.Now,
+                        DetalleCambioEstado = "Se actualiza instalacion",
+                        UsuarioEditor = currentUser?.Id,
+                        InstalacionEstado = _instalacionEstadoServices.GetInstalacionEstadoById(instalacionDTO.EstadoId) // asigno estado ACTIVO
+                    };
+
+                    inst.instalacionHistoriales.Add(nuevoHistorial);
+
+                    _db.InstalacionHistorial.Add(nuevoHistorial);
                     _db.Instalacion.Update(inst);
                     _db.SaveChanges();
                     transaction.Commit();
@@ -93,13 +97,14 @@ namespace ApiNet8.Services
                         FechaInicio = DateTime.Now,
                         DetalleCambioEstado = "Alta Instalacion",
                         UsuarioEditor = currentUser?.Id,
-                        Instalacion = instalacion,
                         InstalacionEstado = _instalacionEstadoServices.GetInstalacionEstadoById(1) // asigno estado ACTIVO
                     };
 
+                    instalacion.instalacionHistoriales = new List<InstalacionHistorial>();
+                    instalacion.instalacionHistoriales.Add(historial);
 
-                    _db.Add(historial);
-                    _db.Add(instalacion);
+                    _db.InstalacionHistorial.Add(historial);
+                    _db.Instalacion.Add(instalacion);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
@@ -126,22 +131,31 @@ namespace ApiNet8.Services
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    InstalacionHistorial instalacionEstado = _db.InstalacionHistorial.Include(i => i.InstalacionEstado).Where(i => i.Instalacion.Id == instalacionAEliminar.Id && i.FechaFin == null).FirstOrDefault();
-                    instalacionEstado.FechaFin = DateTime.Now;
-                    instalacionEstado.UsuarioEditor = currentUser?.Id;
-                    _db.InstalacionHistorial.Update(instalacionEstado);
+                    // obtengo ultimo historial y lo doy de baja
+                    InstalacionHistorial? ultimoHistorial = instalacionAEliminar.instalacionHistoriales.Where(ih => ih.FechaFin == null).FirstOrDefault();
+
+                    if (ultimoHistorial != null)
+                    {
+                        ultimoHistorial.FechaFin = DateTime.Now;                        
+                        _db.InstalacionHistorial.Update(ultimoHistorial);
+                    }
+                    else
+                    {
+                        instalacionAEliminar.instalacionHistoriales = new List<InstalacionHistorial>();
+                    }                    
 
                     InstalacionHistorial nuevoHistorial = new InstalacionHistorial
                     {
                         DetalleCambioEstado = "Se elimina instalacion",
                         FechaInicio = DateTime.Now,
                         UsuarioEditor = currentUser?.Id,
-                        Instalacion = instalacionAEliminar,
                         InstalacionEstado = _instalacionEstadoServices.GetInstalacionEstadoById(2) // asigno estado DESACTIVADO
                     };
 
-                    _db.InstalacionHistorial.Add(nuevoHistorial);
+                    instalacionAEliminar.instalacionHistoriales.Add(nuevoHistorial);
 
+                    _db.InstalacionHistorial.Add(nuevoHistorial);
+                    _db.Instalacion.Update(instalacionAEliminar);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
@@ -166,7 +180,7 @@ namespace ApiNet8.Services
         {
             try
             {
-                Instalacion inst = _db.Instalacion.Find(Id);
+                Instalacion inst = _db.Instalacion.Include(h=>h.instalacionHistoriales).Where(i=>i.Id==Id).FirstOrDefault();
 
                 return inst;
             }
@@ -180,6 +194,7 @@ namespace ApiNet8.Services
         {
             try
             {
+                List<Instalacion> instalaciones = _db.Instalacion.Include(ih=>ih.instalacionHistoriales).ThenInclude(ie=>ie.InstalacionEstado).ToList();
                 return _db.Instalacion.ToList();
             }
             catch (Exception e)
@@ -192,19 +207,11 @@ namespace ApiNet8.Services
         {
             try
             {
-                List<Instalacion> listComp = _db.Instalacion.ToList();
-                //List<Instalacion> listFiltrada = new List<Instalacion>();
+                List<Instalacion> instalaciones = GetInstalaciones();
 
-                //foreach (var instalacion in listComp)
-                //{
-                //    InstalacionHistorial estado = _db.InstalacionHistorial.Where(i => i.InstalacionEstado.Id != 2 && i.FechaFin == null && i.Instalacion.Id==instalacion.Id).FirstOrDefault();
-                //    if (estado != null)
-                //    {
-                //        listFiltrada.Add(instalacion);
-                //    }
-                //}
+                List<Instalacion> instalacionesActivas = instalaciones.Where(i => i.instalacionHistoriales.Any(h => h.FechaFin == null && (h.InstalacionEstado.NombreEstado == Enums.EstadoInstalacion.Activa.ToString() || h.InstalacionEstado.NombreEstado == Enums.EstadoInstalacion.Abierta.ToString()))).ToList();
 
-                return listComp;
+                return instalacionesActivas;
             }
             catch (Exception e)
             {

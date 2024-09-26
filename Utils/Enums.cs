@@ -28,5 +28,24 @@
             Terminada = 3,
             Eliminada = 4
         }
+
+        public enum EstadoEvento
+        {
+            Creado = 1,
+            Cancelado = 2,
+            Finalizado = 3,
+            Iniciado = 4,
+            Suspendido = 5,
+            Entretiempo = 6
+        }
+
+        public enum EstadoInstalacion
+        {
+            Activa = 1,
+            Inactiva = 2,
+            Abierta = 3,
+            CerradaReparacion = 4,
+            CerradaRemodelacion = 5
+        }
     }
 }
