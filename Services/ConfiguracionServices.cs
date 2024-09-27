@@ -108,23 +108,21 @@ namespace ApiNet8.Services
                 per.UsuarioEditor = currentUser.Id;
                 per.FechaCreacion = DateTime.Now;
                 _db.Add(per);
-                _db.SaveChanges();
+                //_db.SaveChanges();
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    Perfil perfilNuevo = _db.Perfil.Where(p => p.NombrePerfil == per.NombrePerfil).FirstOrDefault();
                     foreach (int perm in permisos)
                     {
-                        Permiso permisoAsoc = _db.Permiso.Where(p => p.Id == perm).FirstOrDefault();
+                        Permiso? permisoAsoc = _db.Permiso.Where(p => p.Id == perm).FirstOrDefault();
                         PerfilPermiso perfilPermiso = new PerfilPermiso();
-                        perfilPermiso.Perfil = perfilNuevo;
+                        perfilPermiso.Perfil = per;
                         perfilPermiso.Permiso = permisoAsoc;
                         perfilPermiso.FechaCreacion = DateTime.Now;
                         perfilPermiso.UsuarioEditor = currentUser.Id;
                         _db.Add(perfilPermiso);
-                        _db.SaveChanges();
-
                     }
+                    _db.SaveChanges();
                     transaction.Commit();
                 }
 
