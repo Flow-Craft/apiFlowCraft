@@ -7,6 +7,8 @@ using AutoMapper;
 using ApiNet8.Services.IServices;
 using ApiNet8.Models.Partidos;
 using ApiNet8.Models.Lecciones;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiNet8.Services
 {
@@ -27,7 +29,8 @@ namespace ApiNet8.Services
 
         public List<TipoAccionPartido> GetTiposAccionPartido()
         {
-            return _db.TipoAccionPartido.ToList();
+            List <TipoAccionPartido> acciones = _db.TipoAccionPartido.Include(d=>d.Disciplina).ToList();
+            return acciones;
         }
 
         public List<TipoAccionPartido> GetTiposAccionPartidoActivos()
