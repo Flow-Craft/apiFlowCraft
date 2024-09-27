@@ -956,7 +956,7 @@ namespace ApiNet8.Services
             foreach (var item in solicitudes)
             {
                 // obtengo ultimo historial
-                SolicitudAsociacionHistorial historial = item.SolicitudAsociacionHistoriales.Where(f => f.FechaFin == null)?.FirstOrDefault();
+                SolicitudAsociacionHistorial historial = item.SolicitudAsociacionHistoriales.Where(f => f.FechaFin == null)?.OrderByDescending(f => f.FechaInicio).FirstOrDefault();
                 //mapper de usuariodto a usuario
                 SolicitudAsociacionDTO solicitud = new SolicitudAsociacionDTO
                 {
@@ -1019,6 +1019,14 @@ namespace ApiNet8.Services
                 _db.PerfilUsuario.Add(nuevoPerfil);
             }
 
+            // dar de baja el historial anterior
+            SolicitudAsociacionHistorial? ultimoHistorial = solicitud.SolicitudAsociacionHistoriales.Where(f=>f.FechaFin == null).FirstOrDefault();
+            if (ultimoHistorial != null)
+            {
+                ultimoHistorial.FechaFin = DateTime.Now;
+                _db.SolicitudAsociacionHistorial.Update(ultimoHistorial);
+            }
+
             // crear historial para la solicitud y agregarlo a la solicitud
             EstadoSolicitudAsociacion nuevoEstadoSolicitud = solicitudDTO.Accion == SolicitudAsociacionEstado.Aprobada.ToString() ? _usuarioEstadoServices.GetEstadoSolicitudAsociacion(2) : _usuarioEstadoServices.GetEstadoSolicitudAsociacion(3);
 
@@ -1033,13 +1041,6 @@ namespace ApiNet8.Services
 
             solicitud.SolicitudAsociacionHistoriales.Add(nuevoHistorial);
 
-            // dar de baja el historial anterior
-            SolicitudAsociacionHistorial? ultimoHistorial = _db.SolicitudAsociacionHistorial.Where(f => f.FechaFin == null).FirstOrDefault();
-            if (ultimoHistorial != null)
-            {
-                ultimoHistorial.FechaFin = DateTime.Now;
-                _db.SolicitudAsociacionHistorial.Update(ultimoHistorial);
-            }
 
             using (var transaction = _db.Database.BeginTransaction())
             {
@@ -1053,16 +1054,19 @@ namespace ApiNet8.Services
 
         public List<SolicitudAsociacionDTO> GetSolicitudesAsociacionFiltro(int id)
         {
-            // obtengo todas las solicitudes
+            // Obtener el estado basado en el id
+            var estadoFiltro = _usuarioEstadoServices.GetEstadoSolicitudAsociacion(id);
+
+            // Obtengo todas las solicitudes
             List<SolicitudAsociacion> solicitudes = GetSolicitudesAsociacionDb();
 
-            // filtro las solicitudes segun el filtro
+            // Filtro las solicitudes segun el historial con fecha fin nula y el estado dado
             List<SolicitudAsociacion> solicitudesFiltradas = solicitudes
-            .Where(h => h.SolicitudAsociacionHistoriales
-            .Any(a => a.FechaFin == null && a.EstadoSolicitudAsociacion == _usuarioEstadoServices.GetEstadoSolicitudAsociacion(id))
-            ).ToList();
+                .Where(s => s.SolicitudAsociacionHistoriales
+                    .Any(h => h.FechaFin == null && h.EstadoSolicitudAsociacion == estadoFiltro)
+                ).ToList();
 
-            // mapeo las solicitudes
+            // Mapeo las solicitudes a DTO
             return SolicitudesAsociacionMapper(solicitudesFiltradas);
         }
 
