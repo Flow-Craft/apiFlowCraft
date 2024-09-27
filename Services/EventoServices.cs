@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using ApiNet8.Models.Lecciones;
 using ApiNet8.Models.Reservas;
 using ApiNet8.Models.Usuarios;
+using static System.Collections.Specialized.BitVector32;
 
 namespace ApiNet8.Services
 {
@@ -22,8 +23,9 @@ namespace ApiNet8.Services
         private readonly IInstalacionServices _instalacionServices;
         private readonly IReservasServices _reservasServices;
         private readonly IEventoEstadoService _eventoEstadoService;
+        private readonly ITipoEventoServices _tipoEventoServices;
 
-        public EventoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ICategoriaServices categoriaServices, IInstalacionServices instalacionServices, IReservasServices reservasServices, IEventoEstadoService eventoEstadoService)
+        public EventoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ICategoriaServices categoriaServices, IInstalacionServices instalacionServices, IReservasServices reservasServices, IEventoEstadoService eventoEstadoService, ITipoEventoServices tipoEventoServices)
         {
             this._db = db;
             _mapper = mapper;
@@ -33,6 +35,7 @@ namespace ApiNet8.Services
             _instalacionServices = instalacionServices;
             _reservasServices = reservasServices;
             _eventoEstadoService = eventoEstadoService;
+            _tipoEventoServices = tipoEventoServices;
         }
 
         public List<Evento> GetEventos()
@@ -45,9 +48,17 @@ namespace ApiNet8.Services
         {
             List<Evento> eventos = GetEventos();
 
-            List<Evento> eventosActivos = eventos.Where(e=>e.HistorialEventoList
-            .Any(f=>f.FechaFin == null 
-            && (f.EstadoEvento.NombreEstado != Enums.EstadoEvento.Cancelado.ToString() || f.EstadoEvento.NombreEstado != Enums.EstadoEvento.Finalizado.ToString()))).ToList();
+            List<Evento> eventosActivos = new List<Evento>();
+
+            foreach (var evento in eventos)
+            {
+                // obtener ultimo historial
+                HistorialEvento? ultimoHistorial = evento?.HistorialEventoList?.Where(f=>f.FechaFin == null).OrderByDescending(f=>f.FechaInicio).FirstOrDefault();
+                if (ultimoHistorial != null && (ultimoHistorial.EstadoEvento.NombreEstado != Enums.EstadoEvento.Cancelado.ToString() && ultimoHistorial.EstadoEvento.NombreEstado != Enums.EstadoEvento.Finalizado.ToString()))
+                {
+                    eventosActivos.Add(evento);
+                }
+            }
 
             return eventosActivos;
         }
@@ -68,7 +79,7 @@ namespace ApiNet8.Services
         {
             Evento? evento = _db.Evento                
                 .Include(he => he.HistorialEventoList).ThenInclude(ee => ee.EstadoEvento)
-                .Where(e => e.HistorialEventoList.Any(f => f.FechaFin == null
+                .Where(e => e.Titulo.Equals(nombre) && e.HistorialEventoList.Any(f => f.FechaFin == null
                 && (f.EstadoEvento.NombreEstado != Enums.EstadoEvento.Cancelado.ToString() || f.EstadoEvento.NombreEstado != Enums.EstadoEvento.Finalizado.ToString()))).FirstOrDefault();
 
             return evento != null ? true : false;
@@ -104,8 +115,11 @@ namespace ApiNet8.Services
                 // asignar categoria
                 evento.Categoria = _categoriaServices.GetCategoriaById(eventoDTO.IdCategoria);
 
+                // asignar tipo de evento
+                evento.TipoEvento = _tipoEventoServices.GetTipoEventoById(eventoDTO.IdTipoEvento);
+
                 // buscar instalacion
-                Instalacion instalacion = _instalacionServices.GetInstalacionById(eventoDTO.IdInstalacion);
+                Instalacion instalacion = _instalacionServices.GetInstalacionById(eventoDTO.IdInstalacion);                
 
                 // verificar que no este reservada
                 bool instalacionDisponible = _reservasServices.VerificarInstalacionDisponible((DateTime)eventoDTO.FechaInicio, (DateTime)eventoDTO.FechaFinEvento, instalacion);
@@ -129,7 +143,8 @@ namespace ApiNet8.Services
                     HoraFin = (DateTime)eventoDTO.FechaFinEvento,
                     FechaCreacion = DateTime.Now,
                     UsuarioEditor = currentUser != null ? currentUser.Id : 0,
-                    Usuario = usuario
+                    Usuario = usuario,
+                    Instalacion = instalacion
                 };
 
                 // crear historial y asignarlo al evento
@@ -159,77 +174,203 @@ namespace ApiNet8.Services
             }
         }
 
-        //public void ActualizarLeccionEstado(LeccionEstadoDTO leccionEstadoDTO)
-        //{
-        //    try
-        //    {
-        //        // Obtener el usuario actual desde la sesión
-        //        var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+        public void ActualizarEvento(EventoDTO eventoDTO)
+        {
+            try
+            {
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
-        //        LeccionEstado leccionEstado = GetLeccionEstadoById(leccionEstadoDTO.Id);
+                Evento evento = GetEventoById(eventoDTO.Id);
 
-        //        leccionEstado.FechaModificacion = DateTime.Now;
-        //        leccionEstado.DescripcionEstado = leccionEstadoDTO.DescripcionEstado ?? leccionEstado.DescripcionEstado;
-        //        leccionEstado.NombreEstado = leccionEstadoDTO.NombreEstado ?? leccionEstado.NombreEstado;
-        //        leccionEstado.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
+                // verificar si ya existe un evento con ese nombre
+                if (eventoDTO.Titulo != null)
+                {
+                    bool existe = _db.Evento.Include(a => a.HistorialEventoList).Any(le => (le.Titulo == eventoDTO.Titulo && le.Id != eventoDTO.Id) && le.HistorialEventoList.Any(h => h.FechaFin == null &&
+                    (h.EstadoEvento.NombreEstado != ApiNet8.Utils.Enums.EstadoEvento.Cancelado.ToString() || h.EstadoEvento.NombreEstado == ApiNet8.Utils.Enums.EstadoEvento.Finalizado.ToString())));
 
-        //        if (leccionEstadoDTO.NombreEstado != null)
-        //        {
-        //            bool existe = _db.LeccionEstado.Any(le => le.NombreEstado == leccionEstadoDTO.NombreEstado && le.Id != leccionEstado.Id && le.FechaBaja == null);
+                    if (existe)
+                    {
+                        throw new Exception("Ya existe un evento con ese nombre.");
+                    }
+                }
 
-        //            if (existe)
-        //            {
-        //                throw new Exception("Ya existe un estado de leccion con ese nombre.");
-        //            }
-        //        }
+                evento.Titulo = eventoDTO.Titulo ?? evento.Titulo;
+                evento.Descripcion = eventoDTO.Descripcion ?? evento.Descripcion;
+                evento.Banner = eventoDTO.Banner ?? evento.Banner;
+                evento.CupoMaximo = eventoDTO.CupoMaximo > 0 ? eventoDTO.CupoMaximo : evento.CupoMaximo;
+                evento.LinkStream = eventoDTO.LinkStream ?? evento.LinkStream;
 
-        //        using (var transaction = _db.Database.BeginTransaction())
-        //        {
-        //            _db.LeccionEstado.Update(leccionEstado);
-        //            _db.SaveChanges();
-        //            transaction.Commit();
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        throw new Exception(e.Message, e);
-        //    }
-        //}
+                // asignar disciplinas
+                if (eventoDTO.IdsDisciplinas != null)
+                {
+                    evento.Disciplinas =  new List<Disciplina>();
 
-        //public void EliminarLeccionEstado(LeccionEstadoDTO leccionEstadoDTO)
-        //{
-        //    try
-        //    {
-        //        // Obtener el usuario actual desde la sesión
-        //        var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+                    foreach (var idDisc in eventoDTO.IdsDisciplinas)
+                    {
+                        Disciplina? d = _disciplinasYLeccionesServices.GetDisciplinaById(idDisc);
+                        if (d != null)
+                        {
+                            evento.Disciplinas.Add(d);
+                        }
+                    }
+                }
 
-        //        LeccionEstado leccionEstado = GetLeccionEstadoById(leccionEstadoDTO.Id);
+                // asignar categoria
+                if (eventoDTO.IdCategoria > 0)
+                {
+                    evento.Categoria = _categoriaServices.GetCategoriaById(eventoDTO.IdCategoria);
+                }
 
-        //        if (leccionEstado == null)
-        //        {
-        //            throw new Exception("No existe el estado que quieres eliminar.");
-        //        }
+                // asignar tipo de evento
+                if (eventoDTO.IdTipoEvento > 0)
+                {
+                    evento.TipoEvento = _tipoEventoServices.GetTipoEventoById(eventoDTO.IdTipoEvento);
+                }
 
-        //        if (leccionEstado.FechaBaja != null)
-        //        {
-        //            throw new Exception("El estado de leccion ya esta eliminado.");
-        //        }
+                // cambia fecha o instalacion
+                if (eventoDTO.IdInstalacion > 0 || eventoDTO.FechaInicio != null || eventoDTO.FechaFinEvento != null)
+                {
+                    // buscar instalacion
+                    Instalacion instalacion = eventoDTO.IdInstalacion > 0 ? _instalacionServices.GetInstalacionById(eventoDTO.IdInstalacion) : _instalacionServices.GetInstalacionById(evento.Instalacion.Id);
 
-        //        leccionEstado.FechaBaja = DateTime.Now;
-        //        leccionEstado.FechaModificacion = DateTime.Now;
-        //        leccionEstado.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
+                    // verificar que no este reservada
+                    DateTime fechaInicioReserva = eventoDTO.FechaInicio != null ? (DateTime)eventoDTO.FechaInicio : (DateTime)evento.FechaInicio;
+                    DateTime fechaFinReserva = eventoDTO.FechaFinEvento != null ? (DateTime)eventoDTO.FechaFinEvento : (DateTime)evento.FechaInicio;
 
-        //        using (var transaction = _db.Database.BeginTransaction())
-        //        {
-        //            _db.LeccionEstado.Update(leccionEstado);
-        //            _db.SaveChanges();
-        //            transaction.Commit();
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        throw new Exception(e.Message, e);
-        //    }
-        //}
+                    bool instalacionDisponible = _reservasServices.VerificarInstalacionDisponible(fechaInicioReserva, fechaFinReserva, instalacion);
+
+                    if (!instalacionDisponible)
+                    {
+                        throw new Exception("La instalacion no esta disponible en ese dia y horario.");
+                    }
+
+                    // se da de baja la reserva anterior
+                    Reserva? reservaAnterior = _reservasServices.GetReservasByInstalacion(evento.Instalacion).Where(f=>f.HoraInicio == evento.FechaInicio && f.HoraFin == evento.FechaFinEvento).OrderByDescending(f=>f.FechaCreacion).FirstOrDefault();
+
+                    if (reservaAnterior != null)
+                    {
+                        reservaAnterior.FechaBaja = DateTime.Now;
+                        reservaAnterior.FechaModificacion = DateTime.Now;
+                        reservaAnterior.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
+                        _db.Reserva.Update(reservaAnterior);
+                    }
+
+                    // asignar instalacion
+                    evento.Instalacion = instalacion;
+                    evento.FechaInicio = fechaInicioReserva;
+                    evento.FechaFinEvento = fechaFinReserva;
+
+                    // se crea nueva reserva
+                    int idUsuario = currentUser != null ? currentUser.Id : 1;
+                    Usuario usuario = _db.Usuario.Where(u => u.Id == idUsuario).FirstOrDefault();
+
+                    Reserva reserva = new Reserva
+                    {
+                        FechaReserva = DateTime.Now,
+                        HoraInicio = fechaInicioReserva,
+                        HoraFin = fechaFinReserva,
+                        FechaCreacion = DateTime.Now,
+                        UsuarioEditor = currentUser != null ? currentUser.Id : 0,
+                        Usuario = usuario,
+                        Instalacion = instalacion
+                    };
+
+                    _db.Reserva.Add(reserva);    
+                }
+
+                // se da de baja el historial anterior
+                HistorialEvento ultimoHistorial = evento.HistorialEventoList.Where(f=>f.FechaFin==null).FirstOrDefault();
+                if (ultimoHistorial != null)
+                {
+                    ultimoHistorial.FechaFin = DateTime.Now;
+                    _db.HistorialEvento.Update(ultimoHistorial);
+                }
+
+                // crear nuevo historial y asignarlo al evento
+                HistorialEvento historialEvento = new HistorialEvento
+                {
+                    FechaInicio = DateTime.Now,
+                    DetalleCambioEstado = "Se modifica evento",
+                    UsuarioEditor = currentUser != null ? currentUser.Id : 0,
+                    EstadoEvento = _eventoEstadoService.GetEventoEstadoById(1) // asigno estado creado
+                };
+                evento.HistorialEventoList = evento.HistorialEventoList == null ? new List<HistorialEvento>() : evento.HistorialEventoList;
+                evento.HistorialEventoList.Add(historialEvento);
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.Evento.Update(evento);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
+        public void EliminarEvento(EventoDTO eventoDTO)
+        {
+            try
+            {
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                Evento evento = GetEventoById(eventoDTO.Id);
+
+                if (evento == null)
+                {
+                    throw new Exception("No existe el evento que quieres eliminar.");
+                }
+
+                // obtener reserva y darla de baja si el evento no ha comenzado
+                Reserva? reservaEvento = _reservasServices.GetReservasByInstalacion(evento.Instalacion).Where(f => f.HoraInicio == evento.FechaInicio && f.HoraFin == evento.FechaFinEvento).OrderByDescending(f => f.FechaCreacion).FirstOrDefault();
+                if (reservaEvento != null && evento.FechaInicio > DateTime.Now)
+                {
+                    reservaEvento.FechaBaja = DateTime.Now;
+                    reservaEvento.FechaModificacion = DateTime.Now;
+                    reservaEvento.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
+                    _db.Reserva.Update(reservaEvento);
+                }
+
+                // obtener ultimo historial y darlo de baja
+                HistorialEvento? ultimoHistorial = evento.HistorialEventoList?.Where(f => f.FechaFin == null).OrderByDescending(f=>f.FechaInicio).FirstOrDefault();
+                if (ultimoHistorial == null)
+                {
+                    if (ultimoHistorial.EstadoEvento.NombreEstado == Enums.EstadoEvento.Cancelado.ToString())
+                    {
+                        throw new Exception("Este evento ya ha sido eliminado");
+                    }
+
+                    ultimoHistorial.FechaFin = DateTime.Now;
+                    _db.HistorialEvento.Update(ultimoHistorial);
+                }
+
+                // crear nuevo historial
+                HistorialEvento nuevoHistorial = new HistorialEvento
+                {
+                    FechaInicio = DateTime.Now,
+                    DetalleCambioEstado = "Se elimina evento",
+                    UsuarioEditor = currentUser?.Id,
+                    EstadoEvento = _eventoEstadoService.GetEventoEstadoById(2) // se asigna estado cancelado
+                };
+                evento.HistorialEventoList = evento.HistorialEventoList == null ? new List<HistorialEvento>() : evento.HistorialEventoList;
+                evento.HistorialEventoList.Add(nuevoHistorial);
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.HistorialEvento.Add(nuevoHistorial);
+                    _db.Evento.Update(evento);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
     }
 }

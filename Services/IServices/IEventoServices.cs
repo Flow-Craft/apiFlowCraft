@@ -9,8 +9,8 @@ namespace ApiNet8.Services.IServices
         List<Evento> GetEventos();
         Evento GetEventoById(int Id);
         void CrearEvento(EventoDTO eventoDTO);
-        //void ActualizarEvento(EventoDTO eventoDTO);
-        //void EliminarEvento(EventoDTO eventoDTO);
+        void ActualizarEvento(EventoDTO eventoDTO);
+        void EliminarEvento(EventoDTO eventoDTO);
         bool ExisteEvento(string nombre);
         List<Evento> GetEventosActivos();
     }

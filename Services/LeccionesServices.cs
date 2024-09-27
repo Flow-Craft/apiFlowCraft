@@ -39,7 +39,7 @@ namespace ApiNet8.Services
             .Include(c => c.Categoria)
             .Include(lh => lh.LeccionHistoriales)
                 .ThenInclude(le => le.LeccionEstado)
-            .Where(l => l.LeccionHistoriales.Any(h =>
+            .Where( l => l.LeccionHistoriales.Any(h =>
                 h.FechaFin == null && 
                 (h.LeccionEstado.NombreEstado == Enums.LeccionEstado.Vigente.ToString() || h.LeccionEstado.NombreEstado == Enums.LeccionEstado.ClaseIniciada.ToString()))) 
             .ToList();
@@ -212,7 +212,8 @@ namespace ApiNet8.Services
                     DetalleCambioEstado = "Se elimina leccion",
                     UsuarioEditor = currentUser?.Id,
                     LeccionEstado = _leccionEstadoServices.GetLeccionEstadoById(4) // se asigna estado eliminada
-                };                
+                };       
+                leccion.LeccionHistoriales.Add(leccionHistorial);
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {

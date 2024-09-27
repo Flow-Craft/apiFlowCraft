@@ -43,9 +43,14 @@ namespace ApiNet8.Services
 
             // Verificar si hay alguna reserva que se solape con el rango [fechaInicio, fechaFin]
             bool hayConflicto = reservasInstalacion.Any(r =>
-                (fechaInicio >= r.HoraInicio && fechaInicio <= r.HoraFin) ||  // La fechaInicio cae en un rango reservado
-                (fechaFin >= r.HoraInicio && fechaFin <= r.HoraFin) ||        // La fechaFin cae en un rango reservado
-                (r.HoraInicio >= fechaInicio && r.HoraFin <= fechaFin)        // La reserva existente está completamente dentro del nuevo rango
+                // La fechaInicio cae en un rango reservado
+                ((fechaInicio >= r.HoraInicio && fechaInicio <= r.HoraFin) ||
+                // La fechaFin cae en un rango reservado
+                (fechaFin >= r.HoraInicio && fechaFin <= r.HoraFin) ||
+                // La reserva existente está completamente dentro del nuevo rango
+                (r.HoraInicio >= fechaInicio && r.HoraFin <= fechaFin))
+                // Condición: Fecha de baja es null
+                && r.FechaBaja == null
             );
 
             // Si hay conflicto, la instalación no está disponible
