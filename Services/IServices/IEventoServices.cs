@@ -13,5 +13,9 @@ namespace ApiNet8.Services.IServices
         void EliminarEvento(EventoDTO eventoDTO);
         bool ExisteEvento(string nombre);
         List<Evento> GetEventosActivos();
+        List<Inscripcion> GetInscripcionesEvento(int id);
+        void InscribirseAEvento(InscripcionEventoDTO inscripcion);
+        void DesinscribirseAEvento(InscripcionEventoDTO inscripcion);
+        List<Inscripcion> GetInscripcionesByUsuario(int id);
     }
 }

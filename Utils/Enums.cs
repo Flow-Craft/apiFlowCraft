@@ -47,5 +47,12 @@
             CerradaReparacion = 4,
             CerradaRemodelacion = 5
         }
+
+        public enum EstadoUsuario
+        {
+            Activo = 1,
+            Bloqueado = 2,
+            Desactivado = 3
+        }
     }
 }
