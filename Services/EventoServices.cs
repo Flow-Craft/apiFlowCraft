@@ -463,37 +463,45 @@ namespace ApiNet8.Services
 
         public void DesinscribirseAEvento(InscripcionEventoDTO inscripcion)
         {
-            // verificar estado evento
-            Evento evento = GetEventoById(inscripcion.IdEvento);
-
-            if (evento?.HistorialEventoList?.Where(f => f.FechaFin == null)?.OrderByDescending(f => f.FechaInicio)?.FirstOrDefault()?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Creado.ToString())
+            try
             {
-                throw new Exception("Las inscripciones al evento estan cerradas: el evento esta en curso o ha finalizado.");
+                // verificar estado evento
+                Evento evento = GetEventoById(inscripcion.IdEvento);
+
+                if (evento?.HistorialEventoList?.Where(f => f.FechaFin == null)?.OrderByDescending(f => f.FechaInicio)?.FirstOrDefault()?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Creado.ToString())
+                {
+                    throw new Exception("Las inscripciones al evento estan cerradas: el evento esta en curso o ha finalizado.");
+                }
+
+                // busco la inscripcion y la doy de baja
+                Inscripcion? inscripcionEvento = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).FirstOrDefault();
+
+                if (inscripcionEvento == null)
+                {
+                    throw new Exception("No esta inscripto a este evento");
+                }
+
+                inscripcionEvento.FechaBaja = DateTime.Now;
+
+                // verificar si el evento estaba lleno
+                if (evento.EventoLleno)
+                {
+                    evento.EventoLleno = false;
+                    _db.Evento.Update(evento);
+                }
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.Inscripcion.Add(inscripcionEvento);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
             }
-
-            // busco la inscripcion y la doy de baja
-            Inscripcion? inscripcionEvento = _db.Inscripcion.Include(e=>e.Evento).Include(u=>u.Usuario).FirstOrDefault();
-
-            if (inscripcionEvento == null)
+            catch (Exception e)
             {
-                throw new Exception("No esta inscripto a este evento");
+                throw new Exception(e.Message);
             }
-
-            inscripcionEvento.FechaBaja = DateTime.Now;
-
-            // verificar si el evento estaba lleno
-            if (evento.EventoLleno)
-            {
-                evento.EventoLleno = false;
-                _db.Evento.Update(evento);
-            }
-
-            using (var transaction = _db.Database.BeginTransaction())
-            {
-                _db.Inscripcion.Add(inscripcionEvento);
-                _db.SaveChanges();
-                transaction.Commit();
-            }
+           
 
         }
     }

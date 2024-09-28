@@ -16,6 +16,6 @@ namespace ApiNet8.Services.IServices
         List<Inscripcion> GetInscripcionesEvento(int id);
         void InscribirseAEvento(InscripcionEventoDTO inscripcion);
         void DesinscribirseAEvento(InscripcionEventoDTO inscripcion);
-        List<Inscripcion> GetInscripcionesByUsuario(int id);
+        //List<Inscripcion> GetInscripcionesByUsuario(int id);
     }
 }
