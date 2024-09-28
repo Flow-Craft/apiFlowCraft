@@ -378,6 +378,12 @@ namespace ApiNet8.Services
             return inscripciones;
         }
 
+        public List<Inscripcion> GetInscripcionesByUsuario(int id)
+        {
+            List<Inscripcion> inscripciones = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).Where(u => u.Usuario.Id == id).ToList();
+            return inscripciones;
+        }
+
         public void InscribirseAEvento(InscripcionEventoDTO inscripcion)
         {
             try
