@@ -36,7 +36,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-                List<Instalacion> instalaciones = _instalacionServices.GetInstalaciones();
+                List<InstalacionResponseDTO> instalaciones = _instalacionServices.GetInstalaciones();
                 return Ok(instalaciones);
             }
             catch (Exception e)

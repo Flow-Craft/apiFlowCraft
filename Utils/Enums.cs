@@ -41,8 +41,8 @@
 
         public enum EstadoInstalacion
         {
-            Activa = 1,
-            Inactiva = 2,
+            Activo = 1,
+            Inactivo = 2,
             Abierta = 3,
             CerradaReparacion = 4,
             CerradaRemodelacion = 5

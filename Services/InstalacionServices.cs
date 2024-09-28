@@ -190,12 +190,36 @@ namespace ApiNet8.Services
             }
         }
 
-        public List<Instalacion> GetInstalaciones()
+        public List<InstalacionResponseDTO> GetInstalaciones()
         {
             try
             {
                 List<Instalacion> instalaciones = _db.Instalacion.Include(ih=>ih.instalacionHistoriales).ThenInclude(ie=>ie.InstalacionEstado).ToList();
-                return _db.Instalacion.ToList();
+
+                List<InstalacionResponseDTO> response = new List<InstalacionResponseDTO>();
+
+                foreach (var item in instalaciones)
+                {
+                    // obtengo ultimo historial
+                    InstalacionHistorial? instalacionHistorial = item.instalacionHistoriales.Where(f=>f.FechaFin == null).OrderByDescending(f=>f.FechaInicio).FirstOrDefault();
+
+                    bool activo = false;
+
+                    if (instalacionHistorial != null && (instalacionHistorial?.InstalacionEstado.NombreEstado == Enums.EstadoInstalacion.Abierta.ToString() || instalacionHistorial?.InstalacionEstado.NombreEstado == Enums.EstadoInstalacion.Activo.ToString()))
+                    {
+                        activo = true;
+                    }
+
+                    InstalacionResponseDTO instalacionResponse = new InstalacionResponseDTO 
+                    {
+                        instalacion = item,
+                        Activo = activo
+                    };
+
+                    response.Add(instalacionResponse);
+                }
+
+                return response;
             }
             catch (Exception e)
             {
@@ -207,9 +231,9 @@ namespace ApiNet8.Services
         {
             try
             {
-                List<Instalacion> instalaciones = GetInstalaciones();
+                List<Instalacion> instalaciones = _db.Instalacion.Include(ih => ih.instalacionHistoriales).ThenInclude(ie => ie.InstalacionEstado).ToList();
 
-                List<Instalacion> instalacionesActivas = instalaciones.Where(i => i.instalacionHistoriales.Any(h => h.FechaFin == null && (h.InstalacionEstado.NombreEstado == Enums.EstadoInstalacion.Activa.ToString() || h.InstalacionEstado.NombreEstado == Enums.EstadoInstalacion.Abierta.ToString()))).ToList();
+                List<Instalacion> instalacionesActivas = instalaciones.Where(i => i.instalacionHistoriales.Any(h => h.FechaFin == null && (h.InstalacionEstado.NombreEstado == Enums.EstadoInstalacion.Activo.ToString() || h.InstalacionEstado.NombreEstado == Enums.EstadoInstalacion.Abierta.ToString()))).ToList();
 
                 return instalacionesActivas;
             }
