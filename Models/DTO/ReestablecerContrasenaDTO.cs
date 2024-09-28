@@ -4,6 +4,6 @@
     {
         public string Mail { get; set; }
         public string NuevaPassword {  get; set; }
-        public string Codigo { get; set; }
+        public string? Codigo { get; set; }
     }
 }

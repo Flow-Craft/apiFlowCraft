@@ -1,4 +1,5 @@
 ﻿using ApiNet8.Filters.ActionFilters;
+using ApiNet8.Migrations;
 using ApiNet8.Models;
 using ApiNet8.Models.Club;
 using ApiNet8.Models.DTO;
@@ -7,9 +8,11 @@ using ApiNet8.Models.Usuarios;
 using ApiNet8.Services;
 using ApiNet8.Services.IServices;
 using AutoMapper;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Net;
+using XAct.Users;
 
 // For more information on enabling Web API for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
 
@@ -32,9 +35,9 @@ namespace ApiNet8.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> SendMailTest([FromBody] EmailRequestDTO emailRequest)
+        public IActionResult SendMailTest([FromBody] EmailRequestDTO emailRequest)
         {
-            await _emailService.SendEmailAsync(emailRequest.ToEmail, emailRequest.Subject, emailRequest.Body);
+            _emailService.SendEmail(emailRequest.receiverEmail, emailRequest.receiverName, emailRequest.subject, emailRequest.message);
             return Ok("Email sent successfully!");
         }
 
@@ -182,13 +185,7 @@ namespace ApiNet8.Controllers
         {
             try
             {
-                var login = await _usuarioServices.Login(usuarioLoginDTO);
-
-                if (login.EsError==true)
-                {
-                    //return new StatusCodeResult(StatusCodes.Status403Forbidden);
-                    return Ok(login);
-                }
+                var login = await _usuarioServices.Login(usuarioLoginDTO);               
 
                 Response.Headers.Append(JWT, login.JwtToken);
 
@@ -201,15 +198,37 @@ namespace ApiNet8.Controllers
                 };
                 SetCurrentUser(currentUser);
 
-                CurrentUser cu = GetCurrentUser();
+                // Crear un objeto anónimo que contenga datos del login
+                var response = new
+                {
+                    Usuario = login.Usuario,
+                    Perfil = login.Perfil,
+                    Permisos = login.Permisos                   
+                };
 
-                return Ok(login.Usuario);
+                if (login.EsError)
+                {
+                    var responseError = new
+                    {
+                        Error = login.MensajeError
+                    };
+
+                    return Ok(responseError);
+                }
+
+                return Ok(response);
             }
             catch (Exception e)
             {
                 RespuestaAPI respuestaAPI = new RespuestaAPI
                 {
-                    status = e.Message == "Usuario o contrasena incorrecta" ? HttpStatusCode.BadRequest : HttpStatusCode.InternalServerError,
+                    status = e.Message == "Usuario o contrasena incorrecta"
+                    ? HttpStatusCode.BadRequest
+                    : e.Message == "Usuario debe aceptar los nuevos términos y condiciones"
+                    ? HttpStatusCode.Forbidden
+                    : e.Message == "Contraseña vencida"
+                    ? HttpStatusCode.Forbidden
+                    : HttpStatusCode.InternalServerError,
                     title = "Error en login",
                     errors = new List<string> { e.Message }
                 };
@@ -474,6 +493,32 @@ namespace ApiNet8.Controllers
             }
         }
 
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult ReestablecerContrasenaPorVencimiento([FromBody] ReestablecerContrasenaDTO reestablecerContrasenaDTO)
+        {
+            try
+            {
+                // seteo jwt en header de respuesta
+                JwtToken TOKEN = (JwtToken)HttpContext.Items[CurrentUserJWT];
+                if (TOKEN.Email != reestablecerContrasenaDTO.Mail)
+                {
+                    throw new Exception("JWT no coincide con el usuario al que le quieres cambiar la contraseña");
+                }
+                _usuarioServices.ReestablecerContrasenaVencimiento(reestablecerContrasenaDTO);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al reestablecer contraseña",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
@@ -551,6 +596,33 @@ namespace ApiNet8.Controllers
             }
         }
 
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult GestionarSolicitudesAsociacion(SolicitudDTO solicitud)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _usuarioServices.GestionarSolicitudSocio(solicitud);
+
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al gestionar la solicitud.",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult GetSolicitudesAsociacionFiltradas(int id)
@@ -592,6 +664,58 @@ namespace ApiNet8.Controllers
             catch (Exception e)
             {
                 return BadRequest(e.ToString());
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult BlanquearContrasena(string mail)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _usuarioServices.BlanquearContrasena(mail);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al blanquear contraseña de usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [HttpGet]
+        public IActionResult RecuperarUsuarioByDni(int dni)
+        { 
+            try
+            {
+               Usuario user = _usuarioServices.GetUsuarioByDni(dni);
+
+                // Crear un objeto anónimo que contenga la propiedad TYC
+                var response = new
+                {
+                    Email = user.Email
+                };
+
+                return Ok(response);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al recuperar usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
         }
 

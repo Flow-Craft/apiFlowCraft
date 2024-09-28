@@ -8,9 +8,10 @@ namespace ApiNet8.Services.IServices
 {
     public interface IConfiguracionServices
     {
-        List<Perfil> GetPerfiles();
+        List<PerfilResponseDTO> GetPerfiles();
         List<Permiso> GetPermisos();
         Perfil GetPerfilById(int Id);
+        PerfilResponseDTO GetPerfilYPermisosById(int Id);
         Perfil CrearPerfil(PerfilDTO perfil, List<int> permisos);
         Perfil ActualizarPerfil(PerfilDTO perfil, List<int> permisos);
         Perfil EliminarPerfil(int id);
@@ -24,5 +25,7 @@ namespace ApiNet8.Services.IServices
         TerminosYCondiciones ObtenerTYC();
         PerfilClubResponseDTO GetPerfilClubActivo();
         PerfilClubQuienesSomosDTO GetPerfilClubQuienesSomos();
+        PerfilUsuario GetPerfilUsuario(Usuario usuario);
+        Perfil GetPerfilByNombre(string nombre);
     }
 }

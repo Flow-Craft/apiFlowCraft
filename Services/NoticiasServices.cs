@@ -15,14 +15,12 @@ namespace ApiNet8.Services
     public class NoticiasServices : INoticiasServices
     {
         private readonly ApplicationDbContext _db;
-        private string secretToken;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
 
         public NoticiasServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor)
         {
             this._db = db;
-            this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
         }
@@ -49,8 +47,7 @@ namespace ApiNet8.Services
                     noti.FechaFin = noticiaDTO.FechaFin ?? noti.FechaFin;
                     noti.tag = noticiaDTO.tag ?? noti.tag;
                     noti.UsuarioEditor = currentUser.Id;
-                    noti.FechaModificacion = DateTime.Now;
-                   
+                    noti.FechaModificacion = DateTime.Now;                   
 
                     _db.Noticias.Update(noti);
                     _db.SaveChanges();

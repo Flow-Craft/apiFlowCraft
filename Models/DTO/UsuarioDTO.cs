@@ -26,6 +26,7 @@ namespace ApiNet8.Models.DTO
         public DateTime? FechaCambioContrasena { get; set; }
         public DateTime? UltimoAcceso { get; set; }
         public string? Estado {  get; set; }
+        public string? Perfil { get; set; }
         //public IList<PerfilUsuario>? PerfilesUsuario { get; set; }
     }
 }

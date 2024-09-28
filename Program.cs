@@ -9,6 +9,7 @@ using System.Text;
 using AutoMapper;
 using ApiNet8.Utils.Mappers;
 using ApiNet8.Models;
+using sib_api_v3_sdk.Client;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -18,7 +19,10 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("flowCraft"));
 });
 
-// Obtener la secret key desde la configuraci�n
+// configurar envio de mail
+Configuration.Default.ApiKey.Add("api-key", builder.Configuration["BrevoApi:ApiKey"]);
+
+// Obtener la secret key de jwt desde la configuraci�n
 var secretKey = builder.Configuration["ApiSettings:secretToken"];
 
 // agregar servicio e interfaz
@@ -31,11 +35,20 @@ builder.Services.AddTransient<IInstalacionServices, InstalacionServices>();
 builder.Services.AddTransient<IInstalacionEstadoServices, InstalacionEstadoServices>();
 builder.Services.AddTransient<INoticiasServices, NoticiasServices>();
 builder.Services.AddTransient<IDisciplinasYLeccionesServices, DisciplinasYLeccionesServices>();
+builder.Services.AddTransient<ILeccionEstadoServices, LeccionEstadoServices>();
+builder.Services.AddTransient<ITorneoEstadoServices, TorneoEstadoServices>();
+builder.Services.AddTransient<IBackupServices, BackupServices>();
+builder.Services.AddTransient<ITipoEventoServices, TipoEventoServices>();
+builder.Services.AddTransient<ITipoAccionPartidoServices, TipoAccionPartidoServices>();
 builder.Services.AddTransient<IRefreshTokenService, RefreshTokenService>();
+builder.Services.AddTransient<ICategoriaServices, CategoriaServices>();
+builder.Services.AddTransient<ILeccionesServices, LeccionesServices>();
+builder.Services.AddTransient<IEventoServices, EventoServices>();
+builder.Services.AddTransient<IReservasServices, ReservasServices>();
 builder.Services.AddTransient<ValidateJwtAndRefreshFilter>();
 
 // Load SMTP settings from configuration
-builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("SmtpSettings"));
+builder.Services.Configure<EmailSettings>(builder.Configuration.GetSection("BrevoApi"));
 builder.Services.AddTransient<IEmailService, EmailService>();
 
 // se agrega session
@@ -51,7 +64,7 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(10);
     options.Cookie.HttpOnly = true; // Esto asegura que las cookies solo se puedan acceder a través del backend
     options.Cookie.SameSite = SameSiteMode.None; // Esto permite compartir las cookies entre dominios    
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Asegúrate de usar HTTPS
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None; // Asegúrate de usar HTTPS
 });
 
 

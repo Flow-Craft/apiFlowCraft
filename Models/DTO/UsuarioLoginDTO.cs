@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using ApiNet8.Models.Usuarios;
+using System.ComponentModel.DataAnnotations;
 
 namespace ApiNet8.Models.DTO
 {
@@ -9,6 +10,6 @@ namespace ApiNet8.Models.DTO
         public string Email { get; set; }
         [Required(ErrorMessage = "La contrasena es obligatoria")]
         public string Contrasena { get; set; }
-        public bool? ReaceptarTyC { get; set; }
+        public bool? ReaceptarTyC { get; set; }        
     }
 }

@@ -10,6 +10,5 @@
 
         // Relaciones
         public InstalacionEstado InstalacionEstado { get; set; }
-        public Instalacion Instalacion { get; set; }
     }
 }
