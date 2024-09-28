@@ -372,5 +372,35 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
+        public void InscribirseAEvento(InscripcionEventoDTO inscripcion)
+        {
+            // verificar si hay cupo disponible
+            Evento evento = GetEventoById(inscripcion.IdEvento);
+            if (evento == null) 
+            {
+                throw new Exception("No existe el evento");
+            }
+
+            if (evento.EventoLleno)
+            {
+                throw new Exception("El evento esta completo.");
+            }
+
+            if (evento?.HistorialEventoList?.Where(f=>f.FechaFin == null)?.OrderByDescending(f=>f.FechaInicio)?.FirstOrDefault()?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Creado.ToString())
+            {
+                throw new Exception("Las inscripciones al evento estan cerradas: el evento esta en curso o ha finalizado.");
+            }
+
+            // verificar si ya esta inscripto
+
+
+            // verificar estado del usuario y perfil
+
+            // crear instancia de inscripcion
+
+            // verificar si el evento esta lleno
+
+        }
     }
 }
