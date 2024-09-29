@@ -493,5 +493,30 @@ namespace ApiNet8.Controllers
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
         }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult TomarAsistencia(InscripcionEventoDTO inscripcion)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _eventoServices.TomarAsistencia(inscripcion);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al tomar asistencia",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
     }
 }

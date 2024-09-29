@@ -522,5 +522,90 @@ namespace ApiNet8.Services
            
 
         }
+
+        public Inscripcion? GetInscripcionByUsuarioEvento(InscripcionEventoDTO inscripcion)
+        {
+            try
+            {
+                Inscripcion ins = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).Where(i => i.Usuario.Id == inscripcion.IdUsuario && i.Evento.Id == inscripcion.IdEvento && i.FechaBaja == null).OrderByDescending(i => i.FechaInscripcion).FirstOrDefault();
+
+                return ins;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+          
+        }
+
+        public Asistencia? GetAsistenciaByUsuarioEvento(InscripcionEventoDTO inscripcion)
+        {
+            try
+            {
+                Asistencia asistencia = _db.Asistencia.Include(U => U.Usuario).Include(e => e.Evento).Where(a => a.Usuario.Id == inscripcion.IdUsuario && a.Evento.Id == inscripcion.IdEvento).FirstOrDefault();
+
+                return asistencia;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+
+        }
+
+        public void TomarAsistencia(InscripcionEventoDTO inscripcion) 
+        {
+            try
+            {
+                // verificar si esta inscripto al evento
+                Evento evento = GetEventoById(inscripcion.IdEvento);
+
+                Usuario? usuario = _db.Usuario
+                            .Where(u => u.Id == inscripcion.IdUsuario)
+                            .FirstOrDefault();
+
+                if (usuario == null)
+                {
+                    throw new Exception("No existe el usuario");
+                }
+
+                Inscripcion? inscripcionUsuario = GetInscripcionByUsuarioEvento(inscripcion);
+
+                if (inscripcionUsuario == null)
+                {
+                    throw new Exception("El usuario no esta inscripto al evento");
+                }
+
+                // verificar si ya se le tomo asistencia
+                Asistencia? existeAsistencia = GetAsistenciaByUsuarioEvento(inscripcion);
+
+                if (existeAsistencia != null)
+                {
+                    throw new Exception("Ya se le tomo asistencia al usuario");
+                }
+
+                // crear instancia de asistencia
+                Asistencia asistencia = new Asistencia
+                {
+                    HoraEntrada = DateTime.Now,
+                    Usuario = usuario,
+                    Evento = evento
+                };
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.Asistencia.Add(asistencia);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+
+        }
+
     }
 }
