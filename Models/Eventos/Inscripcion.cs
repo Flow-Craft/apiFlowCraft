@@ -6,7 +6,7 @@ namespace ApiNet8.Models.Eventos
     {
         public int Id { get; set; }
         public DateTime FechaInscripcion { get; set; }
-        public DateTime FechaBaja {  get; set; }
+        public DateTime? FechaBaja {  get; set; }
 
         // Relaciones
         public Evento Evento { get; set; }

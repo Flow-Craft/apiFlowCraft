@@ -393,7 +393,7 @@ namespace ApiNet8.Controllers
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        [HttpPost]
+        [HttpGet]
         public IActionResult GetInscripcionesEvento(int id)
         {
             // seteo jwt en header de respuesta
@@ -403,7 +403,32 @@ namespace ApiNet8.Controllers
             try
             {
                List<Inscripcion> inscripciones = _eventoServices.GetInscripcionesEvento(id);
-               return Ok();
+               return Ok(inscripciones);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener inscripciones a evento",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetInscripcionesVigentesEvento(int id)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<Inscripcion> inscripciones = _eventoServices.GetInscripcionesEventoVigentes(id);
+                return Ok(inscripciones);
             }
             catch (Exception e)
             {
@@ -419,7 +444,7 @@ namespace ApiNet8.Controllers
 
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        [HttpPost]
+        [HttpGet]
         public IActionResult GetInscripcionesByUsuario(int id)
         {
             // seteo jwt en header de respuesta
@@ -429,7 +454,33 @@ namespace ApiNet8.Controllers
             try
             {
                 List<Inscripcion> inscripciones = _eventoServices.GetInscripcionesByUsuario(id);
-                return Ok();
+                return Ok(inscripciones);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener inscripciones del usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetInscripcionesActivasByUsuario(int id)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<Inscripcion> inscripciones = _eventoServices.GetInscripcionesByUsuarioActivas(id);
+                return Ok(inscripciones);
             }
             catch (Exception e)
             {

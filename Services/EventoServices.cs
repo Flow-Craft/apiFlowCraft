@@ -374,13 +374,25 @@ namespace ApiNet8.Services
 
         public List<Inscripcion> GetInscripcionesEvento(int id)
         {
-            List<Inscripcion> inscripciones = _db.Inscripcion.Include(u=>u.Usuario).Include(e=>e.Evento).Where(i=>i.Evento.Id == id).ToList();
+            List<Inscripcion> inscripciones = _db.Inscripcion.Include(e=>e.Evento).Where(i=>i.Evento.Id == id).ToList();
+            return inscripciones;
+        }
+
+        public List<Inscripcion> GetInscripcionesEventoVigentes(int id)
+        {
+            List<Inscripcion> inscripciones = _db.Inscripcion.Include(u => u.Usuario).Include(e => e.Evento).Where(i => i.Evento.Id == id && i.FechaBaja == null).ToList();
             return inscripciones;
         }
 
         public List<Inscripcion> GetInscripcionesByUsuario(int id)
         {
             List<Inscripcion> inscripciones = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).Where(u => u.Usuario.Id == id).ToList();
+            return inscripciones;
+        }
+
+        public List<Inscripcion> GetInscripcionesByUsuarioActivas(int id)
+        {
+            List<Inscripcion> inscripciones = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).Where(u => u.Usuario.Id == id && u.FechaBaja == null).ToList();
             return inscripciones;
         }
 
@@ -480,7 +492,7 @@ namespace ApiNet8.Services
                 }
 
                 // busco la inscripcion y la doy de baja
-                Inscripcion? inscripcionEvento = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).FirstOrDefault();
+                Inscripcion? inscripcionEvento = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).Where(f=>f.FechaBaja == null).OrderByDescending(f=>f.FechaInscripcion).FirstOrDefault();
 
                 if (inscripcionEvento == null)
                 {
@@ -498,7 +510,7 @@ namespace ApiNet8.Services
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    _db.Inscripcion.Add(inscripcionEvento);
+                    _db.Inscripcion.Update(inscripcionEvento);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
