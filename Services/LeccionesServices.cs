@@ -28,7 +28,7 @@ namespace ApiNet8.Services
 
         public List<Leccion> GetLecciones()
         {
-            List<Leccion> lecciones = _db.Leccion.Include(d=>d.Disciplina).Include(c=>c.Categoria).Include(lh=>lh.LeccionHistoriales).ThenInclude(le=>le.LeccionEstado).ToList();
+            List<Leccion> lecciones = _db.Leccion.Include(d=>d.Disciplina).Include(c=>c.Categoria).ToList();
             return lecciones;
         }
 
@@ -37,8 +37,8 @@ namespace ApiNet8.Services
             List<Leccion> lecciones = _db.Leccion
             .Include(d => d.Disciplina)
             .Include(c => c.Categoria)
-            .Include(lh => lh.LeccionHistoriales)
-                .ThenInclude(le => le.LeccionEstado)
+            //.Include(lh => lh.LeccionHistoriales)
+            //    .ThenInclude(le => le.LeccionEstado)
             .Where( l => l.LeccionHistoriales.Any(h =>
                 h.FechaFin == null && 
                 (h.LeccionEstado.NombreEstado == Enums.LeccionEstado.Vigente.ToString() || h.LeccionEstado.NombreEstado == Enums.LeccionEstado.ClaseIniciada.ToString()))) 
@@ -140,6 +140,18 @@ namespace ApiNet8.Services
                     }
                 }
 
+                // se finaliza historial anterior
+                LeccionHistorial? ultimoHistorial = leccion.LeccionHistoriales.Where(le => le.FechaFin == null).FirstOrDefault();
+                if (ultimoHistorial != null)
+                {
+                    ultimoHistorial.FechaFin = DateTime.Now;
+                    _db.LeccionHistorial.Update(ultimoHistorial);
+                }
+                else
+                {
+                    leccion.LeccionHistoriales = new List<LeccionHistorial>();
+                }
+
                 // crear historial de leccion y asignarle estado Vigente
                 LeccionHistorial leccionHistorial = new LeccionHistorial
                 {
@@ -148,16 +160,9 @@ namespace ApiNet8.Services
                     UsuarioEditor = currentUser?.Id,
                     LeccionEstado = _leccionEstadoServices.GetLeccionEstadoById(1) // asigno estado vigente
                 };
-                leccion.LeccionHistoriales = new List<LeccionHistorial>();
+                
                 leccion.LeccionHistoriales.Add(leccionHistorial);
-
-                // se finaliza historial anterior
-                LeccionHistorial? ultimoHistorial = leccion.LeccionHistoriales.Where(le => le.FechaFin == null).FirstOrDefault();
-                if (ultimoHistorial != null)
-                {
-                    ultimoHistorial.FechaFin = DateTime.Now;
-                    _db.LeccionHistorial.Update(ultimoHistorial);
-                }
+               
 
                 // asignarle la categoria y disciplina
                 leccion.Categoria = leccionDTO?.IdCategoria != null ? _db.Categoria.Where(u => u.Id == leccionDTO.IdCategoria).FirstOrDefault() : leccion.Categoria;
@@ -194,7 +199,7 @@ namespace ApiNet8.Services
                 
                 // obtener ultimo historial
                 LeccionHistorial? ultimoHistorial = leccion.LeccionHistoriales.Where(f=> f.FechaFin == null).FirstOrDefault();
-                if (ultimoHistorial == null)
+                if (ultimoHistorial != null)
                 {
                     if (ultimoHistorial.LeccionEstado.NombreEstado == ApiNet8.Utils.Enums.LeccionEstado.Eliminada.ToString())
                     {
