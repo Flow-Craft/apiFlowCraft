@@ -6,7 +6,7 @@ namespace ApiNet8.Services.IServices
 {
     public interface IEventoServices
     {
-        List<Evento> GetEventos();
+        List<EventoResponseDTO> GetEventos();
         Evento GetEventoById(int Id);
         void CrearEvento(EventoDTO eventoDTO);
         void ActualizarEvento(EventoDTO eventoDTO);

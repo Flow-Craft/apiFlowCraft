@@ -193,7 +193,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-                List<Evento> eventos = _eventoServices.GetEventos();
+                List<EventoResponseDTO> eventos = _eventoServices.GetEventos();
                 return Ok(eventos);
             }
             catch (Exception e)

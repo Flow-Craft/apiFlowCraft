@@ -37,25 +37,49 @@ namespace ApiNet8.Services
             _tipoEventoServices = tipoEventoServices;
         }
 
-        public List<Evento> GetEventos()
+        public List<EventoResponseDTO> GetEventos()
         {
             List<Evento> eventos = _db.Evento.Include(d=>d.Disciplinas).Include(c=>c.Categoria).Include(te=>te.TipoEvento).Include(i=>i.Instalacion).Include(he=>he.HistorialEventoList).ThenInclude(ee=>ee.EstadoEvento).ToList();
-            return eventos;
+
+            List<EventoResponseDTO> response = new List<EventoResponseDTO>();
+
+            foreach (var item in eventos)
+            {
+                // obtengo ultimo historial
+                HistorialEvento? eventoHistorial = item.HistorialEventoList.Where(f => f.FechaFin == null).OrderByDescending(f => f.FechaInicio).FirstOrDefault();
+
+                bool activo = false;
+
+                if (eventoHistorial != null && (eventoHistorial?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Cancelado.ToString() && eventoHistorial?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Finalizado.ToString()))
+                {
+                    activo = true;
+                }
+
+                EventoResponseDTO eventoResponse = new EventoResponseDTO
+                {
+                    Evento = item,
+                    Activo = activo
+                };
+
+                response.Add(eventoResponse);
+            }
+
+            return response;
         }
 
         public List<Evento> GetEventosActivos()
         {
-            List<Evento> eventos = GetEventos();
+            List<EventoResponseDTO> eventos = GetEventos();
 
             List<Evento> eventosActivos = new List<Evento>();
 
             foreach (var evento in eventos)
             {
                 // obtener ultimo historial
-                HistorialEvento? ultimoHistorial = evento?.HistorialEventoList?.Where(f=>f.FechaFin == null).OrderByDescending(f=>f.FechaInicio).FirstOrDefault();
+                HistorialEvento? ultimoHistorial = evento?.Evento.HistorialEventoList?.Where(f=>f.FechaFin == null).OrderByDescending(f=>f.FechaInicio).FirstOrDefault();
                 if (ultimoHistorial != null && (ultimoHistorial.EstadoEvento.NombreEstado != Enums.EstadoEvento.Cancelado.ToString() && ultimoHistorial.EstadoEvento.NombreEstado != Enums.EstadoEvento.Finalizado.ToString()))
                 {
-                    eventosActivos.Add(evento);
+                    eventosActivos.Add(evento.Evento);
                 }
             }
 
