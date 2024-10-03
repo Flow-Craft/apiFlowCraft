@@ -14,7 +14,7 @@
         public int? Periodo { get; set; }
 
         // Relaciones
-        public TipoAccionPartido TipoAccionPartido { get; set; }    
+        public TipoAccionPartido TipoAccionPartido { get; set; }
         public Partido Partido { get; set; }
 
     }

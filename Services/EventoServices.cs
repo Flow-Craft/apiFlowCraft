@@ -9,7 +9,6 @@ using Microsoft.EntityFrameworkCore;
 using ApiNet8.Models.Lecciones;
 using ApiNet8.Models.Reservas;
 using ApiNet8.Models.Usuarios;
-using static System.Collections.Specialized.BitVector32;
 
 namespace ApiNet8.Services
 {
@@ -24,7 +23,7 @@ namespace ApiNet8.Services
         private readonly IReservasServices _reservasServices;
         private readonly IEventoEstadoService _eventoEstadoService;
         private readonly ITipoEventoServices _tipoEventoServices;
-
+      
         public EventoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ICategoriaServices categoriaServices, IInstalacionServices instalacionServices, IReservasServices reservasServices, IEventoEstadoService eventoEstadoService, ITipoEventoServices tipoEventoServices)
         {
             this._db = db;
@@ -38,25 +37,49 @@ namespace ApiNet8.Services
             _tipoEventoServices = tipoEventoServices;
         }
 
-        public List<Evento> GetEventos()
+        public List<EventoResponseDTO> GetEventos()
         {
             List<Evento> eventos = _db.Evento.Include(d=>d.Disciplinas).Include(c=>c.Categoria).Include(te=>te.TipoEvento).Include(i=>i.Instalacion).Include(he=>he.HistorialEventoList).ThenInclude(ee=>ee.EstadoEvento).ToList();
-            return eventos;
+
+            List<EventoResponseDTO> response = new List<EventoResponseDTO>();
+
+            foreach (var item in eventos)
+            {
+                // obtengo ultimo historial
+                HistorialEvento? eventoHistorial = item.HistorialEventoList.Where(f => f.FechaFin == null).OrderByDescending(f => f.FechaInicio).FirstOrDefault();
+
+                bool activo = false;
+
+                if (eventoHistorial != null && (eventoHistorial?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Cancelado.ToString() && eventoHistorial?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Finalizado.ToString()))
+                {
+                    activo = true;
+                }
+
+                EventoResponseDTO eventoResponse = new EventoResponseDTO
+                {
+                    Evento = item,
+                    Activo = activo
+                };
+
+                response.Add(eventoResponse);
+            }
+
+            return response;
         }
 
         public List<Evento> GetEventosActivos()
         {
-            List<Evento> eventos = GetEventos();
+            List<EventoResponseDTO> eventos = GetEventos();
 
             List<Evento> eventosActivos = new List<Evento>();
 
             foreach (var evento in eventos)
             {
                 // obtener ultimo historial
-                HistorialEvento? ultimoHistorial = evento?.HistorialEventoList?.Where(f=>f.FechaFin == null).OrderByDescending(f=>f.FechaInicio).FirstOrDefault();
+                HistorialEvento? ultimoHistorial = evento?.Evento.HistorialEventoList?.Where(f=>f.FechaFin == null).OrderByDescending(f=>f.FechaInicio).FirstOrDefault();
                 if (ultimoHistorial != null && (ultimoHistorial.EstadoEvento.NombreEstado != Enums.EstadoEvento.Cancelado.ToString() && ultimoHistorial.EstadoEvento.NombreEstado != Enums.EstadoEvento.Finalizado.ToString()))
                 {
-                    eventosActivos.Add(evento);
+                    eventosActivos.Add(evento.Evento);
                 }
             }
 
@@ -372,5 +395,241 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
+        public List<Inscripcion> GetInscripcionesEvento(int id)
+        {
+            List<Inscripcion> inscripciones = _db.Inscripcion.Include(e=>e.Evento).Where(i=>i.Evento.Id == id).ToList();
+            return inscripciones;
+        }
+
+        public List<Inscripcion> GetInscripcionesEventoVigentes(int id)
+        {
+            List<Inscripcion> inscripciones = _db.Inscripcion.Include(u => u.Usuario).Include(e => e.Evento).Where(i => i.Evento.Id == id && i.FechaBaja == null).ToList();
+            return inscripciones;
+        }
+
+        public List<Inscripcion> GetInscripcionesByUsuario(int id)
+        {
+            List<Inscripcion> inscripciones = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).Where(u => u.Usuario.Id == id).ToList();
+            return inscripciones;
+        }
+
+        public List<Inscripcion> GetInscripcionesByUsuarioActivas(int id)
+        {
+            List<Inscripcion> inscripciones = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).Where(u => u.Usuario.Id == id && u.FechaBaja == null).ToList();
+            return inscripciones;
+        }
+
+        public void InscribirseAEvento(InscripcionEventoDTO inscripcion)
+        {
+            try
+            {
+                // verificar si existe evento
+                Evento evento = GetEventoById(inscripcion.IdEvento);
+                if (evento == null)
+                {
+                    throw new Exception("No existe el evento");
+                }
+
+                // verificar si hay cupo disponible
+                if (evento.EventoLleno)
+                {
+                    throw new Exception("El evento esta completo.");
+                }
+
+                // verificar estado evento
+                if (evento?.HistorialEventoList?.Where(f => f.FechaFin == null)?.OrderByDescending(f => f.FechaInicio)?.FirstOrDefault()?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Creado.ToString())
+                {
+                    throw new Exception("Las inscripciones al evento estan cerradas: el evento esta en curso o ha finalizado.");
+                }
+
+                // verificar si ya esta inscripto
+                List<Inscripcion> inscripciones = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).Where(u => u.Usuario.Id == inscripcion.IdUsuario && u.Evento.Id == inscripcion.IdEvento && u.FechaBaja == null).ToList();
+                if (inscripciones.Count() > 0)
+                {
+                    throw new Exception("El usuario ya esta inscripto para este evento.");
+                }
+
+                // verificar estado del usuario y perfil
+                Usuario? usuario = _db.Usuario
+                        .Include(u => u.UsuarioHistoriales).ThenInclude(a => a.UsuarioEstado)
+                        .Where(u => u.Id == inscripcion.IdUsuario)
+                        .FirstOrDefault();
+
+                if (usuario == null)
+                {
+                    throw new Exception("No existe el usuario que se quiere inscribir");
+                }
+
+                if (usuario?.UsuarioHistoriales?.Where(h => h.FechaFin == null)?.FirstOrDefault()?.UsuarioEstado.NombreEstado != Enums.EstadoUsuario.Activo.ToString())
+                {
+                    throw new Exception("El usuario no esta activo");
+                }
+
+                List<PerfilUsuario> perfilesUsuario = _db.PerfilUsuario.Include(u => u.Usuario).Include(p => p.Perfil).Where(pu => pu.Usuario.Id == inscripcion.IdUsuario).ToList();
+                bool tienePerfilSocio = perfilesUsuario.Any(pu => pu.Perfil.NombrePerfil == Enums.Perfiles.Socio.ToString());
+
+                if (!tienePerfilSocio)
+                {
+                    throw new Exception("No puede inscribirse porque no tiene perfil de socio");
+                }
+
+                // crear instancia de inscripcion
+                Inscripcion inscripcionEvento = new Inscripcion
+                {
+                    Evento = evento,
+                    Usuario = usuario,
+                    FechaInscripcion = DateTime.Now,
+                };
+
+                // verificar si el evento esta lleno
+                int cantInscripciones = GetInscripcionesEvento(inscripcion.IdEvento).Count();
+                if (evento.CupoMaximo == cantInscripciones + 1)
+                {
+                    evento.EventoLleno = true;
+                    _db.Evento.Update(evento);
+                }
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.Inscripcion.Add(inscripcionEvento);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        public void DesinscribirseAEvento(InscripcionEventoDTO inscripcion)
+        {
+            try
+            {
+                // verificar estado evento
+                Evento evento = GetEventoById(inscripcion.IdEvento);
+
+                if (evento?.HistorialEventoList?.Where(f => f.FechaFin == null)?.OrderByDescending(f => f.FechaInicio)?.FirstOrDefault()?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Creado.ToString())
+                {
+                    throw new Exception("Las inscripciones al evento estan cerradas: el evento esta en curso o ha finalizado.");
+                }
+
+                // busco la inscripcion y la doy de baja
+                Inscripcion? inscripcionEvento = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).Where(f=>f.FechaBaja == null).OrderByDescending(f=>f.FechaInscripcion).FirstOrDefault();
+
+                if (inscripcionEvento == null)
+                {
+                    throw new Exception("No esta inscripto a este evento");
+                }
+
+                inscripcionEvento.FechaBaja = DateTime.Now;
+
+                // verificar si el evento estaba lleno
+                if (evento.EventoLleno)
+                {
+                    evento.EventoLleno = false;
+                    _db.Evento.Update(evento);
+                }
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.Inscripcion.Update(inscripcionEvento);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+           
+
+        }
+
+        public Inscripcion? GetInscripcionByUsuarioEvento(InscripcionEventoDTO inscripcion)
+        {
+            try
+            {
+                Inscripcion ins = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).Where(i => i.Usuario.Id == inscripcion.IdUsuario && i.Evento.Id == inscripcion.IdEvento && i.FechaBaja == null).OrderByDescending(i => i.FechaInscripcion).FirstOrDefault();
+
+                return ins;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+          
+        }
+
+        public Asistencia? GetAsistenciaByUsuarioEvento(InscripcionEventoDTO inscripcion)
+        {
+            try
+            {
+                Asistencia asistencia = _db.Asistencia.Include(U => U.Usuario).Include(e => e.Evento).Where(a => a.Usuario.Id == inscripcion.IdUsuario && a.Evento.Id == inscripcion.IdEvento).FirstOrDefault();
+
+                return asistencia;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+
+        }
+
+        public void TomarAsistencia(InscripcionEventoDTO inscripcion) 
+        {
+            try
+            {
+                // verificar si esta inscripto al evento
+                Evento evento = GetEventoById(inscripcion.IdEvento);
+
+                Usuario? usuario = _db.Usuario
+                            .Where(u => u.Id == inscripcion.IdUsuario)
+                            .FirstOrDefault();
+
+                if (usuario == null)
+                {
+                    throw new Exception("No existe el usuario");
+                }
+
+                Inscripcion? inscripcionUsuario = GetInscripcionByUsuarioEvento(inscripcion);
+
+                if (inscripcionUsuario == null)
+                {
+                    throw new Exception("El usuario no esta inscripto al evento");
+                }
+
+                // verificar si ya se le tomo asistencia
+                Asistencia? existeAsistencia = GetAsistenciaByUsuarioEvento(inscripcion);
+
+                if (existeAsistencia != null)
+                {
+                    throw new Exception("Ya se le tomo asistencia al usuario");
+                }
+
+                // crear instancia de asistencia
+                Asistencia asistencia = new Asistencia
+                {
+                    HoraEntrada = DateTime.Now,
+                    Usuario = usuario,
+                    Evento = evento
+                };
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.Asistencia.Add(asistencia);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+
+        }
+
     }
 }
