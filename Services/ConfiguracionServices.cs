@@ -33,15 +33,6 @@ namespace ApiNet8.Services
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
                 Perfil per = GetPerfilById(perfil.Id);
 
-                if (per.NombrePerfil != perfil.NombrePerfil)
-                {
-                    var existePerfil = ExistePerfil(perfil.NombrePerfil);
-                    if (existePerfil)
-                    {
-                        throw new Exception("Ya existe un perfil con ese nombre");
-                    }
-                }
-                
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     per.NombrePerfil = perfil.NombrePerfil ?? per.NombrePerfil;
@@ -53,7 +44,7 @@ namespace ApiNet8.Services
                     transaction.Commit();
                 }
 
-                List<Permiso> permisosViejos = GetPermisosByPerfil(per);
+                List<Permiso> permisosViejos = GetPermisosByPerfil(perfil);
 
                 // Comparar y actualizar permisos
                 foreach (var nuevoPermiso in permisosNuevos)
@@ -77,15 +68,15 @@ namespace ApiNet8.Services
                         _db.Add(perfilPermiso);
                     }
                 }
-                if (permisosViejos != null) { 
+                if (permisosViejos != null)
+                {
                     foreach (var permisoActual in permisosViejos)
                     {
-                        //var permisoEnNuevaLista = permisosNuevos.FirstOrDefault(p => p.Id == permisoActual.Id);
                         bool permisoEnNuevaLista = permisosNuevos.Contains(permisoActual.Id);
                         if (!permisoEnNuevaLista)
                         {
                             // Permiso ya no está en la nueva lista, establecer FechaBaja
-                            PerfilPermiso perfilPermiso = _db.PerfilPermiso.FirstOrDefault(pp => pp.Permiso == permisoActual && pp.Perfil == per && pp.FechaBaja == null);
+                            PerfilPermiso perfilPermiso = _db.PerfilPermiso.Include(pp => pp.Permiso).Include(pp => pp.Perfil).FirstOrDefault(pp => pp.Permiso.Id == permisoActual.Id && pp.Perfil.Id == per.Id && pp.FechaBaja == null);
                             if (perfilPermiso != null)
                             {
                                 perfilPermiso.FechaBaja = DateTime.Now;
@@ -107,42 +98,33 @@ namespace ApiNet8.Services
             }
         }
 
-        public Perfil CrearPerfil(PerfilDTO perfil, List<int> permisos) 
+        public Perfil CrearPerfil(PerfilDTO perfil, List<int> permisos)
         {
             try
             {
-                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser"); 
-
-                var existePerfil = ExistePerfil(perfil.NombrePerfil);
-                if (existePerfil)
-                {
-                    throw new Exception("Ya existe un perfil con ese nombre");
-                }
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
                 Perfil per = _mapper.Map<Perfil>(perfil);
+                per.UsuarioEditor = currentUser.Id;
                 per.FechaCreacion = DateTime.Now;
                 _db.Add(per);
-                _db.SaveChanges();
+                //_db.SaveChanges();
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    Perfil perfilNuevo = _db.Perfil.Where(p => p.NombrePerfil == per.NombrePerfil).FirstOrDefault();
                     foreach (int perm in permisos)
                     {
-                        Permiso permisoAsoc = _db.Permiso.Where(p => p.Id == perm).FirstOrDefault();
+                        Permiso? permisoAsoc = _db.Permiso.Where(p => p.Id == perm).FirstOrDefault();
                         PerfilPermiso perfilPermiso = new PerfilPermiso();
-                        perfilPermiso.Perfil = perfilNuevo;
+                        perfilPermiso.Perfil = per;
                         perfilPermiso.Permiso = permisoAsoc;
                         perfilPermiso.FechaCreacion = DateTime.Now;
                         perfilPermiso.UsuarioEditor = currentUser.Id;
                         _db.Add(perfilPermiso);
-                        _db.SaveChanges();
-
                     }
+                    _db.SaveChanges();
                     transaction.Commit();
                 }
-
-                
 
                 return per;
             }
@@ -435,12 +417,44 @@ namespace ApiNet8.Services
             return true;
         }
 
+        public PerfilResponseDTO GetPerfilYPermisosById(int Id)
+        {
+            try
+            {
+                // obtengo perfil
+                Perfil perfil = _db.Perfil.Find(Id);
+
+                // busco permisos del perfil
+                PerfilDTO perfilDTO = new PerfilDTO { Id = perfil.Id };
+                List<Permiso> permisos = GetPermisosByPerfil(perfilDTO);
+
+                PerfilResponseDTO responseDTO = new PerfilResponseDTO { Perfil = perfil, Permisos = permisos};
+
+                return responseDTO;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
         public Perfil GetPerfilById(int Id)
         {
             try
             {
-                // en el filter action ya verificamos que el id es valido y que el perfil existe, la unica validacion que hacemos aca es por si rompe el llamado a la base
-                Perfil perfil = _db.Perfil.Find(Id);
+                return _db.Perfil.Find(Id);  
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
+        public Perfil GetPerfilByNombre(string nombre)
+        {
+            try
+            {
+                Perfil perfil = _db.Perfil.Where(p=>p.NombrePerfil == nombre).FirstOrDefault();
 
                 return perfil;
             }
@@ -450,11 +464,25 @@ namespace ApiNet8.Services
             }
         }
 
-        public List<Perfil> GetPerfiles()
+        public List<PerfilResponseDTO> GetPerfiles()
         {
             try
             {
-                return _db.Perfil.Where(p => p.FechaBaja == null).ToList();// podriamos devolverlos ordenados por id
+                List<Perfil> perfiles = _db.Perfil.Where(p => p.FechaBaja == null).ToList();
+
+                List<PerfilResponseDTO> responseDTO = new List<PerfilResponseDTO>();
+
+                foreach (var perfil in perfiles)
+                {
+                    // busco los permisos de cada perfil
+                    PerfilDTO perfilDTO = new PerfilDTO {Id = perfil.Id };
+                    List<Permiso> permisos = GetPermisosByPerfil(perfilDTO);
+
+                    PerfilResponseDTO perfilResponseDTO = new PerfilResponseDTO { Perfil = perfil, Permisos = permisos };
+                    responseDTO.Add(perfilResponseDTO);
+                }
+
+                return responseDTO;
             }
             catch (Exception e)
             {
@@ -476,7 +504,19 @@ namespace ApiNet8.Services
 
         }
 
-        public List<Permiso> GetPermisosByPerfil(Perfil perfil)
+        public PerfilUsuario GetPerfilUsuario (Usuario usuario)
+        {
+            try
+            {
+                return _db.PerfilUsuario.Include(p => p.Perfil).Include(u => u.Usuario).Where(pu => pu.FechaBaja == null && pu.Usuario.Id == usuario.Id).FirstOrDefault();
+            }
+            catch (Exception e)
+            {
+                throw new Exception (e.Message);
+            }
+        }
+
+        public List<Permiso> GetPermisosByPerfil(PerfilDTO perfil)
         {
             try
             {
@@ -497,8 +537,6 @@ namespace ApiNet8.Services
             {
                 throw new Exception(e.Message, e);
             }
-
-            throw new NotImplementedException();
         }
 
         public bool ExisteTYC(TerminosYCondicionesDTO tyc)
@@ -541,13 +579,15 @@ namespace ApiNet8.Services
                     if (tycHistorial != null)
                     {
                         tycHistorial.FechaBaja = DateTime.Now;
+                        tycHistorial.FechaFinVigencia = DateTime.Now;
                         _db.Update(tycHistorial);
                     }
 
                     HistorialTerminosYCondiciones historialTerminosYCondiciones = new HistorialTerminosYCondiciones
                     {
                         FechaCreacion = DateTime.Now,
-                        UsuarioEditor = currentUser != null ? currentUser.Id : 0
+                        UsuarioEditor = currentUser != null ? currentUser.Id : 0,
+                        FechaInicioVigencia = DateTime.Now,
                     };
 
                     terminosYCondiciones.HistorialTerminosYCondiciones = historialTerminosYCondiciones;

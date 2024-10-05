@@ -8,6 +8,7 @@ namespace ApiNet8.Models.Eventos
         public int Id { get; set; }
         public string Titulo { get; set; }
         public DateTime? FechaInicio { get; set; }
+        public DateTime? FechaFinEvento { get; set; }
         public byte[]? Banner { get; set; }
         public string? ImageType { get; set; } // Para almacenar el tipo de la imagen (image/jpeg, image/png)
         public int CupoMaximo { get; set; }

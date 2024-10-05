@@ -210,7 +210,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 1,
                             DescripcionEstado = "Evento creado",
-                            FechaCreacion = new DateTime(2024, 8, 17, 11, 25, 59, 711, DateTimeKind.Local).AddTicks(5467),
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(2928),
                             NombreEstado = "Creado",
                             UsuarioEditor = 1
                         },
@@ -218,7 +218,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 2,
                             DescripcionEstado = "Evento cancelado",
-                            FechaCreacion = new DateTime(2024, 8, 17, 11, 25, 59, 711, DateTimeKind.Local).AddTicks(5469),
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(2932),
                             NombreEstado = "Cancelado",
                             UsuarioEditor = 1
                         },
@@ -226,7 +226,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 3,
                             DescripcionEstado = "Evento finalizado",
-                            FechaCreacion = new DateTime(2024, 8, 17, 11, 25, 59, 711, DateTimeKind.Local).AddTicks(5471),
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(2934),
                             NombreEstado = "Finalizado",
                             UsuarioEditor = 1
                         },
@@ -234,7 +234,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 4,
                             DescripcionEstado = "Evento iniciado",
-                            FechaCreacion = new DateTime(2024, 8, 17, 11, 25, 59, 711, DateTimeKind.Local).AddTicks(5472),
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(2936),
                             NombreEstado = "Iniciado",
                             UsuarioEditor = 1
                         },
@@ -242,7 +242,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 5,
                             DescripcionEstado = "Evento suspendido",
-                            FechaCreacion = new DateTime(2024, 8, 17, 11, 25, 59, 711, DateTimeKind.Local).AddTicks(5474),
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(2938),
                             NombreEstado = "Suspendido",
                             UsuarioEditor = 1
                         },
@@ -250,7 +250,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 6,
                             DescripcionEstado = "Evento en entretiempo",
-                            FechaCreacion = new DateTime(2024, 8, 17, 11, 25, 59, 711, DateTimeKind.Local).AddTicks(5475),
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(2940),
                             NombreEstado = "Entretiempo",
                             UsuarioEditor = 1
                         });
@@ -283,6 +283,9 @@ namespace ApiNet8.Migrations
 
                     b.Property<bool>("EventoLleno")
                         .HasColumnType("bit");
+
+                    b.Property<DateTime?>("FechaFinEvento")
+                        .HasColumnType("datetime2");
 
                     b.Property<DateTime?>("FechaInicio")
                         .HasColumnType("datetime2");
@@ -364,7 +367,7 @@ namespace ApiNet8.Migrations
                     b.Property<int>("EventoId")
                         .HasColumnType("int");
 
-                    b.Property<DateTime>("FechaBaja")
+                    b.Property<DateTime?>("FechaBaja")
                         .HasColumnType("datetime2");
 
                     b.Property<DateTime>("FechaInscripcion")
@@ -608,16 +611,11 @@ namespace ApiNet8.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("CategoriaId");
 
                     b.HasIndex("DisciplinaId");
-
-                    b.HasIndex("UsuarioId");
 
                     b.ToTable("Leccion");
                 });
@@ -820,6 +818,9 @@ namespace ApiNet8.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<bool>("EquipoLocal")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("FechaBaja")
                         .HasColumnType("datetime2");
 
@@ -836,6 +837,9 @@ namespace ApiNet8.Migrations
                         .HasColumnType("int");
 
                     b.Property<int>("PartidoId")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("Periodo")
                         .HasColumnType("int");
 
                     b.Property<int>("TipoAccionPartidoId")
@@ -933,7 +937,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 1,
                             DescripcionEstado = "Equipo activo",
-                            FechaCreacion = new DateTime(2024, 8, 17, 11, 25, 59, 711, DateTimeKind.Local).AddTicks(5501),
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(2983),
                             NombreEstado = "Activo",
                             UsuarioEditor = 1
                         },
@@ -941,7 +945,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 2,
                             DescripcionEstado = "Equipo inactivo",
-                            FechaCreacion = new DateTime(2024, 8, 17, 11, 25, 59, 711, DateTimeKind.Local).AddTicks(5503),
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(2986),
                             NombreEstado = "Inactivo",
                             UsuarioEditor = 1
                         },
@@ -949,7 +953,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 3,
                             DescripcionEstado = "Equipo suspendido",
-                            FechaCreacion = new DateTime(2024, 8, 17, 11, 25, 59, 711, DateTimeKind.Local).AddTicks(5505),
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(2988),
                             NombreEstado = "Suspendido",
                             UsuarioEditor = 1
                         });
@@ -1180,6 +1184,15 @@ namespace ApiNet8.Migrations
                     b.Property<int>("DisciplinaId")
                         .HasColumnType("int");
 
+                    b.Property<DateTime?>("FechaBaja")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaCreacion")
+                        .HasColumnType("datetime2");
+
+                    b.Property<DateTime?>("FechaModificacion")
+                        .HasColumnType("datetime2");
+
                     b.Property<bool>("ModificaTarjetasAdvertencia")
                         .HasColumnType("bit");
 
@@ -1189,6 +1202,9 @@ namespace ApiNet8.Migrations
                     b.Property<string>("NombreTipoAccion")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("UsuarioEditor")
+                        .HasColumnType("int");
 
                     b.Property<bool>("secuencial")
                         .HasColumnType("bit");
@@ -1615,7 +1631,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 1,
                             DescripcionEstado = "Solicitud pendiente",
-                            FechaCreacion = new DateTime(2024, 8, 17, 11, 25, 59, 711, DateTimeKind.Local).AddTicks(5531),
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3029),
                             NombreEstado = "Pendiente",
                             UsuarioEditor = 1
                         },
@@ -1623,7 +1639,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 2,
                             DescripcionEstado = "Solicitud aprobada",
-                            FechaCreacion = new DateTime(2024, 8, 17, 11, 25, 59, 711, DateTimeKind.Local).AddTicks(5533),
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3032),
                             NombreEstado = "Aprobada",
                             UsuarioEditor = 1
                         },
@@ -1631,7 +1647,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 3,
                             DescripcionEstado = "Solicitud rechazada",
-                            FechaCreacion = new DateTime(2024, 8, 17, 11, 25, 59, 711, DateTimeKind.Local).AddTicks(5535),
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3034),
                             NombreEstado = "Rechazada",
                             UsuarioEditor = 1
                         });
@@ -1703,17 +1719,70 @@ namespace ApiNet8.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<int?>("PerfilUsuarioId")
-                        .HasColumnType("int");
-
                     b.Property<int>("UsuarioEditor")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
 
-                    b.HasIndex("PerfilUsuarioId");
-
                     b.ToTable("Perfil");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            DescripcionPerfil = "Administrador general del sistema",
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3072),
+                            NombrePerfil = "Admin",
+                            UsuarioEditor = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            DescripcionPerfil = "Administrativo perteneciente al club",
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3076),
+                            NombrePerfil = "Administrativo",
+                            UsuarioEditor = 1
+                        },
+                        new
+                        {
+                            Id = 3,
+                            DescripcionPerfil = "Usuario publico",
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3078),
+                            NombrePerfil = "Simpatizante",
+                            UsuarioEditor = 1
+                        },
+                        new
+                        {
+                            Id = 4,
+                            DescripcionPerfil = "Usuario privado socio del club",
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3080),
+                            NombrePerfil = "Socio",
+                            UsuarioEditor = 1
+                        },
+                        new
+                        {
+                            Id = 5,
+                            DescripcionPerfil = "Usuario privado profesor perteneciente al club",
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3083),
+                            NombrePerfil = "Profesor",
+                            UsuarioEditor = 1
+                        },
+                        new
+                        {
+                            Id = 6,
+                            DescripcionPerfil = "Usuario privado arbitro oficial para partidos",
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3095),
+                            NombrePerfil = "Arbitro",
+                            UsuarioEditor = 1
+                        },
+                        new
+                        {
+                            Id = 7,
+                            DescripcionPerfil = "Usuario privado ayudante de profesor en partidos",
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3097),
+                            NombrePerfil = "Planillero",
+                            UsuarioEditor = 1
+                        });
                 });
 
             modelBuilder.Entity("ApiNet8.Models.Usuarios.PerfilPermiso", b =>
@@ -1768,10 +1837,15 @@ namespace ApiNet8.Migrations
                     b.Property<DateTime?>("FechaModificacion")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("UsuarioId")
+                    b.Property<int>("PerfilId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("UsuarioId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("PerfilId");
 
                     b.HasIndex("UsuarioId");
 
@@ -1810,6 +1884,328 @@ namespace ApiNet8.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Permiso");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3191),
+                            Funcionalidades = "ABM usuario",
+                            Modulo = "Usuario",
+                            NombrePermiso = "Configuracion del sistema"
+                        },
+                        new
+                        {
+                            Id = 2,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3199),
+                            Funcionalidades = "ABM solicitud",
+                            Modulo = "Solicitudes",
+                            NombrePermiso = "Configuracion del sistema"
+                        },
+                        new
+                        {
+                            Id = 3,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3201),
+                            Funcionalidades = "ABM perfil",
+                            Modulo = "Perfiles",
+                            NombrePermiso = "Configuracion del sistema"
+                        },
+                        new
+                        {
+                            Id = 4,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3203),
+                            Funcionalidades = "ABM configuración del sistema",
+                            Modulo = "Configuraciones generales",
+                            NombrePermiso = "Configuracion del sistema"
+                        },
+                        new
+                        {
+                            Id = 5,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3205),
+                            Funcionalidades = "ABM disciplina",
+                            Modulo = "Disciplina",
+                            NombrePermiso = "Configuracion del sistema"
+                        },
+                        new
+                        {
+                            Id = 6,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3207),
+                            Funcionalidades = "ABM categoria",
+                            Modulo = "Categoria",
+                            NombrePermiso = "Configuracion del sistema"
+                        },
+                        new
+                        {
+                            Id = 7,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3209),
+                            Funcionalidades = "Ver disciplinas",
+                            Modulo = "Disciplina",
+                            NombrePermiso = "Disciplina"
+                        },
+                        new
+                        {
+                            Id = 8,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3222),
+                            Funcionalidades = "Ver instalaciones",
+                            Modulo = "Usuario",
+                            NombrePermiso = "Instalaciones"
+                        },
+                        new
+                        {
+                            Id = 9,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3231),
+                            Funcionalidades = "ABM instalación",
+                            Modulo = "Usuario",
+                            NombrePermiso = "Instalaciones"
+                        },
+                        new
+                        {
+                            Id = 10,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3233),
+                            Funcionalidades = "Ver / Compartir noticias",
+                            Modulo = "Noticias",
+                            NombrePermiso = "Noticias"
+                        },
+                        new
+                        {
+                            Id = 11,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3235),
+                            Funcionalidades = "ABM noticia",
+                            Modulo = "Noticias",
+                            NombrePermiso = "Noticias"
+                        },
+                        new
+                        {
+                            Id = 12,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3237),
+                            Funcionalidades = "ABM notificación",
+                            Modulo = "Notificaciones",
+                            NombrePermiso = "Noticias"
+                        },
+                        new
+                        {
+                            Id = 13,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3239),
+                            Funcionalidades = "Ver partidos",
+                            Modulo = "Partidos",
+                            NombrePermiso = "Partidos"
+                        },
+                        new
+                        {
+                            Id = 14,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3241),
+                            Funcionalidades = "Gestionar partido",
+                            Modulo = "Partidos",
+                            NombrePermiso = "Partidos"
+                        },
+                        new
+                        {
+                            Id = 15,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3243),
+                            Funcionalidades = "Gestionar estadisticas partido",
+                            Modulo = "Partidos",
+                            NombrePermiso = "Partidos"
+                        },
+                        new
+                        {
+                            Id = 16,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3245),
+                            Funcionalidades = "Ver mi perfil",
+                            Modulo = "Mi perfil",
+                            NombrePermiso = "Mi perfil"
+                        },
+                        new
+                        {
+                            Id = 17,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3247),
+                            Funcionalidades = "Generar QR",
+                            Modulo = "Mi perfil",
+                            NombrePermiso = "Mi perfil"
+                        },
+                        new
+                        {
+                            Id = 18,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3249),
+                            Funcionalidades = "ABM reserva",
+                            Modulo = "Reservas",
+                            NombrePermiso = "Reservas"
+                        },
+                        new
+                        {
+                            Id = 19,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3250),
+                            Funcionalidades = "Ver lección",
+                            Modulo = "Lecciones",
+                            NombrePermiso = "Lecciones"
+                        },
+                        new
+                        {
+                            Id = 20,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3253),
+                            Funcionalidades = "Gestionar lección",
+                            Modulo = "Lecciones",
+                            NombrePermiso = "Lecciones"
+                        },
+                        new
+                        {
+                            Id = 21,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3255),
+                            Funcionalidades = "Gestionar evento",
+                            Modulo = "Eventos",
+                            NombrePermiso = "Eventos"
+                        },
+                        new
+                        {
+                            Id = 22,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3257),
+                            Funcionalidades = "Asistencia evento",
+                            Modulo = "Eventos",
+                            NombrePermiso = "Eventos"
+                        },
+                        new
+                        {
+                            Id = 23,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3261),
+                            Funcionalidades = "Ver estadisticas de lección y partidos",
+                            Modulo = "Estadisticas",
+                            NombrePermiso = "Estadisticas"
+                        },
+                        new
+                        {
+                            Id = 24,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3263),
+                            Funcionalidades = "ABM torneo",
+                            Modulo = "Torneos",
+                            NombrePermiso = "Torneos"
+                        },
+                        new
+                        {
+                            Id = 25,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3265),
+                            Funcionalidades = "Inscripción torneo",
+                            Modulo = "Torneos",
+                            NombrePermiso = "Torneos"
+                        },
+                        new
+                        {
+                            Id = 26,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3267),
+                            Funcionalidades = "Gestionar equipo",
+                            Modulo = "Equipos",
+                            NombrePermiso = "Torneos"
+                        },
+                        new
+                        {
+                            Id = 27,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3269),
+                            Funcionalidades = "ABM estado equipo",
+                            Modulo = "Equipo",
+                            NombrePermiso = "Estados"
+                        },
+                        new
+                        {
+                            Id = 28,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3270),
+                            Funcionalidades = "ABM estado evento",
+                            Modulo = "Evento",
+                            NombrePermiso = "Estados"
+                        },
+                        new
+                        {
+                            Id = 29,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3272),
+                            Funcionalidades = "ABM estado usuario",
+                            Modulo = "Usuario",
+                            NombrePermiso = "Estados"
+                        },
+                        new
+                        {
+                            Id = 30,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3275),
+                            Funcionalidades = "ABM estado lección",
+                            Modulo = "Lección",
+                            NombrePermiso = "Estados"
+                        },
+                        new
+                        {
+                            Id = 31,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3282),
+                            Funcionalidades = "ABM estado instalación",
+                            Modulo = "Instalación",
+                            NombrePermiso = "Estados"
+                        },
+                        new
+                        {
+                            Id = 32,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3284),
+                            Funcionalidades = "ABM estado torneo",
+                            Modulo = "Torneo",
+                            NombrePermiso = "Estados"
+                        },
+                        new
+                        {
+                            Id = 33,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3286),
+                            Funcionalidades = "ABM tipo evento",
+                            Modulo = "Evento",
+                            NombrePermiso = "Tipos"
+                        },
+                        new
+                        {
+                            Id = 34,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3288),
+                            Funcionalidades = "ABM tipo accion",
+                            Modulo = "Accion",
+                            NombrePermiso = "Tipos"
+                        },
+                        new
+                        {
+                            Id = 35,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3290),
+                            Funcionalidades = "Modificar backup",
+                            Modulo = "Backup",
+                            NombrePermiso = "Backup"
+                        },
+                        new
+                        {
+                            Id = 36,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3292),
+                            Funcionalidades = "Visualizar Backup",
+                            Modulo = "Backup",
+                            NombrePermiso = "Backup"
+                        },
+                        new
+                        {
+                            Id = 37,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3294),
+                            Funcionalidades = "Descargar PDF/Excel",
+                            Modulo = "Reservas",
+                            NombrePermiso = "Reportes"
+                        },
+                        new
+                        {
+                            Id = 38,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3295),
+                            Funcionalidades = "Descargar PDF/Excel",
+                            Modulo = "Asistencia lecciones",
+                            NombrePermiso = "Reportes"
+                        },
+                        new
+                        {
+                            Id = 39,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3297),
+                            Funcionalidades = "Descargar PDF/Excel",
+                            Modulo = "Asistencias eventos",
+                            NombrePermiso = "Reportes"
+                        },
+                        new
+                        {
+                            Id = 40,
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(3299),
+                            Funcionalidades = "Descargar PDF/Excel",
+                            Modulo = "Estadisticas",
+                            NombrePermiso = "Reportes"
+                        });
                 });
 
             modelBuilder.Entity("ApiNet8.Models.Usuarios.SolicitudAsociacion", b =>
@@ -1991,7 +2387,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 1,
                             DescripcionEstado = "Usuario activo en el club",
-                            FechaCreacion = new DateTime(2024, 8, 17, 11, 25, 59, 711, DateTimeKind.Local).AddTicks(5180),
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(1484),
                             NombreEstado = "Activo",
                             UsuarioEditor = 1
                         },
@@ -1999,7 +2395,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 2,
                             DescripcionEstado = "Usuario bloqueado",
-                            FechaCreacion = new DateTime(2024, 8, 17, 11, 25, 59, 711, DateTimeKind.Local).AddTicks(5193),
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(1499),
                             NombreEstado = "Bloqueado",
                             UsuarioEditor = 1
                         },
@@ -2007,7 +2403,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 3,
                             DescripcionEstado = "Usuario desactivado",
-                            FechaCreacion = new DateTime(2024, 8, 17, 11, 25, 59, 711, DateTimeKind.Local).AddTicks(5195),
+                            FechaCreacion = new DateTime(2024, 10, 3, 18, 1, 53, 7, DateTimeKind.Local).AddTicks(1501),
                             NombreEstado = "Desactivado",
                             UsuarioEditor = 1
                         });
@@ -2052,6 +2448,9 @@ namespace ApiNet8.Migrations
                 {
                     b.HasBaseType("ApiNet8.Models.Eventos.Evento");
 
+                    b.Property<DateTime?>("FechaBaja")
+                        .HasColumnType("datetime2");
+
                     b.Property<DateTime?>("FechaFin")
                         .HasColumnType("datetime2");
 
@@ -2067,8 +2466,11 @@ namespace ApiNet8.Migrations
                     b.Property<int?>("Periodo")
                         .HasColumnType("int");
 
-                    b.Property<string>("Resultado")
-                        .HasColumnType("nvarchar(max)");
+                    b.Property<int?>("ResultadoLocal")
+                        .HasColumnType("int");
+
+                    b.Property<int?>("ResultadoVisitante")
+                        .HasColumnType("int");
 
                     b.Property<string>("Set")
                         .HasColumnType("nvarchar(max)");
@@ -2234,17 +2636,9 @@ namespace ApiNet8.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ApiNet8.Models.Usuarios.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Categoria");
 
                     b.Navigation("Disciplina");
-
-                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("ApiNet8.Models.Lecciones.LeccionHistorial", b =>
@@ -2430,7 +2824,7 @@ namespace ApiNet8.Migrations
                         .IsRequired();
 
                     b.HasOne("ApiNet8.Models.Reservas.Instalacion", null)
-                        .WithMany("InstalacionHistoriales")
+                        .WithMany("instalacionHistoriales")
                         .HasForeignKey("InstalacionId");
 
                     b.Navigation("InstalacionEstado");
@@ -2537,13 +2931,6 @@ namespace ApiNet8.Migrations
                     b.Navigation("DuenioGrupoFamiliar");
                 });
 
-            modelBuilder.Entity("ApiNet8.Models.Usuarios.Perfil", b =>
-                {
-                    b.HasOne("ApiNet8.Models.Usuarios.PerfilUsuario", null)
-                        .WithMany("Perfiles")
-                        .HasForeignKey("PerfilUsuarioId");
-                });
-
             modelBuilder.Entity("ApiNet8.Models.Usuarios.PerfilPermiso", b =>
                 {
                     b.HasOne("ApiNet8.Models.Usuarios.Perfil", "Perfil")
@@ -2565,9 +2952,21 @@ namespace ApiNet8.Migrations
 
             modelBuilder.Entity("ApiNet8.Models.Usuarios.PerfilUsuario", b =>
                 {
-                    b.HasOne("ApiNet8.Models.Usuarios.Usuario", null)
-                        .WithMany("PerfilesUsuario")
-                        .HasForeignKey("UsuarioId");
+                    b.HasOne("ApiNet8.Models.Usuarios.Perfil", "Perfil")
+                        .WithMany()
+                        .HasForeignKey("PerfilId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("ApiNet8.Models.Usuarios.Usuario", "Usuario")
+                        .WithMany()
+                        .HasForeignKey("UsuarioId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Perfil");
+
+                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("ApiNet8.Models.Usuarios.SolicitudAsociacion", b =>
@@ -2678,7 +3077,7 @@ namespace ApiNet8.Migrations
 
             modelBuilder.Entity("ApiNet8.Models.Reservas.Instalacion", b =>
                 {
-                    b.Navigation("InstalacionHistoriales");
+                    b.Navigation("instalacionHistoriales");
                 });
 
             modelBuilder.Entity("ApiNet8.Models.Torneos.PartidoFase", b =>
@@ -2698,11 +3097,6 @@ namespace ApiNet8.Migrations
                     b.Navigation("Integrantes");
                 });
 
-            modelBuilder.Entity("ApiNet8.Models.Usuarios.PerfilUsuario", b =>
-                {
-                    b.Navigation("Perfiles");
-                });
-
             modelBuilder.Entity("ApiNet8.Models.Usuarios.SolicitudAsociacion", b =>
                 {
                     b.Navigation("SolicitudAsociacionHistoriales");
@@ -2710,8 +3104,6 @@ namespace ApiNet8.Migrations
 
             modelBuilder.Entity("ApiNet8.Models.Usuarios.Usuario", b =>
                 {
-                    b.Navigation("PerfilesUsuario");
-
                     b.Navigation("UsuarioHistoriales");
                 });
 

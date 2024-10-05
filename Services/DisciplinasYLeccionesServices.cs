@@ -2,6 +2,7 @@
 using ApiNet8.Models;
 using ApiNet8.Models.DTO;
 using ApiNet8.Models.Lecciones;
+using ApiNet8.Models.TYC;
 using ApiNet8.Services.IServices;
 using ApiNet8.Utils;
 using AutoMapper;
@@ -155,6 +156,7 @@ namespace ApiNet8.Services
                 throw new Exception(ex.Message, ex);
             }
           
-        }
+        }      
+
     }
 }

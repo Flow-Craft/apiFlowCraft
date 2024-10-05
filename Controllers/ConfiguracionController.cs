@@ -51,7 +51,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-            List<Perfil> perfiles = _configuracionServices.GetPerfiles();
+            List<PerfilResponseDTO> perfiles = _configuracionServices.GetPerfiles();
             return Ok(perfiles);
             }
             catch (Exception e)
@@ -104,7 +104,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-                Perfil perfil = _configuracionServices.GetPerfilById(id);// guardar en sesion la entidad enciontrada en el filtro
+                PerfilResponseDTO perfil = _configuracionServices.GetPerfilYPermisosById(id);
                 return Ok(perfil);
             }
             catch (Exception e)
@@ -136,8 +136,8 @@ namespace ApiNet8.Controllers
 
             try
             {
-            Perfil perfilACrear = _configuracionServices.CrearPerfil(form.Perfil, form.Permisos);
-            return Ok(perfilACrear);
+                Perfil perfilACrear = _configuracionServices.CrearPerfil(form.Perfil, form.Permisos);
+                return Ok(perfilACrear);
             }
             catch (Exception e)
             {
@@ -148,7 +148,7 @@ namespace ApiNet8.Controllers
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
-            }            
+            }
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
@@ -201,7 +201,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
-        public IActionResult GetPermisosByPerfil(Perfil perfil)//LISTO
+        public IActionResult GetPermisosByPerfil(PerfilDTO perfil)//LISTO
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);

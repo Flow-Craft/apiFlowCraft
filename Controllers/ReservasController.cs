@@ -25,8 +25,7 @@ namespace ApiNet8.Controllers
         {
             this._instalacionServices = instalacionServices;
         }
-
-        // GET: ReservasController
+        
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult GetInstalaciones()
@@ -37,7 +36,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-                List<Instalacion> instalaciones = _instalacionServices.GetInstalaciones();
+                List<InstalacionResponseDTO> instalaciones = _instalacionServices.GetInstalaciones();
                 return Ok(instalaciones);
             }
             catch (Exception e)
@@ -52,8 +51,7 @@ namespace ApiNet8.Controllers
             }
 
         }
-
-        // GET: ReservasController
+                
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult GetInstalacionesActivas()
@@ -130,7 +128,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
-        public IActionResult CrearInstalacion([FromBody] InstalacionDTO instalacionDTO)//LISTO
+        public IActionResult CrearInstalacion([FromBody] InstalacionDTO instalacionDTO)
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
 

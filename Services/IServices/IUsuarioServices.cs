@@ -5,7 +5,7 @@ namespace ApiNet8.Services.IServices
 {
     public interface IUsuarioServices
     {
-        List<Usuario> GetUsuarios();
+        List<UsuarioDTO> GetUsuarios();
         Usuario? GetUsuarioById(int id);
         void CrearUsuario(UsuarioDTO usuario);
         void ActualizarUsuario(UsuarioDTO usuario);
@@ -17,7 +17,7 @@ namespace ApiNet8.Services.IServices
         void Asociarse(Usuario usuario);
         MiPerfilDTO GetMiPerfil();
         void EditarMiPerfil(MiPerfilDTO miPerfilDTO);
-        bool MostrarBotonAsociarse(Usuario usuario);
+        int MostrarBotonAsociarse(Usuario usuario);
         void CambiarContrasena(string contrasena);
         Usuario? ExisteUsuarioActivobyEmail(string email);
         Task<bool> ReestablecerContrasenaInit(string mail);
@@ -29,5 +29,10 @@ namespace ApiNet8.Services.IServices
         List<SolicitudAsociacionDTO> GetSolicitudesAsociacionFiltro(int id);
         void BloquearUsuario(BloquearUsuarioDTO bloquearUsuarioDTO);
         void DesbloquearUsuario(BloquearUsuarioDTO bloquearUsuarioDTO);
+        void BlanquearContrasena(string mail);
+        string GenerateRandomPassword(int length);
+        Usuario? GetUsuarioByDni(int dni);
+        void GestionarSolicitudSocio(SolicitudDTO solicitudDTO);
+        void ReestablecerContrasenaVencimiento(ReestablecerContrasenaDTO reestablecerContrasenaDTO);
     }
 }

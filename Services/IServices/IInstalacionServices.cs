@@ -6,7 +6,7 @@ namespace ApiNet8.Services.IServices
 {
     public interface IInstalacionServices
     {
-        List<Instalacion> GetInstalaciones();
+        List<InstalacionResponseDTO> GetInstalaciones();
         List<Instalacion> GetInstalacionesActivas();
         Instalacion GetInstalacionById(int Id);
         void CrearInstalacion(InstalacionDTO instalacionDTO);
