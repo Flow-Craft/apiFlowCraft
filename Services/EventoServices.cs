@@ -98,6 +98,50 @@ namespace ApiNet8.Services
             }
         }
 
+        public EventoByUsuarioDTO GetEventoByIdByUsuario(int idEvento)
+        {
+            try
+            {
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                Evento? evento = _db.Evento.Include(d => d.Disciplinas).Include(c => c.Categoria).Include(te => te.TipoEvento).Include(i => i.Instalacion).Where(u => u.Id == idEvento).FirstOrDefault();
+
+                if (evento == null)
+                {
+                    throw new Exception("El evento no existe");
+                }
+                if (currentUser == null)
+                {
+                    throw new Exception("CurrentUser es null");
+                }
+
+                // obtengo inscripciones del usuario al evento
+                Inscripcion? inscripcion = GetInscripcionesByUsuarioByEvento(evento.Id, currentUser.Id);
+
+                EventoByUsuarioDTO response = new EventoByUsuarioDTO
+                {
+                    Evento = evento,
+                    Inscripto = inscripcion != null ? true : false
+                };
+
+                return response;
+                
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
+        public Inscripcion? GetInscripcionesByUsuarioByEvento (int idEvento, int IdUsuario)
+        {
+            List<Inscripcion> inscripciones = GetInscripcionesByUsuario(IdUsuario);
+            Inscripcion? inscripcionEvento = inscripciones.Where(i=>i.Evento.Id == idEvento).OrderByDescending(f=>f.FechaInscripcion).FirstOrDefault();
+
+            return inscripcionEvento;
+        }
+
         public bool ExisteEvento(string nombre)
         {
             Evento? evento = _db.Evento                

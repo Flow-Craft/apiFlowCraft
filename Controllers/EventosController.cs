@@ -495,6 +495,31 @@ namespace ApiNet8.Controllers
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetEventoByIdByUsuario(int id)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                EventoByUsuarioDTO evento = _eventoServices.GetEventoByIdByUsuario(id);
+                return Ok(evento);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener evento",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
         public IActionResult TomarAsistencia(InscripcionEventoDTO inscripcion)
         {

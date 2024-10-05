@@ -22,5 +22,7 @@ namespace ApiNet8.Services.IServices
         Inscripcion? GetInscripcionByUsuarioEvento(InscripcionEventoDTO inscripcion);
         Asistencia? GetAsistenciaByUsuarioEvento(InscripcionEventoDTO inscripcion);
         void TomarAsistencia(InscripcionEventoDTO inscripcion);
+        EventoByUsuarioDTO GetEventoByIdByUsuario(int idEvento);
+        Inscripcion? GetInscripcionesByUsuarioByEvento(int idEvento, int IdUsuario);
     }
 }
