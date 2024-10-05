@@ -6,6 +6,12 @@ using ApiNet8.Services.IServices;
 using ApiNet8.Utils;
 using AutoMapper;
 using ApiNet8.Models.Partidos;
+using ApiNet8.Models.Usuarios;
+using System.Text.Json.Serialization;
+using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore;
+using XAct;
+using ApiNet8.Models.Eventos;
 
 namespace ApiNet8.Services
 {
@@ -14,29 +20,81 @@ namespace ApiNet8.Services
         private readonly ApplicationDbContext _db;
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IEquipoEstadoService _equipoEstadoService;
+        private readonly IUsuarioServices _usuarioServices;
+        private readonly IDisciplinasYLeccionesServices _disciplinasYLeccionesServices;
+        private readonly ICategoriaServices _categoriaServices;
 
-        public EquipoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor)
+        public EquipoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IEquipoEstadoService equipoEstadoService, IUsuarioServices usuarioServices, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ICategoriaServices categoriaServices)
         {
             this._db = db;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
+            _equipoEstadoService = equipoEstadoService;
+            _usuarioServices = usuarioServices;
+            _disciplinasYLeccionesServices = disciplinasYLeccionesServices;
+            _categoriaServices = categoriaServices;
         }
 
-        public List<Equipo> GetEquipos()
+        public List<EquipoResponseDTO> GetEquipos()
         {
-            return _db.Equipo.ToList();
+            List<Equipo> equipos = _db.Equipo.Include(eu=>eu.EquipoUsuarios).ThenInclude(u=>u.Usuario).Include(h=>h.EquipoHistoriales).ThenInclude(e=>e.EquipoEstado).ToList();
+            List<EquipoResponseDTO> response = new List<EquipoResponseDTO>();
+
+            foreach (var equip in equipos) 
+            {
+                // obtengo los jugadores de cada equipo
+                List<JugadoresDTO> jugadores = new List<JugadoresDTO>();
+                foreach (var item in equip.EquipoUsuarios)
+                {
+                    JugadoresDTO jugador = new JugadoresDTO
+                    {
+                        Nombre = item.Usuario.Nombre,
+                        Apellido = item.Usuario.Apellido,
+                        Dni = item.Usuario.Dni,
+                        NumCamiseta = item.NumCamiseta,
+                        Puesto = item.Puesto,
+                    };
+                    jugadores.Add(jugador);
+                }
+
+                // obtengo estado del equipo
+                string estado = equip.EquipoHistoriales.Where(f => f.FechaFin == null).OrderByDescending(f => f.FechaInicio).FirstOrDefault().EquipoEstado.NombreEstado;
+
+                // creo la respuesta
+                EquipoResponseDTO equipoResponseDTO = new EquipoResponseDTO
+                {
+                    Id = equip.Id,
+                    Nombre = equip.Nombre,
+                    Local = equip.Local,
+                    Descripcion = equip.Descripcion,
+                    FechaCreacion = equip.FechaCreacion,
+                    FechaModificacion = equip.FechaModificacion,
+                    FechaBaja = equip.FechaBaja,
+                    Disciplina = equip.Disciplina,
+                    Categoria = equip.Categoria,
+                    Jugadores = jugadores,
+                    Estado = estado
+                };
+            }
+
+            return response;
         }
 
-        public List<Equipo> GetEquiposActivos()
+        public List<EquipoResponseDTO> GetEquiposActivos()
         {
-            return _db.Equipo.Where(a => a.FechaBaja == null).ToList();
+            List <EquipoResponseDTO> equipos = GetEquipos();
+            equipos = equipos.Where(f=>f.Estado == Enums.EstadoEquipo.Activo.ToString()).ToList();
+
+            return equipos;
         }
 
-        public Equipo GetEquipoById(int id)
+        public EquipoResponseDTO GetEquipoById(int id)
         {
             try
             {
-                return _db.Equipo.Where(u => u.Id == id).FirstOrDefault();
+                EquipoResponseDTO? equipo = GetEquipos().Where(e=>e.Id == id).FirstOrDefault();
+                return equipo;
             }
             catch (Exception e)
             {
@@ -60,22 +118,67 @@ namespace ApiNet8.Services
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
                 Equipo equipo = _mapper.Map<Equipo>(equipoDTO);
+                equipo.Local = equipoDTO.Local == null ? false : (bool)equipoDTO.Local;
+                equipo.FechaCreacion = DateTime.Now;
+                equipo.EquipoUsuarios = new List<EquipoUsuario>();
 
                 if (ExisteEquipo(equipo.Nombre))
                 {
                     throw new Exception("Ya existe un equipo con ese nombre.");
                 }
 
-                equipo.FechaCreacion = DateTime.Now;
-                //equipo.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
+                // asignar disciplina
+                if (equipoDTO.IdDisciplina < 1 )
+                {
+                    throw new Exception("Debe selecionar una disciplina al equipo");
+                }
+                equipo.Disciplina = _disciplinasYLeccionesServices.GetDisciplinaById(equipoDTO.IdDisciplina);
 
-                // crear historial de equipo
+                // asignar categoria
+                equipo.Categoria = _categoriaServices.GetCategoriaById(equipoDTO.IdCategoria);                               
 
+                if (equipoDTO.Jugadores == null)
+                {
+                    throw new Exception("Debe agregar jugadores al equipo");
+                }
 
+                // crear instancias de equipoUsuario por cada jugador y relacionarla al usuario
+                foreach (var jugador in equipoDTO.Jugadores)
+                {
+                    // obtener usuario
+                    Usuario? usuario = _usuarioServices.GetUsuarioByDni(jugador.Dni);
+
+                    if (usuario == null) { throw new Exception("No existe el usuario con dni: " + jugador.Dni); }
+
+                    // crear equipo usuario
+                    EquipoUsuario equipoUsuario = new EquipoUsuario
+                    {
+                        NumCamiseta = jugador.NumCamiseta,
+                        Puesto = jugador.Puesto ?? "",
+                        FechaCreacion = DateTime.Now,
+                        Usuario = usuario
+                    };
+                    _db.EquipoUsuario.Add(equipoUsuario);
+
+                    // asignar equipo usuario al equipo
+                    equipo.EquipoUsuarios.Add(equipoUsuario);
+                }
+
+                // crear historial de equipo                
+                EquipoHistorial equipoHistorial = new EquipoHistorial
+                {
+                    FechaInicio = DateTime.Now,
+                    DetalleCambioEstado = "Se crea equipo",
+                    UsuarioEditor = currentUser != null ? currentUser.Id : 0,
+                    EquipoEstado = _equipoEstadoService.GetEquipoEstadoById(1) // asigno estado activo
+                };
+                equipo.EquipoHistoriales = new List<EquipoHistorial>();
+                equipo.EquipoHistoriales.Add(equipoHistorial);
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    _db.Add(categoria);
+                    _db.EquipoHistorial.Add(equipoHistorial);
+                    _db.Equipo.Add(equipo);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
@@ -86,36 +189,106 @@ namespace ApiNet8.Services
             }
         }
 
-        public void ActualizarCategoria(CategoriaDTO categoriaDTO)
+        public void ActualizarEquipo(EquipoDTO equipoDTO)
         {
             try
             {
                 // Obtener el usuario actual desde la sesión
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
-                Categoria categoria = GetCategoriaById(categoriaDTO.Id);
+                Equipo? equipo = _db.Equipo.Include(eu => eu.EquipoUsuarios).ThenInclude(u => u.Usuario).Include(h => h.EquipoHistoriales).ThenInclude(e => e.EquipoEstado).Where(e=>e.Id == equipoDTO.Id).FirstOrDefault();
 
-                categoria.FechaModificacion = DateTime.Now;
-                categoria.Descripcion = categoriaDTO.Descripcion ?? categoria.Descripcion;
-                categoria.Nombre = categoriaDTO.Nombre ?? categoria.Nombre;
-                categoria.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
-                categoria.EdadMaxima = categoriaDTO?.EdadMaxima != null ? categoriaDTO.EdadMaxima : categoria.EdadMaxima;
-                categoria.EdadMinima = categoriaDTO?.EdadMinima != null ? categoriaDTO.EdadMinima : categoria.EdadMinima;
-                categoria.Genero = categoriaDTO?.Genero ?? categoria.Genero;
+                if (equipo == null) { throw new Exception("No existe el equipo que quieres editar"); }
 
-                if (categoriaDTO?.Nombre != null)
+                // editar datos equipo
+                equipo.Nombre = equipoDTO.Nombre ?? equipo.Nombre;
+                equipo.Local = equipoDTO.Local ?? equipo.Local;
+                equipo.Descripcion = equipoDTO.Descripcion ?? equipo.Descripcion;
+                equipo.FechaModificacion = DateTime.Now;
+
+                // asignar disciplina
+                if (equipoDTO.IdDisciplina > 0)
                 {
-                    bool existe = _db.Categoria.Any(le => le.Nombre == categoriaDTO.Nombre && le.Id != categoria.Id && le.FechaBaja == null);
+                    equipo.Disciplina = _disciplinasYLeccionesServices.GetDisciplinaById(equipoDTO.IdDisciplina);
+                }
+
+                // asignar categoria
+                if (equipoDTO.IdCategoria > 0)
+                {
+                    equipo.Categoria = _categoriaServices.GetCategoriaById(equipoDTO.IdCategoria);
+                }
+
+                // verificar si ya existe otro equipo con el mismo nombre
+                if (equipoDTO?.Nombre != null)
+                {
+                    bool existe = _db.Equipo.Include(a => a.EquipoHistoriales).Any(le => (le.Nombre == equipoDTO.Nombre && le.Id != equipoDTO.Id) && le.EquipoHistoriales.Any(h => h.FechaFin == null &&
+                     (h.EquipoEstado.NombreEstado != ApiNet8.Utils.Enums.EstadoEquipo.Inactivo.ToString())));
 
                     if (existe)
                     {
-                        throw new Exception("Ya existe una categoria con ese nombre.");
+                        throw new Exception("Ya existe un equipo con ese nombre.");
                     }
                 }
 
+                // verificar si cambiaron los jugadores
+                if (equipoDTO?.Jugadores != null)
+                {
+                    // dar de baja los equipo usuario anteriores 
+                    foreach (var item in equipo.EquipoUsuarios)
+                    {
+                        item.FechaBaja = DateTime.Now;
+                        _db.EquipoUsuario.Update(item);
+                    }
+
+                    // limpiar la lista de equipo usuarios antes de agregar los nuevos
+                    equipo.EquipoUsuarios.Clear(); 
+
+                    // crear instancias de equipoUsuario por cada jugador y relacionarla al usuario
+                    foreach (var jugador in equipoDTO.Jugadores)
+                    {
+                        // obtener usuario
+                        Usuario? usuario = _usuarioServices.GetUsuarioByDni(jugador.Dni);
+
+                        if (usuario == null) { throw new Exception("No existe el usuario con dni: " + jugador.Dni); }
+
+                        // crear equipo usuario
+                        EquipoUsuario equipoUsuario = new EquipoUsuario
+                        {
+                            NumCamiseta = jugador.NumCamiseta,
+                            Puesto = jugador.Puesto ?? "",
+                            FechaCreacion = DateTime.Now,
+                            Usuario = usuario
+                        };
+                        _db.EquipoUsuario.Add(equipoUsuario);
+
+                        // asignar equipo usuario al equipo
+                        equipo.EquipoUsuarios.Add(equipoUsuario);
+                    }
+                }
+
+                // se da de baja el historial anterior
+                EquipoHistorial? ultimoHistorial = equipo.EquipoHistoriales.Where(f => f.FechaFin == null).FirstOrDefault();
+                if (ultimoHistorial != null)
+                {
+                    ultimoHistorial.FechaFin = DateTime.Now;
+                    _db.EquipoHistorial.Update(ultimoHistorial);
+                }
+
+                // crear nuevo historial y asignarlo
+                EquipoHistorial equipoHistorial = new EquipoHistorial
+                {
+                    FechaInicio = DateTime.Now,
+                    DetalleCambioEstado = "Se edita equipo",
+                    UsuarioEditor = currentUser != null ? currentUser.Id : 0,
+                    EquipoEstado = _equipoEstadoService.GetEquipoEstadoById(1) // asigno estado activo
+                };
+                equipo.EquipoHistoriales = equipo.EquipoHistoriales == null ? new List<EquipoHistorial>() : equipo.EquipoHistoriales;
+                equipo.EquipoHistoriales.Add(equipoHistorial);
+
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    _db.Categoria.Update(categoria);
+                    _db.EquipoHistorial.Add(equipoHistorial);
+                    _db.Equipo.Update(equipo);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
@@ -126,32 +299,58 @@ namespace ApiNet8.Services
             }
         }
 
-        public void EliminarCategoria(CategoriaDTO categoriaDTO)
+        public void EliminarEquipo(EquipoDTO equipoDTO)
         {
             try
             {
                 // Obtener el usuario actual desde la sesión
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
-                Categoria categoria = GetCategoriaById(categoriaDTO.Id);
-
-                if (categoria == null)
+                Equipo? equipo = _db.Equipo.Include(eu => eu.EquipoUsuarios).ThenInclude(u => u.Usuario).Include(h => h.EquipoHistoriales).ThenInclude(e => e.EquipoEstado).Where(e => e.Id == equipoDTO.Id).FirstOrDefault();
+                    
+                if (equipo == null)
                 {
-                    throw new Exception("No existe la categoria que quieres eliminar.");
+                    throw new Exception("No existe el equipo que quieres eliminar.");
                 }
 
-                if (categoria.FechaBaja != null)
+                equipo.FechaBaja = DateTime.Now;
+
+                // dar de baja las relaciones equipo usuario
+                foreach (var item in equipo.EquipoUsuarios)
                 {
-                    throw new Exception("La categoria ya esta eliminada.");
+                    item.FechaBaja = DateTime.Now;
+                    item.FechaModificacion = DateTime.Now;
                 }
 
-                categoria.FechaBaja = DateTime.Now;
-                categoria.FechaModificacion = DateTime.Now;
-                categoria.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
+                // obtener ultimo historial y darlo de baja
+                EquipoHistorial? ultimoHistorial = equipo.EquipoHistoriales?.Where(f => f.FechaFin == null).OrderByDescending(f => f.FechaInicio).FirstOrDefault();
+                if (ultimoHistorial != null)
+                {
+                    if (ultimoHistorial.EquipoEstado.NombreEstado == Enums.EstadoEquipo.Inactivo.ToString())
+                    {
+                        throw new Exception("Este equipo ya ha sido eliminado");
+                    }
+
+                    ultimoHistorial.FechaFin = DateTime.Now;
+                    _db.EquipoHistorial.Update(ultimoHistorial);
+                }
+
+                // crear nuevo historial
+                EquipoHistorial nuevoHistorial = new EquipoHistorial
+                {
+                    FechaInicio = DateTime.Now,
+                    DetalleCambioEstado = "Se elimina equipo",
+                    UsuarioEditor = currentUser?.Id,
+                    EquipoEstado = _equipoEstadoService.GetEquipoEstadoById(2) // se asigna estado inactivo
+                };
+                equipo.EquipoHistoriales = equipo.EquipoHistoriales == null ? new List<EquipoHistorial>() : equipo.EquipoHistoriales;
+                equipo.EquipoHistoriales.Add(nuevoHistorial);
+
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    _db.Categoria.Update(categoria);
+                    _db.EquipoHistorial.Add(nuevoHistorial);
+                    _db.Equipo.Update(equipo);
                     _db.SaveChanges();
                     transaction.Commit();
                 }

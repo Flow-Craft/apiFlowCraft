@@ -54,5 +54,12 @@
             Bloqueado = 2,
             Desactivado = 3
         }
+
+        public enum EstadoEquipo
+        {
+            Activo = 1,
+            Inactivo = 2,
+            Suspendido = 3
+        }
     }
 }

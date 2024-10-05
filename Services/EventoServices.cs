@@ -360,7 +360,7 @@ namespace ApiNet8.Services
 
                 // obtener ultimo historial y darlo de baja
                 HistorialEvento? ultimoHistorial = evento.HistorialEventoList?.Where(f => f.FechaFin == null).OrderByDescending(f=>f.FechaInicio).FirstOrDefault();
-                if (ultimoHistorial == null)
+                if (ultimoHistorial != null)
                 {
                     if (ultimoHistorial.EstadoEvento.NombreEstado == Enums.EstadoEvento.Cancelado.ToString())
                     {
