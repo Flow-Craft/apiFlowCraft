@@ -235,14 +235,14 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetEventoById(EventoDTO eventoDTO)
+        public IActionResult GetEventoById(int Id)
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
 
             try
             {
-                Evento evento = _eventoServices.GetEventoById(eventoDTO.Id);
+                Evento evento = _eventoServices.GetEventoById(Id);
 
                 if (evento == null)
                 {
@@ -258,7 +258,7 @@ namespace ApiNet8.Controllers
                 RespuestaAPI respuestaAPI = new RespuestaAPI
                 {
                     status = HttpStatusCode.InternalServerError,
-                    title = "Error al obtener evento con id: " + eventoDTO.Id,
+                    title = "Error al obtener evento con id: " + Id,
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
