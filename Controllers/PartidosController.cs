@@ -17,10 +17,12 @@ namespace ApiNet8.Controllers
         private const string JWT = "JWT";
 
         private readonly ITipoAccionPartidoServices _tipoAccionPartidoServices;
+        private readonly IEquipoServices _equipoServices;
 
-        public PartidosController(ITipoAccionPartidoServices tipoAccionPartidoServices)
+        public PartidosController(ITipoAccionPartidoServices tipoAccionPartidoServices, IEquipoServices equipoServices)
         {
             _tipoAccionPartidoServices = tipoAccionPartidoServices;
+            _equipoServices = equipoServices;
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
@@ -176,6 +178,166 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al eliminar tipo de acciond e partido",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetEquipos()
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<EquipoResponseDTO> equipos = _equipoServices.GetEquipos();
+                return Ok(equipos);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener equipos",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetEquiposActivos()
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<EquipoResponseDTO> equipos = _equipoServices.GetEquiposActivos();
+                return Ok(equipos);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener equipos",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetEquipoById(int Id)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                EquipoResponseDTO equipo = _equipoServices.GetEquipoById(Id);
+
+                if (equipo == null)
+                {
+                    var problemDetails = new ValidationProblemDetails() { Status = StatusCodes.Status404NotFound, Title = "Equipo no encontrado" };
+
+                    return new NotFoundObjectResult(problemDetails);
+                }
+
+                return Ok(equipo);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener equipo con id: " + Id,
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult CrearEquipo([FromBody] EquipoDTO equipoDTO)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _equipoServices.CrearEquipo(equipoDTO);
+
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al crear equipo",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult ActualizarEquipo([FromBody] EquipoDTO equipoDTO)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _equipoServices.ActualizarEquipo(equipoDTO);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al actualizar equipo",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult EliminarEquipo(EquipoDTO equipoDTO)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _equipoServices.EliminarEquipo(equipoDTO);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al eliminar equipo",
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);

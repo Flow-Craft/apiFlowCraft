@@ -38,7 +38,7 @@ namespace ApiNet8.Services
 
         public List<EquipoResponseDTO> GetEquipos()
         {
-            List<Equipo> equipos = _db.Equipo.Include(eu=>eu.EquipoUsuarios).ThenInclude(u=>u.Usuario).Include(h=>h.EquipoHistoriales).ThenInclude(e=>e.EquipoEstado).ToList();
+            List<Equipo> equipos = _db.Equipo.Include(d=>d.Disciplina).Include(c=>c.Categoria).Include(eu=>eu.EquipoUsuarios).ThenInclude(u=>u.Usuario).Include(h=>h.EquipoHistoriales).ThenInclude(e=>e.EquipoEstado).ToList();
             List<EquipoResponseDTO> response = new List<EquipoResponseDTO>();
 
             foreach (var equip in equipos) 
@@ -76,6 +76,8 @@ namespace ApiNet8.Services
                     Jugadores = jugadores,
                     Estado = estado
                 };
+
+                response.Add(equipoResponseDTO);
             }
 
             return response;
