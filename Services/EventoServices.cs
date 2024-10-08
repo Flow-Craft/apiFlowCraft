@@ -23,8 +23,9 @@ namespace ApiNet8.Services
         private readonly IReservasServices _reservasServices;
         private readonly IEventoEstadoService _eventoEstadoService;
         private readonly ITipoEventoServices _tipoEventoServices;
+        private readonly IUsuarioServices _usuarioServices;
       
-        public EventoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ICategoriaServices categoriaServices, IInstalacionServices instalacionServices, IReservasServices reservasServices, IEventoEstadoService eventoEstadoService, ITipoEventoServices tipoEventoServices)
+        public EventoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ICategoriaServices categoriaServices, IInstalacionServices instalacionServices, IReservasServices reservasServices, IEventoEstadoService eventoEstadoService, ITipoEventoServices tipoEventoServices, IUsuarioServices usuarioServices)
         {
             this._db = db;
             _mapper = mapper;
@@ -35,6 +36,7 @@ namespace ApiNet8.Services
             _reservasServices = reservasServices;
             _eventoEstadoService = eventoEstadoService;
             _tipoEventoServices = tipoEventoServices;
+            _usuarioServices = usuarioServices;
         }
 
         public List<EventoResponseDTO> GetEventos()
@@ -181,12 +183,25 @@ namespace ApiNet8.Services
                 evento.HistorialEventoList = new List<HistorialEvento>();
                 evento.HistorialEventoList.Add(historialEvento);
 
+                // verifico si el tipo es partido
+                if (evento.TipoEvento.NombreTipoEvento == Enums.TipoEvento.Partido.ToString())
+                {
+
+                }
+                else
+                {
+                    _db.Evento.Add(evento);
+                }
+                // crear equipoPartido
+
+                // crear instancia de partido
+
+                // en el else creo evento en lugar de partido
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     _db.Reserva.Add(reserva);
                     _db.HistorialEvento.Add(historialEvento);
-                    _db.Evento.Add(evento);
                     _db.SaveChanges();
                     transaction.Commit();
                 }

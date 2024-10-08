@@ -19,6 +19,10 @@ namespace ApiNet8.Models.DTO
         public int IdTipoEvento { get; set; }
         public int IdInstalacion { get; set; }
         public int IdCategoria { get; set; }
-        public List<int>? IdsDisciplinas { get; set; }       
+        public List<int>? IdsDisciplinas { get; set; }  
+        public int EquipoLocal {  get; set; }
+        public int EquipoVisitante { get; set; }
+        public int Arbitro {  get; set; }
+        public int Planillero { get; set; }
     }
 }

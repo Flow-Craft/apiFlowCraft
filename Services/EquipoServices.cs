@@ -91,6 +91,14 @@ namespace ApiNet8.Services
             return equipos;
         }
 
+        public List<EquipoResponseDTO> GetEquiposByCategoriaAndDisciplinaActivos(int IdCategoria, int IdDisciplina)
+        {
+            List<EquipoResponseDTO> equipos = GetEquiposActivos();
+            equipos = equipos.Where(f => f.Categoria.Id == IdCategoria && f.Disciplina.Id == IdDisciplina).ToList();
+
+            return equipos;
+        }
+
         public EquipoResponseDTO GetEquipoById(int id)
         {
             try
@@ -112,7 +120,7 @@ namespace ApiNet8.Services
 
         }
 
-        public void CrearEquipo(EquipoDTO equipoDTO)
+        public Equipo CrearEquipo(EquipoDTO equipoDTO)
         {
             try
             {
@@ -184,6 +192,8 @@ namespace ApiNet8.Services
                     _db.SaveChanges();
                     transaction.Commit();
                 }
+
+                return equipo;
             }
             catch (Exception e)
             {

@@ -278,9 +278,9 @@ namespace ApiNet8.Controllers
 
             try
             {
-                _equipoServices.CrearEquipo(equipoDTO);
+                Equipo equipo = _equipoServices.CrearEquipo(equipoDTO);
 
-                return Ok();
+                return Ok(equipo);
             }
             catch (Exception e)
             {

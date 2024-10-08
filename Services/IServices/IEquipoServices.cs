@@ -8,10 +8,11 @@ namespace ApiNet8.Services.IServices
     {
         List<EquipoResponseDTO> GetEquipos();
         EquipoResponseDTO GetEquipoById(int id);
-        void CrearEquipo(EquipoDTO equipoDTO);
+        Equipo CrearEquipo(EquipoDTO equipoDTO);
         void ActualizarEquipo(EquipoDTO equipoDTO);
         void EliminarEquipo(EquipoDTO equipoDTO);
         bool ExisteEquipo(string nombre);
         List<EquipoResponseDTO> GetEquiposActivos();
+        List<EquipoResponseDTO> GetEquiposByCategoriaAndDisciplinaActivos(int IdCategoria, int IdDisciplina);
     }
 }
