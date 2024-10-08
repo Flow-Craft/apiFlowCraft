@@ -369,6 +369,31 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
+        public IActionResult InscribirseByUsuario(int IdEvento)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _eventoServices.InscribirseAEventoByUsuario(IdEvento);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al inscribirse a evento",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
         public IActionResult Desinscribirse(InscripcionEventoDTO inscripcion)
         {
             // seteo jwt en header de respuesta
@@ -378,6 +403,31 @@ namespace ApiNet8.Controllers
             try
             {
                 _eventoServices.DesinscribirseAEvento(inscripcion);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al desinscribirse a evento",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult DesinscribirseByUsuario(int IdEvento)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _eventoServices.DesinscribirseAEventoByUsuario(IdEvento);
                 return Ok();
             }
             catch (Exception e)

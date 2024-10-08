@@ -547,6 +547,97 @@ namespace ApiNet8.Services
             }
         }
 
+        public void InscribirseAEventoByUsuario(int IdEvento)
+        {
+            try
+            {
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                if (currentUser == null)
+                {
+                    throw new Exception("CurrentUser es null");
+                }
+
+                // verificar si existe evento
+                Evento evento = GetEventoById(IdEvento);
+                if (evento == null)
+                {
+                    throw new Exception("No existe el evento");
+                }
+
+                // verificar si hay cupo disponible
+                if (evento.EventoLleno)
+                {
+                    throw new Exception("El evento esta completo.");
+                }
+
+                // verificar estado evento
+                if (evento?.HistorialEventoList?.Where(f => f.FechaFin == null)?.OrderByDescending(f => f.FechaInicio)?.FirstOrDefault()?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Creado.ToString())
+                {
+                    throw new Exception("Las inscripciones al evento estan cerradas: el evento esta en curso o ha finalizado.");
+                }
+
+                // verificar si ya esta inscripto
+                List<Inscripcion> inscripciones = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).Where(u => u.Usuario.Id == currentUser.Id && u.Evento.Id == IdEvento && u.FechaBaja == null).ToList();
+                if (inscripciones.Count() > 0)
+                {
+                    throw new Exception("El usuario ya esta inscripto para este evento.");
+                }
+
+                // verificar estado del usuario y perfil
+                Usuario? usuario = _db.Usuario
+                        .Include(u => u.UsuarioHistoriales).ThenInclude(a => a.UsuarioEstado)
+                        .Where(u => u.Id == currentUser.Id)
+                        .FirstOrDefault();
+
+                if (usuario == null)
+                {
+                    throw new Exception("No existe el usuario que se quiere inscribir");
+                }
+
+                if (usuario?.UsuarioHistoriales?.Where(h => h.FechaFin == null)?.FirstOrDefault()?.UsuarioEstado.NombreEstado != Enums.EstadoUsuario.Activo.ToString())
+                {
+                    throw new Exception("El usuario no esta activo");
+                }
+
+                List<PerfilUsuario> perfilesUsuario = _db.PerfilUsuario.Include(u => u.Usuario).Include(p => p.Perfil).Where(pu => pu.Usuario.Id == currentUser.Id).ToList();
+                bool tienePerfilSocio = perfilesUsuario.Any(pu => pu.Perfil.NombrePerfil == Enums.Perfiles.Socio.ToString());
+
+                if (!tienePerfilSocio)
+                {
+                    throw new Exception("No puede inscribirse porque no tiene perfil de socio");
+                }
+
+                // crear instancia de inscripcion
+                Inscripcion inscripcionEvento = new Inscripcion
+                {
+                    Evento = evento,
+                    Usuario = usuario,
+                    FechaInscripcion = DateTime.Now,
+                };
+
+                // verificar si el evento esta lleno
+                int cantInscripciones = GetInscripcionesEvento(IdEvento).Count();
+                if (evento.CupoMaximo == cantInscripciones + 1)
+                {
+                    evento.EventoLleno = true;
+                    _db.Evento.Update(evento);
+                }
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.Inscripcion.Add(inscripcionEvento);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
         public void DesinscribirseAEvento(InscripcionEventoDTO inscripcion)
         {
             try
@@ -560,7 +651,7 @@ namespace ApiNet8.Services
                 }
 
                 // busco la inscripcion y la doy de baja
-                Inscripcion? inscripcionEvento = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).Where(f=>f.FechaBaja == null).OrderByDescending(f=>f.FechaInscripcion).FirstOrDefault();
+                Inscripcion? inscripcionEvento = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).Where(f=> f.Usuario.Id == inscripcion.IdUsuario && f.Evento.Id == inscripcion.IdEvento && f.FechaBaja == null).OrderByDescending(f=>f.FechaInscripcion).FirstOrDefault();
 
                 if (inscripcionEvento == null)
                 {
@@ -588,6 +679,58 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message);
             }
            
+
+        }
+
+        public void DesinscribirseAEventoByUsuario(int IdEvento)
+        {
+            try
+            {
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                if (currentUser == null)
+                {
+                    throw new Exception("CurrentUser es null");
+                }
+
+                // verificar estado evento
+                Evento evento = GetEventoById(IdEvento);
+
+                if (evento?.HistorialEventoList?.Where(f => f.FechaFin == null)?.OrderByDescending(f => f.FechaInicio)?.FirstOrDefault()?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Creado.ToString())
+                {
+                    throw new Exception("Las inscripciones al evento estan cerradas: el evento esta en curso o ha finalizado.");
+                }
+
+                // busco la inscripcion y la doy de baja
+                Inscripcion? inscripcionEvento = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).Where(f => f.Evento.Id == IdEvento && f.Usuario.Id == currentUser.Id && f.FechaBaja == null).OrderByDescending(f => f.FechaInscripcion).FirstOrDefault();
+
+                if (inscripcionEvento == null)
+                {
+                    throw new Exception("No esta inscripto a este evento");
+                }
+
+                inscripcionEvento.FechaBaja = DateTime.Now;
+
+                // verificar si el evento estaba lleno
+                if (evento.EventoLleno)
+                {
+                    evento.EventoLleno = false;
+                    _db.Evento.Update(evento);
+                }
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.Inscripcion.Update(inscripcionEvento);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+
 
         }
 
