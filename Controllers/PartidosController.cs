@@ -269,6 +269,31 @@ namespace ApiNet8.Controllers
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetEquiposByCategoriaAndDisciplinaActivos(int IdCategoria, int IdDisciplina)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<EquipoResponseDTO> equipos = _equipoServices.GetEquiposByCategoriaAndDisciplinaActivos(IdCategoria,IdDisciplina);
+                              
+                return Ok(equipos);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener equipos",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
         public IActionResult CrearEquipo([FromBody] EquipoDTO equipoDTO)
         {

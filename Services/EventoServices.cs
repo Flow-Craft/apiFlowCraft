@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using ApiNet8.Models.Lecciones;
 using ApiNet8.Models.Reservas;
 using ApiNet8.Models.Usuarios;
+using ApiNet8.Models.Partidos;
 
 namespace ApiNet8.Services
 {
@@ -24,8 +25,9 @@ namespace ApiNet8.Services
         private readonly IEventoEstadoService _eventoEstadoService;
         private readonly ITipoEventoServices _tipoEventoServices;
         private readonly IUsuarioServices _usuarioServices;
+        private readonly IEquipoServices _equipoServices;
       
-        public EventoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ICategoriaServices categoriaServices, IInstalacionServices instalacionServices, IReservasServices reservasServices, IEventoEstadoService eventoEstadoService, ITipoEventoServices tipoEventoServices, IUsuarioServices usuarioServices)
+        public EventoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ICategoriaServices categoriaServices, IInstalacionServices instalacionServices, IReservasServices reservasServices, IEventoEstadoService eventoEstadoService, ITipoEventoServices tipoEventoServices, IUsuarioServices usuarioServices, IEquipoServices equipoServices)
         {
             this._db = db;
             _mapper = mapper;
@@ -37,6 +39,7 @@ namespace ApiNet8.Services
             _eventoEstadoService = eventoEstadoService;
             _tipoEventoServices = tipoEventoServices;
             _usuarioServices = usuarioServices;
+            _equipoServices = equipoServices;
         }
 
         public List<EventoResponseDTO> GetEventos()
@@ -186,18 +189,61 @@ namespace ApiNet8.Services
                 // verifico si el tipo es partido
                 if (evento.TipoEvento.NombreTipoEvento == Enums.TipoEvento.Partido.ToString())
                 {
+                    // crear equipoPartido
+                    Equipo equipoLocal = _equipoServices.GetEquipoEventoById(eventoDTO.EquipoLocal);
+                    Equipo equipoVisitante = _equipoServices.GetEquipoEventoById(eventoDTO.EquipoVisitante);
 
+                    EquipoPartido local = new EquipoPartido
+                    {
+                        FechaCreacion = DateTime.Now,
+                        Equipo = equipoLocal
+                    };
+
+                    EquipoPartido visitante = new EquipoPartido
+                    {
+                        FechaCreacion = DateTime.Now,
+                        Equipo = equipoVisitante
+                    };
+
+                    _db.EquipoPartido.Add(local);
+                    _db.EquipoPartido.Add(visitante);
+
+                    // crear instancia de partido
+                    Partido partido = (Partido)evento;
+                    partido.Local = local;
+                    partido.Visitante = visitante;
+
+                    // Obtener los jugadores de ambos equipos y agregarlos al partido
+                    partido.Usuarios = new List<Usuario>();
+
+                    // Agregar jugadores del equipo local
+                    List<Usuario> jugadoresLocal = equipoLocal.EquipoUsuarios.Select(eu => eu.Usuario).ToList();
+                    foreach (var item in jugadoresLocal)
+                    {
+                        partido.Usuarios.Add(item);
+                    }
+
+                    // Agregar jugadores del equipo visitante
+                    List<Usuario> jugadoresVisitante = equipoVisitante.EquipoUsuarios.Select(eu => eu.Usuario).ToList();
+                    foreach (var item in jugadoresVisitante)
+                    {
+                        partido.Usuarios.Add(item);
+                    }
+
+                    // agregar arbitro
+                    Usuario? arbitro = _usuarioServices.GetUsuarioById(eventoDTO.Arbitro);
+                    if (arbitro != null) 
+                    {
+                        partido.Usuarios.Add(arbitro);
+                    }
+
+                    _db.Partido.Add(partido);
                 }
                 else
                 {
                     _db.Evento.Add(evento);
                 }
-                // crear equipoPartido
-
-                // crear instancia de partido
-
-                // en el else creo evento en lugar de partido
-
+                
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     _db.Reserva.Add(reserva);
@@ -335,6 +381,65 @@ namespace ApiNet8.Services
                 };
                 evento.HistorialEventoList = evento.HistorialEventoList == null ? new List<HistorialEvento>() : evento.HistorialEventoList;
                 evento.HistorialEventoList.Add(historialEvento);
+
+                // verifico si el tipo es partido
+                if (evento.TipoEvento.NombreTipoEvento == Enums.TipoEvento.Partido.ToString())
+                {
+                    Partido partido = _db.Partido.Where(p => p.Id == eventoDTO.Id).FirstOrDefault();
+
+                    Equipo equipoLocal = new Equipo();
+                    Equipo equipoVisitante = new Equipo();
+
+                    if (eventoDTO.EquipoLocal > 0)
+                    {
+                        // obtengo equipo partido y cambio la relacion a equipo
+                        equipoLocal = _equipoServices.GetEquipoEventoById(eventoDTO.EquipoLocal);
+                        partido.Local.Equipo = equipoLocal;
+                        _db.EquipoPartido.Update(partido.Local);
+                    }
+
+                    if (eventoDTO.EquipoVisitante > 0)
+                    {
+                        // obtengo equipo partido y cambio la relacion a equipo
+                        equipoVisitante = _equipoServices.GetEquipoEventoById(eventoDTO.EquipoVisitante);
+                        partido.Visitante.Equipo = equipoVisitante;
+                        _db.EquipoPartido.Update(partido.Visitante);
+                    }                    
+
+                    // Obtener los jugadores de ambos equipos y agregarlos al partido
+                    partido.Usuarios = new List<Usuario>();
+
+
+                    // ver de agregar jugadores local y/o visitante teniendo en cuenta de no eliminar los anteriores, solo
+                    // eliminar los que saque local o visitante
+
+                    // Agregar jugadores del equipo local
+                    List<Usuario> jugadoresLocal = equipoLocal.EquipoUsuarios.Select(eu => eu.Usuario).ToList();
+                    foreach (var item in jugadoresLocal)
+                    {
+                        partido.Usuarios.Add(item);
+                    }
+
+                    // Agregar jugadores del equipo visitante
+                    List<Usuario> jugadoresVisitante = equipoVisitante.EquipoUsuarios.Select(eu => eu.Usuario).ToList();
+                    foreach (var item in jugadoresVisitante)
+                    {
+                        partido.Usuarios.Add(item);
+                    }
+
+                    // agregar arbitro
+                    Usuario? arbitro = _usuarioServices.GetUsuarioById(eventoDTO.Arbitro);
+                    if (arbitro != null)
+                    {
+                        partido.Usuarios.Add(arbitro);
+                    }
+
+                    _db.Partido.Add(partido);
+                }
+                else
+                {
+                    _db.Evento.Add(evento);
+                }
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {

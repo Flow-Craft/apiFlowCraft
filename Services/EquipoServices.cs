@@ -112,6 +112,19 @@ namespace ApiNet8.Services
             }
         }
 
+        public Equipo GetEquipoEventoById(int id)
+        {
+            try
+            {
+                Equipo equipo = _db.Equipo.Include(u=>u.EquipoUsuarios).ThenInclude(u=>u.Usuario).Where(e => e.Id == id).FirstOrDefault();
+                return equipo;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
         public bool ExisteEquipo(string nombre)
         {
             Equipo? equipo = _db.Equipo.Where(n => n.Nombre.Equals(nombre) && n.FechaBaja == null).FirstOrDefault();

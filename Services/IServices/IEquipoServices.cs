@@ -14,5 +14,6 @@ namespace ApiNet8.Services.IServices
         bool ExisteEquipo(string nombre);
         List<EquipoResponseDTO> GetEquiposActivos();
         List<EquipoResponseDTO> GetEquiposByCategoriaAndDisciplinaActivos(int IdCategoria, int IdDisciplina);
+        Equipo GetEquipoEventoById(int id);
     }
 }
