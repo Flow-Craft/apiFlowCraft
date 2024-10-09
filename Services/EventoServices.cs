@@ -396,6 +396,7 @@ namespace ApiNet8.Services
                         equipoLocal = _equipoServices.GetEquipoEventoById(eventoDTO.EquipoLocal);
                         partido.Local.Equipo = equipoLocal;
                         _db.EquipoPartido.Update(partido.Local);
+                        // eliminar los usuarios de equipo local y agregar los nuevos de local
                     }
 
                     if (eventoDTO.EquipoVisitante > 0)
