@@ -45,6 +45,7 @@ builder.Services.AddTransient<ICategoriaServices, CategoriaServices>();
 builder.Services.AddTransient<ILeccionesServices, LeccionesServices>();
 builder.Services.AddTransient<IEventoServices, EventoServices>();
 builder.Services.AddTransient<IReservasServices, ReservasServices>();
+builder.Services.AddTransient<IPartidoServices, PartidoServices>();
 builder.Services.AddTransient<ValidateJwtAndRefreshFilter>();
 
 // Load SMTP settings from configuration
