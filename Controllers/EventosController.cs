@@ -259,7 +259,7 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al obtener evento con id: " + Id,
-                    errors = new List<string> { e.Message }
+                    errors = new List<string> { e.Message + " Exception: " + e.ToString() }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
@@ -285,7 +285,10 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al crear evento",
-                    errors = new List<string> { e.Message }
+                    errors = new List<string>{
+                                e.Message,
+                                "Exception: " + e.ToString()
+                            }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
@@ -311,7 +314,10 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al actualizar evento",
-                    errors = new List<string> { e.Message }
+                    errors = new List<string>{
+                                e.Message,
+                                "Exception: " + e.ToString()
+                            }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
@@ -336,7 +342,10 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al eliminar evento",
-                    errors = new List<string> { e.Message }
+                    errors = new List<string>{
+                                e.Message,                     
+                                "Exception: " + e.ToString() 
+                            }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }

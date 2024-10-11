@@ -231,7 +231,7 @@ namespace ApiNet8.Services
                 HistorialEvento historialEvento = new HistorialEvento
                 {
                     FechaInicio = DateTime.Now,
-                    DetalleCambioEstado = "Se crea evento",
+                    DetalleCambioEstado = "Se crea evento tipo " + evento.TipoEvento.NombreTipoEvento,
                     UsuarioEditor = currentUser != null ? currentUser.Id : 0,
                     EstadoEvento = _eventoEstadoService.GetEventoEstadoById(1) // asigno estado creado
                 };
@@ -464,7 +464,7 @@ namespace ApiNet8.Services
                 HistorialEvento historialEvento = new HistorialEvento
                 {
                     FechaInicio = DateTime.Now,
-                    DetalleCambioEstado = "Se modifica evento",
+                    DetalleCambioEstado = "Se modifica evento tipo " + evento.TipoEvento.NombreTipoEvento,
                     UsuarioEditor = currentUser != null ? currentUser.Id : 0,
                     EstadoEvento = _eventoEstadoService.GetEventoEstadoById(1) // asigno estado creado
                 };
@@ -516,8 +516,8 @@ namespace ApiNet8.Services
                     UsuarioDTO? planilleroDTO = _usuarioServices.GetUsuarioByPerfil(Enums.Perfiles.Planillero.ToString())
                                     .FirstOrDefault(u => usuarioIdsPartido.Contains(u.Id));
                     
-                    Usuario arbitro = new Usuario();
-                    Usuario planillero = new Usuario();
+                    Usuario? arbitro = new Usuario();
+                    Usuario? planillero = new Usuario();
 
                     if (arbitroDTO != null)
                     {
@@ -668,12 +668,42 @@ namespace ApiNet8.Services
                 HistorialEvento nuevoHistorial = new HistorialEvento
                 {
                     FechaInicio = DateTime.Now,
-                    DetalleCambioEstado = "Se elimina evento",
-                    UsuarioEditor = currentUser?.Id,
+                    DetalleCambioEstado = "Se elimina evento tipo " + evento.TipoEvento.NombreTipoEvento,
+                    UsuarioEditor = currentUser != null ? currentUser.Id : 0,
                     EstadoEvento = _eventoEstadoService.GetEventoEstadoById(2) // se asigna estado cancelado
                 };
                 evento.HistorialEventoList = evento.HistorialEventoList == null ? new List<HistorialEvento>() : evento.HistorialEventoList;
                 evento.HistorialEventoList.Add(nuevoHistorial);
+
+                if (evento.TipoEvento.NombreTipoEvento == Enums.TipoEvento.Partido.ToString())
+                {
+                    // obtener los equipo partido y darlos de baja
+                    Partido? partido = _db.Partido
+                         .Include(ep => ep.Local).ThenInclude(e => e.Equipo).ThenInclude(eu => eu.EquipoUsuarios).ThenInclude(u => u.Usuario)
+                         .Include(ep => ep.Visitante).ThenInclude(e => e.Equipo).ThenInclude(eu => eu.EquipoUsuarios).ThenInclude(u => u.Usuario)
+                         .Include(U => U.Usuarios)
+                         .Where(p => p.Id == eventoDTO.Id).FirstOrDefault();
+
+                    if (partido != null)
+                    {
+                        EquipoPartido? local = partido.Local;
+                        if (local != null) 
+                        {
+                            local.FechaBaja = DateTime.Now;
+                            local.FechaModificacion = DateTime.Now;
+                            _db.EquipoPartido.Update(local);
+                        }
+
+                        EquipoPartido? visitante = partido.Visitante;
+                        if (visitante != null)
+                        {
+                            visitante.FechaBaja = DateTime.Now;
+                            visitante.FechaModificacion = DateTime.Now;
+                            _db.EquipoPartido.Update(visitante);
+                        }
+                    }
+                    
+                }
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {

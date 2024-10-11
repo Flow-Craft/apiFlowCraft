@@ -721,6 +721,27 @@ namespace ApiNet8.Controllers
         }
 
         [HttpGet]
+        public IActionResult GetUsuarioByDni(int dni)
+        {
+            try
+            {
+                Usuario? user = _usuarioServices.GetUsuarioByDni(dni);              
+
+                return Ok(user);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al recuperar usuario por dni",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [HttpGet]
         public IActionResult RecuperarUsuarioByDni(int dni)
         { 
             try
