@@ -627,7 +627,7 @@ namespace ApiNet8.Controllers
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        //[HttpPost("{id}")]
+        [HttpPost]
         public IActionResult BajaEstadisticaPartido()//int id)
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
