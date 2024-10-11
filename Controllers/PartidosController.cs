@@ -287,7 +287,7 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al obtener equipos",
-                    errors = new List<string> { e.Message }
+                    errors = new List<string> { e.ToString()}
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }

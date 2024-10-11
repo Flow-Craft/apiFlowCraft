@@ -10,6 +10,7 @@ using ApiNet8.Models.Lecciones;
 using ApiNet8.Models.Reservas;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Models.Partidos;
+using ApiNet8.Migrations;
 
 namespace ApiNet8.Services
 {
@@ -95,7 +96,14 @@ namespace ApiNet8.Services
         {
             try
             {
-                return _db.Evento.Include(d => d.Disciplinas).Include(c => c.Categoria).Include(te => te.TipoEvento).Include(i => i.Instalacion).Include(he => he.HistorialEventoList).ThenInclude(ee => ee.EstadoEvento).Where(u => u.Id == id).FirstOrDefault();
+                Evento evento = _db.Evento.Include(d => d.Disciplinas).Include(c => c.Categoria).Include(te => te.TipoEvento).Include(i => i.Instalacion).Include(he => he.HistorialEventoList).ThenInclude(ee => ee.EstadoEvento).Where(u => u.Id == id).FirstOrDefault();
+
+                if (evento != null && evento.TipoEvento.NombreTipoEvento == Enums.TipoEvento.Partido.ToString()) 
+                {
+                    evento.Id = ((Evento)evento).Id;
+                }
+
+                return evento;
             }
             catch (Exception e)
             {
@@ -350,7 +358,7 @@ namespace ApiNet8.Services
                 }
 
                 // cambia fecha o instalacion
-                if (eventoDTO.IdInstalacion > 0 || eventoDTO.FechaInicio != null || eventoDTO.FechaFinEvento != null)
+                if ((eventoDTO.IdInstalacion > 0 && evento.Instalacion.Id != eventoDTO.IdInstalacion) || eventoDTO.FechaInicio != null || eventoDTO.FechaFinEvento != null)
                 {
                     // buscar instalacion
                     Instalacion instalacion = eventoDTO.IdInstalacion > 0 ? _instalacionServices.GetInstalacionById(eventoDTO.IdInstalacion) : _instalacionServices.GetInstalacionById(evento.Instalacion.Id);
@@ -453,7 +461,29 @@ namespace ApiNet8.Services
                     Equipo equipoLocal = new Equipo();
                     Equipo equipoVisitante = new Equipo();
 
-                    // si tiene arbitro o planillero los guardo usar PerfilUsuario perfil = _configuracionServices.GetPerfilUsuario(item); de usuario services
+                    // lista de IDs de los usuarios del partido
+                    List<int> usuarioIdsPartido = partido.Usuarios.Select(u => u.Id).ToList();
+
+                    // Filtra los usuarios por perfil de árbitro y verifica que el Id esté en la lista de usuarios del partido
+                    UsuarioDTO? arbitroDTO = _usuarioServices.GetUsuarioByPerfil(Enums.Perfiles.Arbitro.ToString())
+                                    .FirstOrDefault(u => usuarioIdsPartido.Contains(u.Id));
+
+                    // Filtra los usuarios por perfil de planillero y verifica que el Id esté en la lista de usuarios del partido
+                    UsuarioDTO? planilleroDTO = _usuarioServices.GetUsuarioByPerfil(Enums.Perfiles.Planillero.ToString())
+                                    .FirstOrDefault(u => usuarioIdsPartido.Contains(u.Id));
+                    
+                    Usuario arbitro = new Usuario();
+                    Usuario planillero = new Usuario();
+
+                    if (arbitroDTO != null)
+                    {
+                        arbitro = _usuarioServices.GetUsuarioById(arbitroDTO.Id);
+                    }
+
+                    if (planilleroDTO != null)
+                    {
+                        planillero = _usuarioServices.GetUsuarioById(planilleroDTO.Id);
+                    }
 
                     if (eventoDTO.EquipoLocal > 0)
                     {
@@ -502,27 +532,36 @@ namespace ApiNet8.Services
                             partido.Usuarios.Add(usuario);
                         }
                     }
+                    if (arbitro != null)
+                    {
+                        partido.Usuarios.Add(arbitro);
+                    }
+
+                    if (planillero != null)
+                    {
+                        partido.Usuarios.Add(planillero);
+                    }
 
                     if (eventoDTO.Arbitro > 0)
                     {
                         // cambiar arbitro
-                        Usuario? arbitro = _usuarioServices.GetUsuarioById(eventoDTO.Arbitro);
+                        Usuario? arbitroNuevo = _usuarioServices.GetUsuarioById(eventoDTO.Arbitro);
                         if (arbitro == null)
                         {
                             throw new Exception("No existe arbitro seleccionado");
                         }
-                        partido.Usuarios.Add(arbitro);
+                        partido.Usuarios.Add(arbitroNuevo);
                     }
 
                     if (eventoDTO.Planillero > 0)
                     {
                         // cambiar planillero
-                        Usuario? planillero = _usuarioServices.GetUsuarioById(eventoDTO.Planillero);
+                        Usuario? planilleroNuevo = _usuarioServices.GetUsuarioById(eventoDTO.Planillero);
                         if (planillero == null)
                         {
                             throw new Exception("No existe planillero seleccionado");
                         }
-                        partido.Usuarios.Add(planillero);
+                        partido.Usuarios.Add(planilleroNuevo);
                     }
 
                     _db.Partido.Update(partido);

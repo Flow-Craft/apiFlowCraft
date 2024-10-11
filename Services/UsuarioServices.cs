@@ -110,7 +110,7 @@ namespace ApiNet8.Services
         public List<UsuarioDTO> GetUsuarioByPerfil(string Perfil)
         {
             List<UsuarioDTO> usuarios = GetUsuarios();
-            usuarios.Where(a=> a.Estado == Enums.EstadoUsuario.Activo.ToString() &&  a.Perfil == Perfil).ToList();
+            usuarios = usuarios.Where(a=> a.Estado == Enums.EstadoUsuario.Activo.ToString() &&  a.Perfil == Perfil).ToList();
             return usuarios;
         }
 
