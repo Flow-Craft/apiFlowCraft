@@ -54,5 +54,22 @@
             Bloqueado = 2,
             Desactivado = 3
         }
+
+        public enum EstadoEquipo
+        {
+            Activo = 1,
+            Inactivo = 2,
+            Suspendido = 3
+        }
+
+        public enum TipoEvento
+        {
+            Partido = 1,
+            Torneo = 2,
+            Recital = 3,
+            Taller = 4,
+            Curso = 5,
+            Feria = 6
+        }
     }
 }

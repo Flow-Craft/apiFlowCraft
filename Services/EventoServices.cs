@@ -9,6 +9,8 @@ using Microsoft.EntityFrameworkCore;
 using ApiNet8.Models.Lecciones;
 using ApiNet8.Models.Reservas;
 using ApiNet8.Models.Usuarios;
+using ApiNet8.Models.Partidos;
+using ApiNet8.Migrations;
 
 namespace ApiNet8.Services
 {
@@ -23,8 +25,10 @@ namespace ApiNet8.Services
         private readonly IReservasServices _reservasServices;
         private readonly IEventoEstadoService _eventoEstadoService;
         private readonly ITipoEventoServices _tipoEventoServices;
+        private readonly IUsuarioServices _usuarioServices;
+        private readonly IEquipoServices _equipoServices;
       
-        public EventoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ICategoriaServices categoriaServices, IInstalacionServices instalacionServices, IReservasServices reservasServices, IEventoEstadoService eventoEstadoService, ITipoEventoServices tipoEventoServices)
+        public EventoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ICategoriaServices categoriaServices, IInstalacionServices instalacionServices, IReservasServices reservasServices, IEventoEstadoService eventoEstadoService, ITipoEventoServices tipoEventoServices, IUsuarioServices usuarioServices, IEquipoServices equipoServices)
         {
             this._db = db;
             _mapper = mapper;
@@ -35,6 +39,8 @@ namespace ApiNet8.Services
             _reservasServices = reservasServices;
             _eventoEstadoService = eventoEstadoService;
             _tipoEventoServices = tipoEventoServices;
+            _usuarioServices = usuarioServices;
+            _equipoServices = equipoServices;
         }
 
         public List<EventoResponseDTO> GetEventos()
@@ -90,7 +96,14 @@ namespace ApiNet8.Services
         {
             try
             {
-                return _db.Evento.Include(d => d.Disciplinas).Include(c => c.Categoria).Include(te => te.TipoEvento).Include(i => i.Instalacion).Include(he => he.HistorialEventoList).ThenInclude(ee => ee.EstadoEvento).Where(u => u.Id == id).FirstOrDefault();
+                Evento evento = _db.Evento.Include(d => d.Disciplinas).Include(c => c.Categoria).Include(te => te.TipoEvento).Include(i => i.Instalacion).Include(he => he.HistorialEventoList).ThenInclude(ee => ee.EstadoEvento).Where(u => u.Id == id).FirstOrDefault();
+
+                if (evento != null && evento.TipoEvento.NombreTipoEvento == Enums.TipoEvento.Partido.ToString()) 
+                {
+                    evento.Id = ((Evento)evento).Id;
+                }
+
+                return evento;
             }
             catch (Exception e)
             {
@@ -225,12 +238,105 @@ namespace ApiNet8.Services
                 evento.HistorialEventoList = new List<HistorialEvento>();
                 evento.HistorialEventoList.Add(historialEvento);
 
+                // verifico si el tipo es partido
+                if (evento.TipoEvento.NombreTipoEvento == Enums.TipoEvento.Partido.ToString())
+                {
+                    if (eventoDTO.IdsDisciplinas.Count>1)
+                    {
+                        throw new Exception("Si el tipo de evento es partido debe seleccionar solo una disciplina");
+                    }
 
+                    // crear equipoPartido
+                    Equipo equipoLocal = _equipoServices.GetEquipoEventoById(eventoDTO.EquipoLocal);
+                    Equipo equipoVisitante = _equipoServices.GetEquipoEventoById(eventoDTO.EquipoVisitante);
+
+                    EquipoPartido local = new EquipoPartido
+                    {
+                        FechaCreacion = DateTime.Now,
+                        Equipo = equipoLocal,
+                        JugadoresEnBanca = new List<string>(),
+                        JugadoresEnCancha = new List<string>()
+                    };
+
+                    EquipoPartido visitante = new EquipoPartido
+                    {
+                        FechaCreacion = DateTime.Now,
+                        Equipo = equipoVisitante,
+                        JugadoresEnBanca = new List<string>(),
+                        JugadoresEnCancha = new List<string>()
+                    };
+
+                    _db.EquipoPartido.Add(local);
+                    _db.EquipoPartido.Add(visitante);
+
+                    // crear instancia de partido
+                    Partido partido = new Partido
+                    {
+                        Titulo = evento.Titulo,
+                        FechaInicio = evento.FechaInicio,
+                        FechaFinEvento = evento.FechaFinEvento,
+                        CupoMaximo = evento.CupoMaximo,
+                        LinkStream = evento.LinkStream,
+                        Descripcion = evento.Descripcion,
+                        TipoEvento = evento.TipoEvento,
+                        Instalacion = evento.Instalacion,
+                        Categoria = evento.Categoria,
+                        Disciplinas = evento.Disciplinas,
+                        Local = local,
+                        Visitante = visitante,
+                        HistorialEventoList = evento.HistorialEventoList,
+                        Banner = evento.Banner
+                    };                   
+
+                    // Obtener los jugadores de ambos equipos y agregarlos al partido
+                    partido.Usuarios = new List<Usuario>();
+
+                    // Agregar jugadores del equipo local
+                    List<Usuario> jugadoresLocal = equipoLocal.EquipoUsuarios.Select(eu => eu.Usuario).ToList();
+                    foreach (var item in jugadoresLocal)
+                    {
+                        partido.Usuarios.Add(item);
+                    }
+
+                    // Agregar jugadores del equipo visitante
+                    List<Usuario> jugadoresVisitante = equipoVisitante.EquipoUsuarios.Select(eu => eu.Usuario).ToList();
+                    foreach (var item in jugadoresVisitante)
+                    {
+                        partido.Usuarios.Add(item);
+                    }
+
+                    // agregar arbitro
+                    if (eventoDTO.Arbitro > 0)
+                    {
+                        Usuario? arbitro = _usuarioServices.GetUsuarioById(eventoDTO.Arbitro);
+                        if (arbitro != null)
+                        {
+                            partido.Usuarios.Add(arbitro);
+                        }
+                    }
+
+                    // agregar planillero
+                    if (eventoDTO.Planillero > 0)
+                    {
+                        Usuario? planillero = _usuarioServices.GetUsuarioById(eventoDTO.Planillero);
+                        if (planillero != null)
+                        {
+                            partido.Usuarios.Add(planillero);
+                        }
+                    }
+                    
+
+                    _db.Partido.Add(partido);
+                }
+                else
+                {
+                    _db.Evento.Add(evento);
+                }
+                
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     _db.Reserva.Add(reserva);
                     _db.HistorialEvento.Add(historialEvento);
-                    _db.Evento.Add(evento);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
@@ -296,7 +402,7 @@ namespace ApiNet8.Services
                 }
 
                 // cambia fecha o instalacion
-                if (eventoDTO.IdInstalacion > 0 || eventoDTO.FechaInicio != null || eventoDTO.FechaFinEvento != null)
+                if ((eventoDTO.IdInstalacion > 0 && evento.Instalacion.Id != eventoDTO.IdInstalacion) || eventoDTO.FechaInicio != null || eventoDTO.FechaFinEvento != null)
                 {
                     // buscar instalacion
                     Instalacion instalacion = eventoDTO.IdInstalacion > 0 ? _instalacionServices.GetInstalacionById(eventoDTO.IdInstalacion) : _instalacionServices.GetInstalacionById(evento.Instalacion.Id);
@@ -365,9 +471,152 @@ namespace ApiNet8.Services
                 evento.HistorialEventoList = evento.HistorialEventoList == null ? new List<HistorialEvento>() : evento.HistorialEventoList;
                 evento.HistorialEventoList.Add(historialEvento);
 
-                using (var transaction = _db.Database.BeginTransaction())
+                // verifico si el tipo es partido
+                if (evento.TipoEvento.NombreTipoEvento == Enums.TipoEvento.Partido.ToString())
+                {
+                    Partido? partido = _db.Partido
+                        .Include(ep=>ep.Local).ThenInclude(e=>e.Equipo).ThenInclude(eu=>eu.EquipoUsuarios).ThenInclude(u=>u.Usuario)
+                        .Include(ep => ep.Visitante).ThenInclude(e => e.Equipo).ThenInclude(eu => eu.EquipoUsuarios).ThenInclude(u => u.Usuario)
+                        .Include(U=>U.Usuarios)
+                        .Where(p => p.Id == eventoDTO.Id).FirstOrDefault();
+                                       
+                    if (partido == null) 
+                    {
+                        throw new Exception("No existe partido seleccionado");
+                    }
+
+                    partido.Titulo = eventoDTO.Titulo ?? evento.Titulo;
+                    partido.Descripcion = eventoDTO.Descripcion ?? evento.Descripcion;
+                    partido.Banner = eventoDTO.Banner ?? evento.Banner;
+                    partido.CupoMaximo = eventoDTO.CupoMaximo > 0 ? eventoDTO.CupoMaximo : evento.CupoMaximo;
+                    partido.LinkStream = eventoDTO.LinkStream ?? evento.LinkStream;
+                    partido.Disciplinas = evento.Disciplinas;
+                    partido.Categoria = evento.Categoria;
+                    partido.Instalacion = evento.Instalacion;
+                    partido.FechaInicio = evento.FechaInicio;
+                    partido.FechaFinEvento = evento.FechaFinEvento;
+                    partido.HistorialEventoList = evento.HistorialEventoList;
+
+                    if (partido.Usuarios == null)
+                    {
+                        partido.Usuarios = new List<Usuario>();
+                    }
+
+                    Equipo equipoLocal = new Equipo();
+                    Equipo equipoVisitante = new Equipo();
+
+                    // lista de IDs de los usuarios del partido
+                    List<int> usuarioIdsPartido = partido.Usuarios.Select(u => u.Id).ToList();
+
+                    // Filtra los usuarios por perfil de árbitro y verifica que el Id esté en la lista de usuarios del partido
+                    UsuarioDTO? arbitroDTO = _usuarioServices.GetUsuarioByPerfil(Enums.Perfiles.Arbitro.ToString())
+                                    .FirstOrDefault(u => usuarioIdsPartido.Contains(u.Id));
+
+                    // Filtra los usuarios por perfil de planillero y verifica que el Id esté en la lista de usuarios del partido
+                    UsuarioDTO? planilleroDTO = _usuarioServices.GetUsuarioByPerfil(Enums.Perfiles.Planillero.ToString())
+                                    .FirstOrDefault(u => usuarioIdsPartido.Contains(u.Id));
+                    
+                    Usuario arbitro = new Usuario();
+                    Usuario planillero = new Usuario();
+
+                    if (arbitroDTO != null)
+                    {
+                        arbitro = _usuarioServices.GetUsuarioById(arbitroDTO.Id);
+                    }
+
+                    if (planilleroDTO != null)
+                    {
+                        planillero = _usuarioServices.GetUsuarioById(planilleroDTO.Id);
+                    }
+
+                    if (eventoDTO.EquipoLocal > 0)
+                    {
+                        // obtengo equipo partido y cambio la relacion a equipo
+                        equipoLocal = _equipoServices.GetEquipoEventoById(eventoDTO.EquipoLocal);
+                        partido.Local.Equipo = equipoLocal;
+                        _db.EquipoPartido.Update(partido.Local);
+
+                        // eliminar los usuarios de equipo local que estaban
+                        if (partido.Visitante != null)
+                        {
+                            List<Usuario> usuariosVisitantes = partido.Visitante.Equipo.EquipoUsuarios
+                           .Select(eu => eu.Usuario)
+                           .ToList();
+                            partido.Usuarios = usuariosVisitantes;
+                        }
+
+                        // agregar los nuevos usuarios de equipo local
+                        foreach (var item in equipoLocal.EquipoUsuarios)
+                        {
+                            Usuario usuario = item.Usuario;
+                            partido.Usuarios.Add(usuario);
+                        }
+                    }
+
+                    if (eventoDTO.EquipoVisitante > 0)
+                    {
+                        // obtengo equipo partido y cambio la relacion a equipo
+                        equipoVisitante = _equipoServices.GetEquipoEventoById(eventoDTO.EquipoVisitante);
+                        partido.Visitante.Equipo = equipoVisitante;
+                        _db.EquipoPartido.Update(partido.Visitante);
+
+                        // eliminar los usuarios de equipo visitante que estaban
+                        if (partido.Local != null)
+                        {
+                            List<Usuario> usuariosLocal = partido.Local.Equipo.EquipoUsuarios
+                                .Select(eu => eu.Usuario)
+                                .ToList();
+                            partido.Usuarios = usuariosLocal;
+                        }
+
+                        // agregar los nuevos usuarios de equipo local
+                        foreach (var item in equipoVisitante.EquipoUsuarios)
+                        {
+                            Usuario usuario = item.Usuario;
+                            partido.Usuarios.Add(usuario);
+                        }
+                    }
+                    if (arbitro != null)
+                    {
+                        partido.Usuarios.Add(arbitro);
+                    }
+
+                    if (planillero != null)
+                    {
+                        partido.Usuarios.Add(planillero);
+                    }
+
+                    if (eventoDTO.Arbitro > 0)
+                    {
+                        // cambiar arbitro
+                        Usuario? arbitroNuevo = _usuarioServices.GetUsuarioById(eventoDTO.Arbitro);
+                        if (arbitro == null)
+                        {
+                            throw new Exception("No existe arbitro seleccionado");
+                        }
+                        partido.Usuarios.Add(arbitroNuevo);
+                    }
+
+                    if (eventoDTO.Planillero > 0)
+                    {
+                        // cambiar planillero
+                        Usuario? planilleroNuevo = _usuarioServices.GetUsuarioById(eventoDTO.Planillero);
+                        if (planillero == null)
+                        {
+                            throw new Exception("No existe planillero seleccionado");
+                        }
+                        partido.Usuarios.Add(planilleroNuevo);
+                    }
+
+                    _db.Partido.Update(partido);
+                }
+                else
                 {
                     _db.Evento.Update(evento);
+                }
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
                     _db.SaveChanges();
                     transaction.Commit();
                 }
@@ -404,7 +653,7 @@ namespace ApiNet8.Services
 
                 // obtener ultimo historial y darlo de baja
                 HistorialEvento? ultimoHistorial = evento.HistorialEventoList?.Where(f => f.FechaFin == null).OrderByDescending(f=>f.FechaInicio).FirstOrDefault();
-                if (ultimoHistorial == null)
+                if (ultimoHistorial != null)
                 {
                     if (ultimoHistorial.EstadoEvento.NombreEstado == Enums.EstadoEvento.Cancelado.ToString())
                     {
