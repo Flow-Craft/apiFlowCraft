@@ -402,7 +402,7 @@ namespace ApiNet8.Services
                 }
 
                 // cambia fecha o instalacion
-                if ((eventoDTO.IdInstalacion > 0 && evento.Instalacion.Id != eventoDTO.IdInstalacion) || eventoDTO.FechaInicio != null || eventoDTO.FechaFinEvento != null)
+                if ((eventoDTO.IdInstalacion > 0 && evento.Instalacion.Id != eventoDTO.IdInstalacion) || (eventoDTO.FechaInicio != null && eventoDTO.FechaInicio!=evento.FechaInicio) || (eventoDTO.FechaFinEvento != null && eventoDTO.FechaFinEvento != evento.FechaFinEvento))
                 {
                     // buscar instalacion
                     Instalacion instalacion = eventoDTO.IdInstalacion > 0 ? _instalacionServices.GetInstalacionById(eventoDTO.IdInstalacion) : _instalacionServices.GetInstalacionById(evento.Instalacion.Id);
