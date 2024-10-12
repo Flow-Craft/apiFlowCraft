@@ -11,6 +11,9 @@ using ApiNet8.Models.Reservas;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Models.Partidos;
 using ApiNet8.Migrations;
+using XAct.Events;
+using XAct;
+using System.Text.Json;
 
 namespace ApiNet8.Services
 {
@@ -27,8 +30,9 @@ namespace ApiNet8.Services
         private readonly ITipoEventoServices _tipoEventoServices;
         private readonly IUsuarioServices _usuarioServices;
         private readonly IEquipoServices _equipoServices;
-      
-        public EventoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ICategoriaServices categoriaServices, IInstalacionServices instalacionServices, IReservasServices reservasServices, IEventoEstadoService eventoEstadoService, ITipoEventoServices tipoEventoServices, IUsuarioServices usuarioServices, IEquipoServices equipoServices)
+        private readonly ILogger<EventoServices> _logger;
+
+        public EventoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ICategoriaServices categoriaServices, IInstalacionServices instalacionServices, IReservasServices reservasServices, IEventoEstadoService eventoEstadoService, ITipoEventoServices tipoEventoServices, IUsuarioServices usuarioServices, IEquipoServices equipoServices, ILogger<EventoServices> logger)
         {
             this._db = db;
             _mapper = mapper;
@@ -41,6 +45,7 @@ namespace ApiNet8.Services
             _tipoEventoServices = tipoEventoServices;
             _usuarioServices = usuarioServices;
             _equipoServices = equipoServices;
+            _logger = logger;
         }
 
         public List<EventoResponseDTO> GetEventos()
@@ -107,6 +112,7 @@ namespace ApiNet8.Services
             }
             catch (Exception e)
             {
+                _logger.LogError(e, "Error al obtener el evento por ID {EventoId} para el usuario actual", id);
                 throw new Exception(e.Message, e);
             }
         }
@@ -143,6 +149,7 @@ namespace ApiNet8.Services
             }
             catch (Exception e)
             {
+                _logger.LogError(e, "Error al obtener el evento por ID {EventoId} para el usuario actual", idEvento);
                 throw new Exception(e.Message, e);
             }
         }
@@ -194,7 +201,7 @@ namespace ApiNet8.Services
                 foreach (var idDisc in eventoDTO?.IdsDisciplinas)
                 {
                     Disciplina? d = _disciplinasYLeccionesServices.GetDisciplinaById(idDisc);
-                    if (d != null) 
+                    if (d != null)
                     {
                         evento.Disciplinas.Add(d);
                     }
@@ -207,7 +214,7 @@ namespace ApiNet8.Services
                 evento.TipoEvento = _tipoEventoServices.GetTipoEventoById(eventoDTO.IdTipoEvento);
 
                 // buscar instalacion
-                Instalacion instalacion = _instalacionServices.GetInstalacionById(eventoDTO.IdInstalacion);                
+                Instalacion instalacion = _instalacionServices.GetInstalacionById(eventoDTO.IdInstalacion);
 
                 // verificar que no este reservada
                 bool instalacionDisponible = _reservasServices.VerificarInstalacionDisponible((DateTime)eventoDTO.FechaInicio, (DateTime)eventoDTO.FechaFinEvento, instalacion);
@@ -249,7 +256,7 @@ namespace ApiNet8.Services
                 // verifico si el tipo es partido
                 if (evento.TipoEvento.NombreTipoEvento == Enums.TipoEvento.Partido.ToString())
                 {
-                    if (eventoDTO.IdsDisciplinas.Count>1)
+                    if (eventoDTO.IdsDisciplinas.Count > 1)
                     {
                         throw new Exception("Si el tipo de evento es partido debe seleccionar solo una disciplina");
                     }
@@ -294,7 +301,7 @@ namespace ApiNet8.Services
                         Visitante = visitante,
                         HistorialEventoList = evento.HistorialEventoList,
                         Banner = evento.Banner
-                    };                   
+                    };
 
                     // Obtener los jugadores de ambos equipos y agregarlos al partido
                     partido.Usuarios = new List<Usuario>();
@@ -332,7 +339,7 @@ namespace ApiNet8.Services
                             partido.Usuarios.Add(planillero);
                         }
                     }
-                    
+
 
                     _db.Partido.Add(partido);
                 }
@@ -340,7 +347,7 @@ namespace ApiNet8.Services
                 {
                     _db.Evento.Add(evento);
                 }
-                
+
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     _db.Reserva.Add(reserva);
@@ -351,6 +358,11 @@ namespace ApiNet8.Services
             }
             catch (Exception e)
             {
+                var eventoJson = JsonSerializer.Serialize(eventoDTO, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+                _logger.LogError(e, "Error al crear el evento" + eventoJson);
                 throw new Exception(e.Message, e);
             }
         }
@@ -631,6 +643,11 @@ namespace ApiNet8.Services
             }
             catch (Exception e)
             {
+                var eventoJson = JsonSerializer.Serialize(eventoDTO, new JsonSerializerOptions
+                {
+                    WriteIndented = true
+                });
+                _logger.LogError(e, "Error al editar el evento" + eventoJson);
                 throw new Exception(e.Message, e);
             }
         }
@@ -723,6 +740,7 @@ namespace ApiNet8.Services
             }
             catch (Exception e)
             {
+                _logger.LogError(e, "Error al eliminar el evento por ID {EventoId} para el usuario actual", eventoDTO.Id);
                 throw new Exception(e.Message, e);
             }
         }
@@ -830,6 +848,7 @@ namespace ApiNet8.Services
             }
             catch (Exception e)
             {
+                _logger.LogError(e, "Error al inscribir al evento por ID {EventoId} para el usuario actual", inscripcion.IdEvento);
                 throw new Exception(e.Message);
             }
         }
@@ -921,6 +940,7 @@ namespace ApiNet8.Services
             }
             catch (Exception e)
             {
+                _logger.LogError(e, "Error al inscribir al evento por ID {EventoId} para el usuario actual", IdEvento);
                 throw new Exception(e.Message);
             }
         }
@@ -1015,6 +1035,7 @@ namespace ApiNet8.Services
             }
             catch (Exception e)
             {
+                _logger.LogError(e, "Error al desinscribirse al evento por ID {EventoId} para el usuario actual", IdEvento);
                 throw new Exception(e.Message);
             }
 
@@ -1100,6 +1121,7 @@ namespace ApiNet8.Services
             }
             catch (Exception e)
             {
+                _logger.LogError(e, "Error al tomar asistencia al evento por ID {EventoId} para el usuario " + inscripcion.IdUsuario, inscripcion.IdEvento);
                 throw new Exception(e.Message);
             }
 
