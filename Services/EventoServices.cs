@@ -129,8 +129,8 @@ namespace ApiNet8.Services
                     throw new Exception("CurrentUser es null");
                 }
 
-                // obtengo inscripciones del usuario al evento
-                Inscripcion? inscripcion = GetInscripcionesByUsuarioByEvento(evento.Id, currentUser.Id);
+                // obtengo inscripciones del usuario al evento activas
+                Inscripcion? inscripcion = GetInscripcionesByUsuarioByEventoActivas(evento.Id, currentUser.Id);
 
                 EventoByUsuarioDTO response = new EventoByUsuarioDTO
                 {
@@ -151,6 +151,14 @@ namespace ApiNet8.Services
         {
             List<Inscripcion> inscripciones = GetInscripcionesByUsuario(IdUsuario);
             Inscripcion? inscripcionEvento = inscripciones.Where(i=>i.Evento.Id == idEvento).OrderByDescending(f=>f.FechaInscripcion).FirstOrDefault();
+
+            return inscripcionEvento;
+        }
+
+        public Inscripcion? GetInscripcionesByUsuarioByEventoActivas(int idEvento, int IdUsuario)
+        {
+            List<Inscripcion> inscripciones = GetInscripcionesByUsuario(IdUsuario);
+            Inscripcion? inscripcionEvento = inscripciones.Where(i => i.Evento.Id == idEvento && i.FechaBaja == null).OrderByDescending(f => f.FechaInscripcion).FirstOrDefault();
 
             return inscripcionEvento;
         }

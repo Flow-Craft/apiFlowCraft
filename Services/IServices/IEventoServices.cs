@@ -26,5 +26,6 @@ namespace ApiNet8.Services.IServices
         Inscripcion? GetInscripcionesByUsuarioByEvento(int idEvento, int IdUsuario);
         void InscribirseAEventoByUsuario(int IdEvento);
         void DesinscribirseAEventoByUsuario(int IdEvento);
+        Inscripcion? GetInscripcionesByUsuarioByEventoActivas(int idEvento, int IdUsuario);
     }
 }
