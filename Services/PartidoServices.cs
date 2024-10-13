@@ -479,14 +479,16 @@ namespace ApiNet8.Services
             {
                 Evento evento = _eventoServices.GetEventoById(Id);
 
-                Partido part = _db.Partido.Include(h => h.HistorialEventoList).
+                Partido? part = _db.Partido.Include(h => h.HistorialEventoList).
                     ThenInclude(ie => ie.EstadoEvento).
                     Include(l => l.Local).
                     ThenInclude(e => e.Equipo).
                     ThenInclude(eq => eq.EquipoUsuarios).
+                    ThenInclude(u => u.Usuario).
                     Include(v => v.Visitante).
                     ThenInclude(e => e.Equipo).
                     ThenInclude(eq => eq.EquipoUsuarios).
+                    ThenInclude(u => u.Usuario).
                     Include(d => d.Disciplinas).
                     Include(c => c.Categoria).
                     Include(u => u.Usuarios).
