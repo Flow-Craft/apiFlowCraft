@@ -217,7 +217,7 @@ namespace ApiNet8.Services
                 Instalacion instalacion = _instalacionServices.GetInstalacionById(eventoDTO.IdInstalacion);
 
                 // verificar que no este reservada
-                bool instalacionDisponible = _reservasServices.VerificarInstalacionDisponible((DateTime)eventoDTO.FechaInicio, (DateTime)eventoDTO.FechaFinEvento, instalacion);
+                bool instalacionDisponible = _reservasServices.VerificarInstalacionDisponible((DateTime)eventoDTO.FechaInicio, (DateTime)eventoDTO.FechaFinEvento, instalacion, evento);
 
                 if (!instalacionDisponible)
                 {
@@ -431,7 +431,7 @@ namespace ApiNet8.Services
                     DateTime fechaInicioReserva = eventoDTO.FechaInicio != null ? (DateTime)eventoDTO.FechaInicio : (DateTime)evento.FechaInicio;
                     DateTime fechaFinReserva = eventoDTO.FechaFinEvento != null ? (DateTime)eventoDTO.FechaFinEvento : (DateTime)evento.FechaInicio;
 
-                    bool instalacionDisponible = _reservasServices.VerificarInstalacionDisponible(fechaInicioReserva, fechaFinReserva, instalacion);
+                    bool instalacionDisponible = _reservasServices.VerificarInstalacionDisponible(fechaInicioReserva, fechaFinReserva, instalacion, evento);
 
                     if (!instalacionDisponible)
                     {
