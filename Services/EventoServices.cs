@@ -1072,6 +1072,21 @@ namespace ApiNet8.Services
 
         }
 
+        public List<Asistencia> GetAsistenciasByUsuarioAndPeriodo(int idUsuario, DateTime fechaInicio, DateTime fechaFin)
+        {
+            try
+            {
+                List<Asistencia> asistencias = _db.Asistencia.Include(U => U.Usuario).Include(e => e.Evento).ThenInclude(t=>t.TipoEvento).Include(e => e.Evento).ThenInclude(t => t.Instalacion).Where(a => a.Usuario.Id == idUsuario && a.HoraEntrada >= fechaInicio && a.HoraEntrada<= fechaFin).ToList();
+
+                return asistencias;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+
+        }
+
         public void TomarAsistencia(InscripcionEventoDTO inscripcion) 
         {
             try
