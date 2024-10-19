@@ -1,10 +1,6 @@
 ﻿using ApiNet8.Data;
 using ApiNet8.Services.IServices;
 using AutoMapper;
-//using Microsoft.EntityFrameworkCore.Metadata.Internal;
-//using static System.Net.Mime.MediaTypeNames;
-//using System.Reflection.Metadata;
-//using System.IO;
 using iText.Kernel.Pdf;
 using iText.Layout;
 using iText.Layout.Element;
@@ -13,6 +9,7 @@ using iText.Layout.Properties;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Models.Eventos;
 using ApiNet8.Migrations;
+using iText.Layout.Borders;
 
 namespace ApiNet8.Services
 {
@@ -50,6 +47,7 @@ namespace ApiNet8.Services
 
                 // Agregar logo
                 Image logo = new Image(ImageDataFactory.Create(imagePath));
+                logo.ScaleToFit(50, 50); // Cambia el tamaño a 50x50 puntos
                 document.Add(logo);
 
                 // Título
@@ -63,7 +61,7 @@ namespace ApiNet8.Services
                 document.Add(new Paragraph($"Fecha de generación: {fechaGeneracion}")
                     .SetTextAlignment(TextAlignment.RIGHT)
                     .SetFontSize(12));
-                document.Add(new Paragraph($"Periodo: {periodoInicio} a {periodoFin}")
+                document.Add(new Paragraph($"Periodo: {periodoInicio.ToShortDateString()} a {periodoFin.ToShortDateString()}")
                     .SetTextAlignment(TextAlignment.CENTER)
                     .SetFontSize(12));
 
@@ -79,21 +77,25 @@ namespace ApiNet8.Services
                     .SetFontSize(12));
 
                 // Tabla de eventos
-                Table table = new Table(4, true); // 4 columnas
-                table.AddHeaderCell("Evento");
-                table.AddHeaderCell("Instalación");
-                table.AddHeaderCell("Fecha Evento");
-                table.AddHeaderCell("Tipo Evento");
+                //Table table = new Table(4, true); // 4 columnas
+
+                Table table = new Table(new float[] { 4, 4, 4, 4 });
+                table.SetWidth(UnitValue.CreatePercentValue(100));
+
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Evento")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Instalación")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Fecha")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Tipo de Evento")).SetBorderBottom(new SolidBorder(1)));
 
                 // traer asistencias por usuario en rango fechas
                 List<Asistencia> asistenciasUsuario = _eventoServices.GetAsistenciasByUsuarioAndPeriodo(idUsuario, periodoInicio, periodoFin);
 
                 foreach (var evento in asistenciasUsuario)
                 {
-                    table.AddCell(evento.Evento.Titulo);
-                    table.AddCell(evento.Evento.Instalacion.Nombre);
-                    table.AddCell(evento.Evento.FechaInicio.ToString());
-                    table.AddCell(evento.Evento.TipoEvento.NombreTipoEvento);
+                    table.AddCell(new Cell().Add(new Paragraph(evento.Evento.Titulo)).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph(evento.Evento.Instalacion.Nombre)).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph(evento.Evento.FechaInicio?.ToShortDateString() ?? string.Empty)).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph(evento.Evento.TipoEvento.NombreTipoEvento)).SetBorderBottom(new SolidBorder(1)));
                 }
 
                 document.Add(table);
