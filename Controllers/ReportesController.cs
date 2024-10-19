@@ -15,6 +15,7 @@ namespace ApiNet8.Controllers
             _reporteServices = reporteServices;
         }
 
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult ReporteEvento(EventoReporteDTO reporte) // poner el dto para que me mande los datos
         {
