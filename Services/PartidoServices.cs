@@ -548,13 +548,13 @@ namespace ApiNet8.Services
             }
         }
 
-        public bool EsArbitro()//LISTO
+        public bool EsArbitro()//LISTO se necesita filtrar por admin o por arbitro. 
         {
             try
             {
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
-                PerfilUsuario arbitro = _db.PerfilUsuario.Where(pu => pu.FechaBaja == null && pu.Usuario.Id == currentUser.Id && pu.Perfil.Id == 6).FirstOrDefault();
+                PerfilUsuario arbitro = _db.PerfilUsuario.Where(pu => pu.FechaBaja == null && pu.Usuario.Id == currentUser.Id && (pu.Perfil.Id == 6 ||  pu.Perfil.Id == 1)).FirstOrDefault();
 
                 if (arbitro != null)
                 {
