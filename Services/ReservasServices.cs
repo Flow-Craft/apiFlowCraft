@@ -56,6 +56,7 @@ namespace ApiNet8.Services
 
         public bool VerificarInstalacionDisponible(DateTime fechaInicio, DateTime fechaFin, Instalacion instalacion, Evento evento)
         {
+            evento.Instalacion = instalacion;
             // Obtener las reservas asociadas al evento actual
             List<Reserva> reservasDelEvento = GetReservasByEvento(evento);
 
