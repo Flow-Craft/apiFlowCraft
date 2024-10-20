@@ -33,6 +33,18 @@ namespace ApiNet8.Services
             return acciones;
         }
 
+        public List<TipoAccionPartido> GetTiposAccionPartidoByDisciplina(int idDis, bool leccion)
+        {
+            List<TipoAccionPartido> acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id==idDis).ToList();
+
+            if (leccion)
+            {
+                acciones.RemoveAll(a => a.NombreTipoAccion== "Tarjeta Amarilla" || a.NombreTipoAccion == "Tarjeta Roja");
+            }
+
+            return acciones;
+        }
+
         public List<TipoAccionPartido> GetTiposAccionPartidoActivos()
         {
             return _db.TipoAccionPartido.Where(a => a.FechaBaja == null).ToList();

@@ -24,9 +24,10 @@ namespace ApiNet8.Services.IServices
 
         //Estadisticas
         Estadistica AltaEstadistica(EstadisticaDTO estadisticaDTO);//
-        List<Estadistica> GetEstadisticasPartidos(int Id);//
+        List<Estadistica> GetEstadisticasByUsuario(int IdUsuario, bool leccion);//
+        Estadistica GetEstadisticaById(int Id);
         void ActualizarEstadistica(EstadisticaDTO estadisticaDTO); //
-        void BajaEstadistica();//
+        void BajaEstadistica(EstadisticaDTO estadisticaDTO);//
 
     }
 }

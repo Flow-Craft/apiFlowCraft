@@ -20,7 +20,7 @@ namespace ApiNet8.Models.Partidos
 
 
         [DeleteBehavior(DeleteBehavior.Restrict)]
-        public Partido Partido { get; set; }
+        public Partido? Partido { get; set; }
 
 
         [DeleteBehavior(DeleteBehavior.Restrict)]
@@ -28,7 +28,7 @@ namespace ApiNet8.Models.Partidos
         
 
         [DeleteBehavior(DeleteBehavior.Restrict)]
-        public Equipo Equipo { get; set; }
+        public Equipo? Equipo { get; set; }
         
     }
 }

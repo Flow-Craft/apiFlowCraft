@@ -140,7 +140,7 @@ namespace ApiNet8.Data
 
             modelBuilder.Entity<TipoEvento>().HasData(
                 new TipoEvento { Id = 1, NombreTipoEvento = "Partido", Descripcion = "Partido de un deporte", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
-                new TipoEvento { Id = 2, NombreTipoEvento = "Recital", Descripcion = "Recital en el club", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+                new TipoEvento { Id = 6, NombreTipoEvento = "Recital", Descripcion = "Recital en el club", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
                 new TipoEvento { Id = 3, NombreTipoEvento = "Taller", Descripcion = "Taller de enseñanza", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
                 new TipoEvento { Id = 4, NombreTipoEvento = "Curso", Descripcion = "Curso", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
                 new TipoEvento { Id = 5, NombreTipoEvento = "Feria", Descripcion = "Feria", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 });
