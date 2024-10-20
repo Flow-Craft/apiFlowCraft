@@ -1115,6 +1115,20 @@ namespace ApiNet8.Services
             }
         }
 
+        public List<Asistencia> GetAsistenciasByEvento(int idEvento)
+        {
+            try
+            {
+                List<Asistencia> asistencias = _db.Asistencia.Include(U => U.Usuario).Include(e => e.Evento).ThenInclude(t => t.TipoEvento).Include(e => e.Evento).ThenInclude(t => t.Instalacion).Where(a => a.Evento.Id == idEvento).ToList();
+
+                return asistencias;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
         public void TomarAsistencia(InscripcionEventoDTO inscripcion) 
         {
             try

@@ -299,7 +299,89 @@ namespace ApiNet8.Services
             }
         }
 
+        public byte[] ReporteEventoByEvento(int idEvento)
+        {
+            // Crear el PDF en memoria
+            using (var memoryStream = new MemoryStream())
+            {
+                PdfWriter writer = new PdfWriter(memoryStream);
+                PdfDocument pdf = new PdfDocument(writer);
+                Document document = new Document(pdf);
 
+                // Obtén el directorio raíz de la aplicación
+                var rootPath = Directory.GetCurrentDirectory();
+
+                // Construye la ruta a la carpeta "Images" dentro del proyecto
+                var imagePath = Path.Combine(rootPath, "Images", "LogoReporte.jpeg");
+
+                // Agregar logo
+                Image logo = new Image(ImageDataFactory.Create(imagePath));
+                logo.ScaleToFit(50, 50); // Cambia el tamaño a 50x50 puntos
+                document.Add(logo);
+
+                // Título
+                Paragraph title = new Paragraph("Asistencia a eventos por evento")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(18);
+                document.Add(title);
+
+                // obtener evento
+                Evento evento = _eventoServices.GetEventoById(idEvento);
+
+                // Fecha de generación 
+                DateTime fechaGeneracion = DateTime.Now;
+                document.Add(new Paragraph($"Fecha de generación: {fechaGeneracion}")
+                    .SetTextAlignment(TextAlignment.RIGHT)
+                    .SetFontSize(12));               
+
+                // fecha de evento
+                document.Add(new Paragraph($"Fecha de evento: {evento.FechaInicio}")
+                    .SetFontSize(12));
+
+                // tipo de evento
+                document.Add(new Paragraph($"Tipo de evento: {evento.TipoEvento.NombreTipoEvento}")
+                    .SetFontSize(12));
+
+                // Datos del usuario
+                Instalacion? instalacion = _instalacionServices.GetInstalacionById(evento.Instalacion.Id);
+                if (instalacion == null)
+                {
+                    throw new Exception("No existe la instalacion");
+                }
+                document.Add(new Paragraph($"Instalacion: {instalacion.Nombre}")
+                    .SetFontSize(12));
+
+
+                // Tabla de eventos
+                Table table = new Table(new float[] { 4, 6 });
+                table.SetWidth(UnitValue.CreatePercentValue(100));
+
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Dni")));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Nombre y apellido")));
+
+                // traer asistencias por evento
+                List<Asistencia> asistenciasUsuario = _eventoServices.GetAsistenciasByEvento(idEvento);
+
+                foreach (var asistencia in asistenciasUsuario)
+                {                 
+                    table.AddCell(new Cell().Add(new Paragraph(asistencia.Usuario.Dni.ToString())));
+                    table.AddCell(new Cell().Add(new Paragraph($"{asistencia.Usuario.Nombre}  {asistencia.Usuario.Apellido}")));
+                }
+
+                document.Add(table);
+
+
+                // Cantidad de asistencias
+                document.Add(new Paragraph($"Cantidad total de asistencias: {asistenciasUsuario.Count}")
+                    .SetFontSize(12));
+
+                // Cerrar el documento
+                document.Close();
+
+                // Retornar el PDF generado como un byte[]
+                return memoryStream.ToArray();
+            }
+        }
 
 
 

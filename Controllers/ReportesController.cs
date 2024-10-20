@@ -47,5 +47,16 @@ namespace ApiNet8.Controllers
             // Retornar el PDF como archivo descargable
             return File(pdfReporte, "application/pdf", "ReporteEventos_Instalacion_Periodo.pdf");
         }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult ReporteEventoByEvento(EventoReporteDTO reporte)
+        {
+            // Llamar al servicio para crear el reporte
+            byte[] pdfReporte = _reporteServices.ReporteEventoByEvento(reporte.idEvento);
+
+            // Retornar el PDF como archivo descargable
+            return File(pdfReporte, "application/pdf", "ReporteEventos_Evento.pdf");
+        }
     }
 }

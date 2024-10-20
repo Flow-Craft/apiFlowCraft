@@ -30,5 +30,6 @@ namespace ApiNet8.Services.IServices
         List<Asistencia> GetAsistenciasByUsuarioAndPeriodo(int idUsuario, DateTime fechaInicio, DateTime fechaFin);
         List<Asistencia> GetAsistenciasByTipoEventoAndPeriodo(int idTipoEvento, DateTime fechaInicio, DateTime fechaFin);
         List<Asistencia> GetAsistenciasByInstalacionAndPeriodo(int idInstalacion, DateTime fechaInicio, DateTime fechaFin);
+        List<Asistencia> GetAsistenciasByEvento(int idEvento);
     }
 }
