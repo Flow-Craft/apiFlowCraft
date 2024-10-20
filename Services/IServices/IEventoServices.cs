@@ -28,5 +28,7 @@ namespace ApiNet8.Services.IServices
         void DesinscribirseAEventoByUsuario(int IdEvento);
         Inscripcion? GetInscripcionesByUsuarioByEventoActivas(int idEvento, int IdUsuario);
         List<Asistencia> GetAsistenciasByUsuarioAndPeriodo(int idUsuario, DateTime fechaInicio, DateTime fechaFin);
+        List<Asistencia> GetAsistenciasByTipoEventoAndPeriodo(int idTipoEvento, DateTime fechaInicio, DateTime fechaFin);
+        List<Asistencia> GetAsistenciasByInstalacionAndPeriodo(int idInstalacion, DateTime fechaInicio, DateTime fechaFin);
     }
 }
