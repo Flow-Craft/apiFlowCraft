@@ -1,4 +1,6 @@
-﻿namespace ApiNet8.Models.Lecciones
+﻿using ApiNet8.Models.Usuarios;
+
+namespace ApiNet8.Models.Lecciones
 {
     public class AsistenciaLeccion
     {
@@ -11,5 +13,6 @@
 
         // Relaciones
         public Leccion Leccion { get; set; }
+        public Usuario Usuario { get; set; }
     }
 }
