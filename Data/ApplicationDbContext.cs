@@ -117,6 +117,12 @@ namespace ApiNet8.Data
                .HasForeignKey(e => e.Id)
                .OnDelete(DeleteBehavior.Restrict); // Desactivar eliminación en cascada
 
+            //modelBuilder.Entity<Evento>()
+            //    .HasOne(e => e.Disciplina)
+            //    .WithMany()
+            //    .HasForeignKey(e => e.Id)
+            //    .OnDelete(DeleteBehavior.Restrict); // Desactivar eliminación en cascada
+
             // cargar data inicial
             //modelBuilder.Entity<Partidos>().HasData(
             //    new Partidos { Id = 1, EquipoA = "Independiente", EquipoB = "Boca", Name = "Fecha 1 copa de la liga", Resultado = "2-0" });

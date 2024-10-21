@@ -50,7 +50,7 @@ namespace ApiNet8.Services
 
         public List<EventoResponseDTO> GetEventos()
         {
-            List<Evento> eventos = _db.Evento.Include(d=>d.Disciplinas).Include(c=>c.Categoria).Include(te=>te.TipoEvento).Include(i=>i.Instalacion).Include(he=>he.HistorialEventoList).ThenInclude(ee=>ee.EstadoEvento).ToList();
+            List<Evento> eventos = _db.Evento.Include(d=>d.Disciplina).Include(c=>c.Categoria).Include(te=>te.TipoEvento).Include(i=>i.Instalacion).Include(he=>he.HistorialEventoList).ThenInclude(ee=>ee.EstadoEvento).ToList();
 
             List<EventoResponseDTO> response = new List<EventoResponseDTO>();
 
@@ -101,7 +101,7 @@ namespace ApiNet8.Services
         {
             try
             {
-                Evento evento = _db.Evento.Include(d => d.Disciplinas).Include(c => c.Categoria).Include(te => te.TipoEvento).Include(i => i.Instalacion).Include(he => he.HistorialEventoList).ThenInclude(ee => ee.EstadoEvento).Where(u => u.Id == id).FirstOrDefault();
+                Evento evento = _db.Evento.Include(d => d.Disciplina).Include(c => c.Categoria).Include(te => te.TipoEvento).Include(i => i.Instalacion).Include(he => he.HistorialEventoList).ThenInclude(ee => ee.EstadoEvento).Where(u => u.Id == id).FirstOrDefault();
 
                 if (evento != null && evento.TipoEvento.NombreTipoEvento == Enums.TipoEvento.Partido.ToString()) 
                 {
@@ -124,7 +124,7 @@ namespace ApiNet8.Services
                 // Obtener el usuario actual desde la sesión
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
-                Evento? evento = _db.Evento.Include(d => d.Disciplinas).Include(c => c.Categoria).Include(te => te.TipoEvento).Include(i => i.Instalacion).Where(u => u.Id == idEvento).FirstOrDefault();
+                Evento? evento = _db.Evento.Include(d => d.Disciplina).Include(c => c.Categoria).Include(te => te.TipoEvento).Include(i => i.Instalacion).Where(u => u.Id == idEvento).FirstOrDefault();
 
                 if (evento == null)
                 {
@@ -195,17 +195,23 @@ namespace ApiNet8.Services
                     throw new Exception("Ya existe un evento con ese nombre.");
                 }
 
-                // asignar disciplinas
-                evento.Disciplinas = new List<Disciplina>();
+                // asignar disciplinas               
+                Disciplina? d = _disciplinasYLeccionesServices.GetDisciplinaById(eventoDTO.IdDisciplina);
 
-                foreach (var idDisc in eventoDTO?.IdsDisciplinas)
-                {
-                    Disciplina? d = _disciplinasYLeccionesServices.GetDisciplinaById(idDisc);
-                    if (d != null)
-                    {
-                        evento.Disciplinas.Add(d);
-                    }
+                if (d == null) {
+                    throw new Exception("No existe la disciplina seleccionada.");
                 }
+
+                evento.Disciplina = d;
+
+                //foreach (var idDisc in eventoDTO?.IdsDisciplinas)
+                //{
+                //    Disciplina? d = _disciplinasYLeccionesServices.GetDisciplinaById(idDisc);
+                //    if (d != null)
+                //    {
+                //        evento.Disciplinas.Add(d);
+                //    }
+                //}
 
                 // asignar categoria
                 evento.Categoria = _categoriaServices.GetCategoriaById(eventoDTO.IdCategoria);
@@ -256,10 +262,10 @@ namespace ApiNet8.Services
                 // verifico si el tipo es partido
                 if (evento.TipoEvento.NombreTipoEvento == Enums.TipoEvento.Partido.ToString())
                 {
-                    if (eventoDTO.IdsDisciplinas.Count > 1)
-                    {
-                        throw new Exception("Si el tipo de evento es partido debe seleccionar solo una disciplina");
-                    }
+                    //if (eventoDTO.IdsDisciplinas.Count > 1)
+                    //{
+                    //    throw new Exception("Si el tipo de evento es partido debe seleccionar solo una disciplina");
+                    //}
 
                     // crear equipoPartido
                     Equipo equipoLocal = _equipoServices.GetEquipoEventoById(eventoDTO.EquipoLocal);
@@ -296,7 +302,7 @@ namespace ApiNet8.Services
                         TipoEvento = evento.TipoEvento,
                         Instalacion = evento.Instalacion,
                         Categoria = evento.Categoria,
-                        Disciplinas = evento.Disciplinas,
+                        Disciplina = evento.Disciplina,
                         Local = local,
                         Visitante = visitante,
                         HistorialEventoList = evento.HistorialEventoList,
@@ -395,19 +401,33 @@ namespace ApiNet8.Services
                 evento.LinkStream = eventoDTO.LinkStream ?? evento.LinkStream;
 
                 // asignar disciplinas
-                if (eventoDTO.IdsDisciplinas != null)
+                if (eventoDTO.IdDisciplina > 0)
                 {
-                    evento.Disciplinas =  new List<Disciplina>();
+                    Disciplina? d = _disciplinasYLeccionesServices.GetDisciplinaById(eventoDTO.IdDisciplina);
 
-                    foreach (var idDisc in eventoDTO.IdsDisciplinas)
+                    if (d == null)
                     {
-                        Disciplina? d = _disciplinasYLeccionesServices.GetDisciplinaById(idDisc);
-                        if (d != null)
-                        {
-                            evento.Disciplinas.Add(d);
-                        }
+                        throw new Exception("No existe la disciplina seleccionada.");
                     }
+
+                    evento.Disciplina = d;
                 }
+               
+
+                //// asignar disciplinas
+                //if (eventoDTO.IdsDisciplinas != null)
+                //{
+                //    evento.Disciplinas =  new List<Disciplina>();
+
+                //    foreach (var idDisc in eventoDTO.IdsDisciplinas)
+                //    {
+                //        Disciplina? d = _disciplinasYLeccionesServices.GetDisciplinaById(idDisc);
+                //        if (d != null)
+                //        {
+                //            evento.Disciplinas.Add(d);
+                //        }
+                //    }
+                //}
 
                 // asignar categoria
                 if (eventoDTO.IdCategoria > 0)
@@ -510,7 +530,7 @@ namespace ApiNet8.Services
                     partido.Banner = eventoDTO.Banner ?? evento.Banner;
                     partido.CupoMaximo = eventoDTO.CupoMaximo > 0 ? eventoDTO.CupoMaximo : evento.CupoMaximo;
                     partido.LinkStream = eventoDTO.LinkStream ?? evento.LinkStream;
-                    partido.Disciplinas = evento.Disciplinas;
+                    partido.Disciplina = evento.Disciplina;
                     partido.Categoria = evento.Categoria;
                     partido.Instalacion = evento.Instalacion;
                     partido.FechaInicio = evento.FechaInicio;

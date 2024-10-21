@@ -1,5 +1,6 @@
 ﻿using ApiNet8.Models.Lecciones;
 using ApiNet8.Models.Reservas;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiNet8.Models.Eventos
 {
@@ -20,7 +21,7 @@ namespace ApiNet8.Models.Eventos
         public IList<HistorialEvento>? HistorialEventoList { get; set; }
         public TipoEvento TipoEvento { get; set; }
         public Instalacion Instalacion { get; set; }
-        public Categoria Categoria { get; set; }
-        public IList<Disciplina> Disciplinas { get; set; }
+        public Categoria Categoria { get; set; }       
+        public Disciplina Disciplina { get; set; }
     }
 }

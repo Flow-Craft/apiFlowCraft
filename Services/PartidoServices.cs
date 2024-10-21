@@ -106,7 +106,7 @@ namespace ApiNet8.Services
                             if (tipAcc.NombreTipoAccion == "Tarjeta Amarilla")
                             {
                                 List<AccionPartido> acciones = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Partido.Id == part.Id && a.TipoAccionPartido.NombreTipoAccion == "Tarjeta Amarilla").ToList();
-                                if (acciones.Count+1 == part.Disciplinas.FirstOrDefault().TarjetasAdvertencia)
+                                if (acciones.Count+1 == part.Disciplina.TarjetasAdvertencia)
                                 {
                                     accion.TotalTarjetas = true;
                                     part = ExpulsionJugador(accion.EquipoLocal, part, accion);
@@ -116,7 +116,7 @@ namespace ApiNet8.Services
                             if (tipAcc.NombreTipoAccion == "Tarjeta Roja")
                             {
                                 List<AccionPartido> acciones = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Partido.Id == part.Id && a.TipoAccionPartido.NombreTipoAccion == "Tarjeta Roja").ToList();
-                                if (acciones.Count+1 == part.Disciplinas.FirstOrDefault().TarjetasExpulsion)
+                                if (acciones.Count+1 == part.Disciplina.TarjetasExpulsion)
                                 {
                                     accion.TotalTarjetas = true;
                                     part = ExpulsionJugador(accion.EquipoLocal, part, accion);
@@ -304,7 +304,7 @@ namespace ApiNet8.Services
                         part.HistorialEventoList.Add(nuevoHistorial);
 
                         // Sumo el set ganado
-                        if (part.Disciplinas.FirstOrDefault().Nombre == "Voley")
+                        if (part.Disciplina.Nombre == "Voley")
                         {
                             List<AccionPartido> puntos = _db.AccionPartido.Where(a => a.Partido.Id == partidoId && a.Periodo == part.Periodo && a.Descripcion == "Punto").ToList();
 
@@ -379,7 +379,7 @@ namespace ApiNet8.Services
 
                         //part.FechaFin = DateTime.Now;
 
-                        if (part.Disciplinas.FirstOrDefault().Nombre == "Voley")
+                        if (part.Disciplina.Nombre == "Voley")
                         {
                             List<AccionPartido> puntos = _db.AccionPartido.Where(a => a.Partido.Id == partidoId && a.Periodo == part.Periodo && a.Descripcion == "Punto").ToList();
 
@@ -489,13 +489,13 @@ namespace ApiNet8.Services
                     ThenInclude(e => e.Equipo).
                     ThenInclude(eq => eq.EquipoUsuarios).
                     ThenInclude(u => u.Usuario).
-                    Include(d => d.Disciplinas).
+                    Include(d => d.Disciplina).
                     Include(c => c.Categoria).
                     Include(u => u.Usuarios).
                     Where(i => i.Id == Id).FirstOrDefault();
 
                 part.Id = ((Evento)part).Id;
-                part.Disciplinas = evento.Disciplinas;
+                part.Disciplina = evento.Disciplina;
                 part.Categoria = evento.Categoria;
                 part.TipoEvento = evento.TipoEvento;
                 part.Instalacion = evento.Instalacion;
