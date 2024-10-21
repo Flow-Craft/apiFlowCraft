@@ -456,17 +456,17 @@ namespace ApiNet8.Migrations
                 column: "FechaCreacion",
                 value: new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(8291));
 
-            migrationBuilder.InsertData(
-                table: "TipoEvento",
-                columns: new[] { "Id", "Descripcion", "FechaBaja", "FechaCreacion", "FechaModificacion", "NombreTipoEvento", "UsuarioEditor" },
-                values: new object[,]
-                {
-                    { 1, "Partido de un deporte", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7909), null, "Partido", 1 },
-                    { 6, "Recital en el club", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7914), null, "Recital", 1 },
-                    { 3, "Taller de enseñanza", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7916), null, "Taller", 1 },
-                    { 4, "Curso", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7918), null, "Curso", 1 },
-                    { 5, "Feria", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7920), null, "Feria", 1 }
-                });
+            //migrationBuilder.InsertData(
+            //    table: "TipoEvento",
+            //    columns: new[] { "Id", "Descripcion", "FechaBaja", "FechaCreacion", "FechaModificacion", "NombreTipoEvento", "UsuarioEditor" },
+            //    values: new object[,]
+            //    {
+            //        { 1, "Partido de un deporte", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7909), null, "Partido", 1 },
+            //        { 6, "Recital en el club", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7914), null, "Recital", 1 },
+            //        { 3, "Taller de enseñanza", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7916), null, "Taller", 1 },
+            //        { 4, "Curso", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7918), null, "Curso", 1 },
+            //        { 5, "Feria", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7920), null, "Feria", 1 }
+            //    });
 
             migrationBuilder.UpdateData(
                 table: "UsuarioEstado",
@@ -524,6 +524,7 @@ namespace ApiNet8.Migrations
             INSERT INTO TipoAccionPartido(NombreTipoAccion, Descripcion, ModificaTarjetasAdvertencia, ModificaTarjetasExpulsion, secuencial, DisciplinaId, FechaBaja, FechaCreacion, FechaModificacion, UsuarioEditor) VALUES('Bloqueo', 'Frenado de ataque contrario al lado de la red', 0, 0, 0, 2, null, GETDATE(), null, 1);
             INSERT INTO TipoAccionPartido(NombreTipoAccion, Descripcion, ModificaTarjetasAdvertencia, ModificaTarjetasExpulsion, secuencial, DisciplinaId, FechaBaja, FechaCreacion, FechaModificacion, UsuarioEditor) VALUES('Tarjeta Amarilla', 'Advertencia al jugador por comportamiento que no está permitido dentro del campo de juego', 1, 0, 0, 2, null, GETDATE(), null, 1);
             INSERT INTO TipoAccionPartido(NombreTipoAccion, Descripcion, ModificaTarjetasAdvertencia, ModificaTarjetasExpulsion, secuencial, DisciplinaId, FechaBaja, FechaCreacion, FechaModificacion, UsuarioEditor) VALUES('Tarjeta Roja', 'Sanción que indica que un jugador ha sido expulsado del partido y no puede continuar jugando', 0, 1, 0, 2, null, GETDATE(), null, 1);
+            INSERT INTO TipoAccionPartido(NombreTipoAccion, Descripcion, ModificaTarjetasAdvertencia, ModificaTarjetasExpulsion, secuencial, DisciplinaId, FechaBaja, FechaCreacion, FechaModificacion, UsuarioEditor) VALUES('Cambio Jugador', 'Cambio de jugador dentro de la cancha por uno en la banca', 0, 0, 0, 2, null, GETDATE(), null, 1);
             INSERT INTO TipoAccionPartido(NombreTipoAccion, Descripcion, ModificaTarjetasAdvertencia, ModificaTarjetasExpulsion, secuencial, DisciplinaId, FechaBaja, FechaCreacion, FechaModificacion, UsuarioEditor) VALUES('Defensa', 'Recepcion de ataque contrario', 0, 0, 0, 2, null, GETDATE(), null, 1)"
             );
         }

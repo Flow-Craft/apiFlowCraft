@@ -33,13 +33,67 @@ namespace ApiNet8.Services
             return acciones;
         }
 
-        public List<TipoAccionPartido> GetTiposAccionPartidoByDisciplina(int idDis, bool leccion)
+        public List<TipoAccionPartido> GetTiposAccionPaneles(TipoAccionPartidoDTO tipAc)
         {
-            List<TipoAccionPartido> acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id==idDis).ToList();
+            List<TipoAccionPartido> acciones = new List<TipoAccionPartido>();
+
+            if (tipAc.IdDisciplina == 1)
+            {
+                if (tipAc.Estadistica == true)
+                {
+                    if (tipAc.Partido == true)
+                    {
+                        acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && a.NombreTipoAccion != "Cambio Jugador").ToList();
+                    }
+                    else {
+                        acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && a.NombreTipoAccion != "Tarjeta Amarilla" && a.NombreTipoAccion != "Tarjeta Roja" && a.NombreTipoAccion != "Cambio Jugador").ToList();
+                    }
+                }
+                else
+                {
+                    acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && (a.NombreTipoAccion == "Tarjeta Amarilla" || a.NombreTipoAccion == "Tarjeta Roja" || a.NombreTipoAccion == "Falta" || a.NombreTipoAccion == "Gol" || a.NombreTipoAccion == "Cambio Jugador")).ToList();
+                } 
+            }
+            if (tipAc.IdDisciplina == 2)
+            {
+                if (tipAc.Estadistica == true)
+                {
+                    acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && a.NombreTipoAccion != "Tarjeta Amarilla" && a.NombreTipoAccion != "Tarjeta Roja" && a.NombreTipoAccion != "Cambio Jugador" && a.NombreTipoAccion != "Punto").ToList();
+                    
+                }
+                else
+                {
+                    acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && (a.NombreTipoAccion == "Tarjeta Amarilla" || a.NombreTipoAccion == "Tarjeta Roja" ||  a.NombreTipoAccion == "Punto" || a.NombreTipoAccion == "Cambio Jugador")).ToList();
+                }
+            }
+            return acciones;
+        }
+        public List<TipoAccionPartido> GetTiposAccionVoley(bool leccion)
+        {
+            List<TipoAccionPartido> acciones = new List<TipoAccionPartido>();
 
             if (leccion)
             {
-                acciones.RemoveAll(a => a.NombreTipoAccion== "Tarjeta Amarilla" || a.NombreTipoAccion == "Tarjeta Roja");
+                acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).
+                Where(a => a.FechaBaja == null && a.Disciplina.Nombre == "Voleyball" &&
+                (a.NombreTipoAccion != "Tarjeta Amarilla" || a.NombreTipoAccion != "Tarjeta Roja" || a.NombreTipoAccion != "Punto" || a.NombreTipoAccion != "Cambio Jugador")).ToList();
+            }
+            else
+            {
+                acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).
+                Where(a => a.FechaBaja == null && a.Disciplina.Nombre == "Voleyball" &&
+                (a.NombreTipoAccion == "Tarjeta Amarilla" || a.NombreTipoAccion == "Tarjeta Roja" || a.NombreTipoAccion == "Punto" || a.NombreTipoAccion == "Cambio Jugador")).ToList();
+            }
+            return acciones;
+        }
+
+        public List<TipoAccionPartido> GetTiposAccionLeccionByDisciplina(int idDis, bool leccion)
+        {
+            List<TipoAccionPartido> acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == idDis).ToList();
+
+            if (leccion)
+            {
+                acciones.RemoveAll(a => a.NombreTipoAccion == "Tarjeta Amarilla" || a.NombreTipoAccion == "Tarjeta Roja");
             }
 
             return acciones;

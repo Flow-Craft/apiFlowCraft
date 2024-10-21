@@ -1,4 +1,5 @@
-﻿using ApiNet8.Models.Lecciones;
+﻿using ApiNet8.Models.Eventos;
+using ApiNet8.Models.Lecciones;
 using Microsoft.EntityFrameworkCore;
 
 namespace ApiNet8.Models.Partidos

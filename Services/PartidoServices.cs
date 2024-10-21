@@ -144,11 +144,11 @@ namespace ApiNet8.Services
 
                     if (estadisticaDTO.Secuencial == false)  // si es false es voley, sino futbol
                     {
-                        estadistica = _db.Estadistica.Where(p => p.MarcaEstadistica == estadisticaDTO.MarcaEstadistica && p.TipoAccionPartido.Id==estadisticaDTO.IdTipoAccion && p.Partido.Id==estadisticaDTO.IdPartido).FirstOrDefault();
+                        estadistica = _db.Estadistica.Where(p => p.MarcaEstadistica == estadisticaDTO.MarcaEstadistica && p.TipoAccionPartido.Id==estadisticaDTO.IdTipoAccion && p.Partido.Id==estadisticaDTO.IdPartido && p.AsistenciaLeccion.Id == estadisticaDTO.IdAsistencia).FirstOrDefault();
                     }
                     else 
                     {
-                        estadistica = _db.Estadistica.Where(p => p.TipoAccionPartido.Id == estadisticaDTO.IdTipoAccion && p.Partido.Id == estadisticaDTO.IdPartido).FirstOrDefault();
+                        estadistica = _db.Estadistica.Where(p => p.TipoAccionPartido.Id == estadisticaDTO.IdTipoAccion && p.Partido.Id == estadisticaDTO.IdPartido && p.AsistenciaLeccion.Id == estadisticaDTO.IdAsistencia).FirstOrDefault();
                     }
                     
                     if (estadistica == null)
@@ -174,6 +174,7 @@ namespace ApiNet8.Services
                             MarcaEstadistica = estadisticaDTO.MarcaEstadistica,
                             FechaCreacion = DateTime.Now,
                             Equipo = equipo,
+                            RazonBaja = "",
                             UsuarioEditor = currentUser.Id
                         };
                         _db.Estadistica.Add(estadistica);
@@ -218,12 +219,12 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
-        public List<Estadistica> GetEstadisticasByUsuario(int IdUsuario, bool leccion)
+        public List<Estadistica> GetEstadisticasByUsuario(EstadisticaDTO estadisticaDTO)
         {
             try
             {
                 List<Estadistica> est = new List<Estadistica>();
-                if (leccion==true)
+                if (estadisticaDTO.Leccion == true)
                 {
                     est = _db.Estadistica.
                     Include(p => p.TipoAccionPartido).
@@ -231,7 +232,7 @@ namespace ApiNet8.Services
                     ThenInclude(u => u.Usuario).
                     Include(p => p.AsistenciaLeccion).
                     ThenInclude(u => u.Leccion).
-                    Where(a => a.AsistenciaLeccion.Usuario.Id == IdUsuario).ToList();
+                    Where(a => a.AsistenciaLeccion.Usuario.Id == estadisticaDTO.IdUsuario).ToList();
                 }
                 else {
                     est = _db.Estadistica.
@@ -240,7 +241,7 @@ namespace ApiNet8.Services
                     ThenInclude(u => u.Usuario).
                     Include(p => p.Partido).
                     Include(p => p.TipoAccionPartido).
-                    Where(a => a.Equipo.EquipoUsuarios.Any(u => u.Usuario.Id == IdUsuario)).ToList();
+                    Where(a => a.Equipo.EquipoUsuarios.Any(u => u.Usuario.Id == estadisticaDTO.IdUsuario)).ToList();
                 }
                 return est;
             }
@@ -339,7 +340,8 @@ namespace ApiNet8.Services
                                 Periodo = part.Periodo,
                                 TipoAccionPartido = tipAcc,
                                 EquipoLocal = accion.EquipoLocal,
-                                Partido = part
+                                Partido = part,
+                                NroJugadorCambio = _db.EquipoUsuario.Where(p => p.Id == accion.IdJugadorEnBanca).FirstOrDefault().NumCamiseta
                             };
 
                             if (tipAcc.NombreTipoAccion == "Gol")
@@ -354,9 +356,9 @@ namespace ApiNet8.Services
                                 }
                             }
 
-                            if (tipAcc.NombreTipoAccion == "Cambio jugador")
+                            if (tipAcc.NombreTipoAccion == "Cambio Jugador")
                             {
-                                part = CambioJugador(part, accion);
+                                part = CambioJugador(part, accion, false);
                             }
 
                             if (tipAcc.ModificaTarjetasAdvertencia == true)
@@ -402,7 +404,7 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
-        public void BajaAccionPartido(int idTipoAccionPartido, int idPartido)
+        public void BajaAccionPartido(AccionPartidoDTO accion)//LISTO
         {
             try
             {
@@ -413,8 +415,8 @@ namespace ApiNet8.Services
                     using (var transaction = _db.Database.BeginTransaction())
                     {
 
-                        AccionPartido accionPartido = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Partido.Id == idPartido && a.TipoAccionPartido.Id == idTipoAccionPartido && a.FechaBaja == null).OrderByDescending(a => a.FechaCreacion).FirstOrDefault();
-                        Partido part = GetPartidoById(idPartido);
+                        AccionPartido accionPartido = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Id == accion.Id).FirstOrDefault();
+                        Partido part = GetPartidoById(accion.IdPartido);
                         accionPartido.FechaBaja = DateTime.Now;
                         accionPartido.UsuarioEditor = currentUser.Id;
 
@@ -430,13 +432,13 @@ namespace ApiNet8.Services
                             }
                         }
 
-                        if (accionPartido.TipoAccionPartido.NombreTipoAccion == "Cambio jugador")
+                        if (accionPartido.TipoAccionPartido.NombreTipoAccion == "Cambio Jugador")
                         {
                             AccionPartidoDTO accionPartidoDTO = new AccionPartidoDTO();
                             accionPartidoDTO.EquipoLocal = accionPartido.EquipoLocal;
                             accionPartidoDTO.IdJugador = accionPartido.NroJugadorCambio;
                             accionPartidoDTO.IdJugadorEnBanca = accionPartido.NroJugador;
-                            part = CambioJugador(part, accionPartidoDTO);
+                            part = CambioJugador(part, accionPartidoDTO,true);
                         }
 
                         if (accionPartido.TipoAccionPartido.ModificaTarjetasAdvertencia == true)
@@ -473,11 +475,20 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
-        public Partido CambioJugador(Partido part, AccionPartidoDTO accion)//LISTO
+        public Partido CambioJugador(Partido part, AccionPartidoDTO accion, bool baja)//LISTO
         {
-            string jugador = _db.EquipoUsuario.Where(p => p.Id == accion.IdJugador).FirstOrDefault().NumCamiseta.ToString();
-            string jugadorBanca = _db.EquipoUsuario.Where(p => p.Id == accion.IdJugadorEnBanca).FirstOrDefault().NumCamiseta.ToString();
-
+            string jugador;
+            string jugadorBanca;
+            if (baja == false)
+            {
+                jugador = _db.EquipoUsuario.Where(p => p.Id == accion.IdJugador).FirstOrDefault().NumCamiseta.ToString();
+                jugadorBanca = _db.EquipoUsuario.Where(p => p.Id == accion.IdJugadorEnBanca).FirstOrDefault().NumCamiseta.ToString();
+            }
+            else
+            {
+                jugador = accion.IdJugador.ToString();
+                jugadorBanca = accion.IdJugadorEnBanca.ToString();
+            }
             if (accion.EquipoLocal == true)
             {
                 part.Local.JugadoresEnCancha.Add(jugadorBanca);
@@ -492,7 +503,7 @@ namespace ApiNet8.Services
                 part.Visitante.JugadoresEnBanca.Add(jugador);
                 part.Visitante.JugadoresEnCancha.Remove(jugador);
             }
-
+            
             return part;
         }
         public Partido ExpulsionJugador(Partido part, AccionPartidoDTO accion)//listo
@@ -512,7 +523,6 @@ namespace ApiNet8.Services
 
             return part;
         }
-
         public Partido IncorporarJugador(Partido part, string jugador, bool local)//listo
         {
             if (local == true)
@@ -526,7 +536,6 @@ namespace ApiNet8.Services
 
             return part;
         }
-
         public void IniciarTiempo(int partidoId)//listo
         {
             try
@@ -838,7 +847,6 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
-
         public List<Partido> GetPartidos()//LISTO
         {
             try
@@ -860,14 +868,13 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
-
         public bool EsArbitro()//LISTO
         {
             try
             {
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
-                PerfilUsuario arbitro = _db.PerfilUsuario.Where(pu => pu.FechaBaja == null && pu.Usuario.Id == currentUser.Id && pu.Perfil.Id == 6).FirstOrDefault();
+                PerfilUsuario arbitro = _db.PerfilUsuario.Where(pu => pu.FechaBaja == null && pu.Usuario.Id == currentUser.Id && (pu.Perfil.Id == 6 || pu.Perfil.Id == 1)).FirstOrDefault();
 
                 if (arbitro != null)
                 {
@@ -884,7 +891,6 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
-
         public List<Partido> GetPartidosAsignados()//LISTO
         {
             try
@@ -909,7 +915,6 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
-
         public List<EquipoUsuario> GetEquipoLocal(int partidoId)//LISTO
         {
             try
@@ -922,7 +927,6 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
-
         public List<EquipoUsuario> GetEquipoVisitante(int partidoId)//LISTO
         {
             try
@@ -935,7 +939,6 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
-
         public void IniciarPartido(PartidoDTO partidoDTO)//LISTO
         {
             try

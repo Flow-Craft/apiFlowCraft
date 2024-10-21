@@ -9,6 +9,7 @@ using ApiNet8.Models.Usuarios;
 using Microsoft.EntityFrameworkCore;
 using System.Xml;
 using ApiNet8.Models.Eventos;
+using ApiNet8.Models.Partidos;
 
 namespace ApiNet8.Services
 {
@@ -266,7 +267,7 @@ namespace ApiNet8.Services
                 // verificar si existe leccion
                 Leccion leccion = GetLeccionById(inscripcion.IdLeccion);
                 List<InscripcionUsuario> alumnosInsc = GetInscripcionesLeccionVigentes(leccion.Id);
-
+                
                 if (leccion == null)
                 {
                     throw new Exception("No existe la lección");
@@ -349,44 +350,140 @@ namespace ApiNet8.Services
             }
         }
 
-        //public void DesinscribirseALeccion(InscripcionLeccionDTO inscripcion)
-        //{
-        //    try
-        //    {
-        //        // verificar estado evento
-        //        Leccion leccion = GetLeccionById(inscripcion.IdLeccion);
+        public void DesinscribirseALeccion(int id)
+        {
+            try
+            {
+                // busco la inscripcion y la doy de baja
+                InscripcionUsuario? inscripcionLeccion = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(f => f.Id==id).FirstOrDefault();
 
-        //        // busco la inscripcion y la doy de baja
-        //        InscripcionUsuario? inscripcionLeccion = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(f => f.FechaBaja == null).OrderByDescending(f => f.FechaCreacion).FirstOrDefault();
+                inscripcionLeccion.FechaBaja = DateTime.Now;
 
-        //        if (inscripcionEvento == null)
-        //        {
-        //            throw new Exception("No esta inscripto a este evento");
-        //        }
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.InscripcionUsuario.Update(inscripcionLeccion);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
 
-        //        inscripcionEvento.FechaBaja = DateTime.Now;
+        }
+        public void IniciarLeccion(AsistenciaLeccionDTO asistencias)
+        {
+            try
+            {
+                Leccion leccion = GetLeccionById(asistencias.IdLeccion);
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+                
+                //Cambio estado
+                LeccionHistorial? ultimoHistorial = leccion.LeccionHistoriales.Where(ih => ih.FechaFin == null).FirstOrDefault();
 
-        //        // verificar si el evento estaba lleno
-        //        if (evento.EventoLleno)
-        //        {
-        //            evento.EventoLleno = false;
-        //            _db.Evento.Update(evento);
-        //        }
+                if (ultimoHistorial != null)
+                {
+                    ultimoHistorial.FechaFin = DateTime.Now;
+                    _db.LeccionHistorial.Update(ultimoHistorial);
+                }
+                else
+                {
+                    leccion.LeccionHistoriales = new List<LeccionHistorial>();
+                }
 
-        //        using (var transaction = _db.Database.BeginTransaction())
-        //        {
-        //            _db.Inscripcion.Update(inscripcionEvento);
-        //            _db.SaveChanges();
-        //            transaction.Commit();
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        throw new Exception(e.Message);
-        //    }
+                // creo nuevo historial y lo asigno
+                LeccionHistorial nuevoHistorial = new LeccionHistorial
+                {
+                    FechaInicio = DateTime.Now,
+                    DetalleCambioEstado = "Se inició lección",
+                    UsuarioEditor = currentUser?.Id,
+                    LeccionEstado = _leccionEstadoServices.GetLeccionEstadoById(2) // asigno estado Iniciado
+                };
+
+                leccion.LeccionHistoriales.Add(nuevoHistorial);
+
+                //Guardo lista de asistentes
+
+                foreach (var idAlum in asistencias.AlumnosAsist)
+                {
+                    Usuario? usuario = _db.Usuario
+                        .Include(u => u.UsuarioHistoriales).ThenInclude(a => a.UsuarioEstado)
+                        .Where(u => u.Id == idAlum)
+                        .FirstOrDefault();
+
+                    AsistenciaLeccion asist = new AsistenciaLeccion
+                    {
+                        FechaCreacion = DateTime.Now,
+                        AsistioAlumno = true,
+                        Usuario = usuario,
+                        Leccion = leccion
+                    };
+                    
+                    _db.AsistenciaLeccion.Add(asist);
+                }
 
 
-        //}
+                _db.LeccionHistorial.Add(nuevoHistorial);
+                _db.Leccion.Update(leccion);
+                _db.SaveChanges();
+
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
+        public void FinalizarLeccion(int id)
+        {
+            try
+            {
+                Leccion leccion = GetLeccionById(id);
+                List<AsistenciaLeccion> asistencias = _db.AsistenciaLeccion.Where(a => a.Leccion.Id == id && a.FechaCreacion.Date == DateTime.Now.Date).ToList();
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                //Cambio estado
+                LeccionHistorial? ultimoHistorial = leccion.LeccionHistoriales.Where(ih => ih.FechaFin == null).FirstOrDefault();
+
+                if (ultimoHistorial != null)
+                {
+                    ultimoHistorial.FechaFin = DateTime.Now;
+                    _db.LeccionHistorial.Update(ultimoHistorial);
+                }
+                else
+                {
+                    leccion.LeccionHistoriales = new List<LeccionHistorial>();
+                }
+
+                // creo nuevo historial y lo asigno
+                LeccionHistorial nuevoHistorial = new LeccionHistorial
+                {
+                    FechaInicio = DateTime.Now,
+                    DetalleCambioEstado = "Se finalizó la leccion",
+                    UsuarioEditor = currentUser?.Id,
+                    LeccionEstado = _leccionEstadoServices.GetLeccionEstadoById(1) // asigno estado Vigente
+                };
+
+                leccion.LeccionHistoriales.Add(nuevoHistorial);
+
+                foreach (var idAlum in asistencias)
+                {
+                    idAlum.ClaseCompleta = true;
+
+                    _db.AsistenciaLeccion.Update(idAlum);
+                }
+
+                _db.LeccionHistorial.Add(nuevoHistorial);
+                _db.Leccion.Update(leccion);
+                _db.SaveChanges();
+
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
 
     }
 }

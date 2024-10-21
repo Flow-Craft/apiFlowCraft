@@ -9,5 +9,8 @@
         public bool? ModificaTarjetasExpulsion { get; set; }
         public bool? secuencial { get; set; }
         public int? IdDisciplina { get; set; }
+        public bool? Estadistica { get; set; }
+        public bool? Partido { get; set; }
+
     }
 }
