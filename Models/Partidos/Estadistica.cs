@@ -17,9 +17,7 @@ namespace ApiNet8.Models.Partidos
 
         // Relaciones      
         [DeleteBehavior(DeleteBehavior.Restrict)]
-        public TipoAccionPartido? TipoAccionPartido { get; set; }
-
-        public int TipoAccionPartidoId { get; set; }
+        public TipoAccionPartido TipoAccionPartido { get; set; }
 
 
         [DeleteBehavior(DeleteBehavior.Restrict)]
