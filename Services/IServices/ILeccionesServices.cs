@@ -12,5 +12,13 @@ namespace ApiNet8.Services.IServices
         void EliminarLeccion(LeccionDTO leccionDTO);
         bool ExisteLeccion(string nombre);
         List<Leccion> GetLeccionesActivas();
+        List<InscripcionUsuario> GetInscripcionesALecciones(int id);
+        List<InscripcionUsuario> GetInscripcionesLeccionVigentes(int id);
+        List<InscripcionUsuario> GetInscripcionesByUsuario(int id);
+        List<InscripcionUsuario> GetInscripcionesByUsuarioActivas(int id);
+        void InscribirseALeccion(InscripcionLeccionDTO inscripcion);
+        void DesinscribirseALeccion(int id);
+        void IniciarLeccion(AsistenciaLeccionDTO asistencias);
+        void FinalizarLeccion(int id);
     }
 }
