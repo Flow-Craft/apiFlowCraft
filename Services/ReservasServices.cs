@@ -1,8 +1,10 @@
 ﻿using ApiNet8.Data;
+using ApiNet8.Models.Eventos;
 using ApiNet8.Models.Reservas;
 using ApiNet8.Services.IServices;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using XAct.Events;
 
 namespace ApiNet8.Services
 {
@@ -31,25 +33,45 @@ namespace ApiNet8.Services
         {
             // se obtienen las reservas activas
             List<Reserva> reservas = GetReservas();
-            reservas.Where(i=>i.Instalacion.Id == instalacion.Id && i.FechaBaja == null && i.HoraInicio > DateTime.Now).ToList();
+            reservas = reservas.Where(i=>i.Instalacion.Id == instalacion.Id && i.FechaBaja == null && i.HoraInicio > DateTime.Now).ToList();
 
             return reservas;
         }
 
-        public bool VerificarInstalacionDisponible(DateTime fechaInicio, DateTime fechaFin, Instalacion instalacion)
+        public List<Reserva> GetReservasByEvento(Evento evento)
         {
-            // buscar reservas de una instalacion
+            // Obtener las reservas asociadas a la instalación del evento
+            List<Reserva> reservasInstalacion = GetReservasByInstalacion(evento.Instalacion);
+
+            // Filtrar las reservas que coinciden con el rango de fechas y horas del evento
+            List<Reserva> reservasDelEvento = reservasInstalacion.Where(r =>
+                // La reserva debe estar dentro del rango del evento
+                r.HoraInicio == evento.FechaInicio && r.HoraFin == evento.FechaFinEvento
+                // Verificamos que la reserva no esté dada de baja
+                && r.FechaBaja == null
+            ).ToList();
+
+            return reservasDelEvento;
+        }
+
+        public bool VerificarInstalacionDisponible(DateTime fechaInicio, DateTime fechaFin, Instalacion instalacion, Evento evento)
+        {
+            evento.Instalacion = instalacion;
+            // Obtener las reservas asociadas al evento actual
+            List<Reserva> reservasDelEvento = GetReservasByEvento(evento);
+
+            // Obtener reservas de la instalación
             List<Reserva> reservasInstalacion = GetReservasByInstalacion(instalacion);
 
             // Verificar si hay alguna reserva que se solape con el rango [fechaInicio, fechaFin]
             bool hayConflicto = reservasInstalacion.Any(r =>
-                // La fechaInicio cae en un rango reservado
-                ((fechaInicio >= r.HoraInicio && fechaInicio <= r.HoraFin) ||
-                // La fechaFin cae en un rango reservado
-                (fechaFin >= r.HoraInicio && fechaFin <= r.HoraFin) ||
-                // La reserva existente está completamente dentro del nuevo rango
+                // Ignorar las reservas asociadas al evento actual
+                !reservasDelEvento.Contains(r) &&
+                // Verificar solapamiento de horarios
+                ((fechaInicio > r.HoraInicio && fechaInicio < r.HoraFin) ||
+                (fechaFin > r.HoraInicio && fechaFin < r.HoraFin) ||
                 (r.HoraInicio >= fechaInicio && r.HoraFin <= fechaFin))
-                // Condición: Fecha de baja es null
+                // Verificar que no esté dada de baja
                 && r.FechaBaja == null
             );
 

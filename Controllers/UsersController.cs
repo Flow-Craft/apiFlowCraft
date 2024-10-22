@@ -114,6 +114,34 @@ namespace ApiNet8.Controllers
 
         }
 
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]       
+        [HttpGet]
+        public IActionResult GetUsuariosByPerfil(string perfil)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<UsuarioDTO> usuarios = _usuarioServices.GetUsuarioByPerfil(perfil);
+
+                return Ok(usuarios);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener usuarios",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+
+        }
+
         // crear usuario
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
@@ -686,6 +714,27 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al blanquear contraseña de usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [HttpGet]
+        public IActionResult GetUsuarioByDni(int dni)
+        {
+            try
+            {
+                Usuario? user = _usuarioServices.GetUsuarioByDni(dni);              
+
+                return Ok(user);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al recuperar usuario por dni",
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);

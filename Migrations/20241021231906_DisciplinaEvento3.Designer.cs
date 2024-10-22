@@ -4,6 +4,7 @@ using ApiNet8.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace ApiNet8.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20241021231906_DisciplinaEvento3")]
+    partial class DisciplinaEvento3
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -210,9 +213,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 1,
                             DescripcionEstado = "Evento creado",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(272),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5843),
                             NombreEstado = "Creado",
                             UsuarioEditor = 1
                         },
@@ -220,9 +221,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 2,
                             DescripcionEstado = "Evento cancelado",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(274),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5846),
                             NombreEstado = "Cancelado",
                             UsuarioEditor = 1
                         },
@@ -230,9 +229,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 3,
                             DescripcionEstado = "Evento finalizado",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(276),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5848),
                             NombreEstado = "Finalizado",
                             UsuarioEditor = 1
                         },
@@ -240,9 +237,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 4,
                             DescripcionEstado = "Evento iniciado",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(277),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5849),
                             NombreEstado = "Iniciado",
                             UsuarioEditor = 1
                         },
@@ -250,9 +245,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 5,
                             DescripcionEstado = "Evento suspendido",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(278),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5850),
                             NombreEstado = "Suspendido",
                             UsuarioEditor = 1
                         },
@@ -260,9 +253,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 6,
                             DescripcionEstado = "Evento en entretiempo",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(279),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5852),
                             NombreEstado = "Entretiempo",
                             UsuarioEditor = 1
                         });
@@ -433,58 +424,6 @@ namespace ApiNet8.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("TipoEvento");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            Descripcion = "Partido de un deporte",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(309),
-
-                            NombreTipoEvento = "Partido",
-                            UsuarioEditor = 1
-                        },
-                        new
-                        {
-
-                            Id = 6,
-                            Descripcion = "Recital en el club",
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(312),
-
-                            NombreTipoEvento = "Recital",
-                            UsuarioEditor = 1
-                        },
-                        new
-                        {
-                            Id = 3,
-                            Descripcion = "Taller de enseñanza",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(314),
-
-                            NombreTipoEvento = "Taller",
-                            UsuarioEditor = 1
-                        },
-                        new
-                        {
-                            Id = 4,
-                            Descripcion = "Curso",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(315),
-
-                            NombreTipoEvento = "Curso",
-                            UsuarioEditor = 1
-                        },
-                        new
-                        {
-                            Id = 5,
-                            Descripcion = "Feria",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(316),
-
-                            NombreTipoEvento = "Feria",
-                            UsuarioEditor = 1
-                        });
                 });
 
             modelBuilder.Entity("ApiNet8.Models.Lecciones.AsistenciaLeccion", b =>
@@ -513,14 +452,9 @@ namespace ApiNet8.Migrations
                     b.Property<int>("LeccionId")
                         .HasColumnType("int");
 
-                    b.Property<int>("UsuarioId")
-                        .HasColumnType("int");
-
                     b.HasKey("Id");
 
                     b.HasIndex("LeccionId");
-
-                    b.HasIndex("UsuarioId");
 
                     b.ToTable("AsistenciaLeccion");
                 });
@@ -614,38 +548,6 @@ namespace ApiNet8.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Disciplina");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            CantJugadores = 11,
-                            CantJugadoresEnBanca = 11,
-                            Descripcion = "Juego entre dos equipos de once jugadores cada uno, cuyo objetivo es hacer entrar en la portería contraria un balón que no puede ser tocado con las manos ni con los brazos, salvo por el portero en su área de meta.",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(105),
-
-                            Nombre = "Futbol",
-                            PeriodosMax = 2,
-                            TarjetasAdvertencia = 2,
-                            TarjetasExpulsion = 1,
-                            UsuarioEditor = 1
-                        },
-                        new
-                        {
-                            Id = 2,
-                            CantJugadores = 7,
-                            CantJugadoresEnBanca = 7,
-                            Descripcion = "Es un deporte donde dos equipos se enfrentan sobre un terreno de juego liso separados por una red central, tratando de pasar el balón por encima de la red hacia el suelo del campo contrario.",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(118),
-
-                            Nombre = "Voleyball",
-                            PeriodosMax = 5,
-                            TarjetasAdvertencia = 2,
-                            TarjetasExpulsion = 1,
-                            UsuarioEditor = 1
-                        });
                 });
 
             modelBuilder.Entity("ApiNet8.Models.Lecciones.InscripcionUsuario", b =>
@@ -937,9 +839,6 @@ namespace ApiNet8.Migrations
                     b.Property<int>("NroJugador")
                         .HasColumnType("int");
 
-                    b.Property<int>("NroJugadorCambio")
-                        .HasColumnType("int");
-
                     b.Property<int>("PartidoId")
                         .HasColumnType("int");
 
@@ -1041,9 +940,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 1,
                             DescripcionEstado = "Equipo activo",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(340),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5879),
                             NombreEstado = "Activo",
                             UsuarioEditor = 1
                         },
@@ -1051,9 +948,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 2,
                             DescripcionEstado = "Equipo inactivo",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(342),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5882),
                             NombreEstado = "Inactivo",
                             UsuarioEditor = 1
                         },
@@ -1061,9 +956,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 3,
                             DescripcionEstado = "Equipo suspendido",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(343),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5883),
                             NombreEstado = "Suspendido",
                             UsuarioEditor = 1
                         });
@@ -1741,9 +1634,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 1,
                             DescripcionEstado = "Solicitud pendiente",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(364),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5903),
                             NombreEstado = "Pendiente",
                             UsuarioEditor = 1
                         },
@@ -1751,9 +1642,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 2,
                             DescripcionEstado = "Solicitud aprobada",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(366),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5905),
                             NombreEstado = "Aprobada",
                             UsuarioEditor = 1
                         },
@@ -1761,9 +1650,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 3,
                             DescripcionEstado = "Solicitud rechazada",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(368),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5908),
                             NombreEstado = "Rechazada",
                             UsuarioEditor = 1
                         });
@@ -1847,9 +1734,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 1,
                             DescripcionPerfil = "Administrador general del sistema",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(392),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5930),
                             NombrePerfil = "Admin",
                             UsuarioEditor = 1
                         },
@@ -1857,9 +1742,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 2,
                             DescripcionPerfil = "Administrativo perteneciente al club",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(395),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5933),
                             NombrePerfil = "Administrativo",
                             UsuarioEditor = 1
                         },
@@ -1867,9 +1750,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 3,
                             DescripcionPerfil = "Usuario publico",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(396),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5934),
                             NombrePerfil = "Simpatizante",
                             UsuarioEditor = 1
                         },
@@ -1877,9 +1758,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 4,
                             DescripcionPerfil = "Usuario privado socio del club",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(398),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5936),
                             NombrePerfil = "Socio",
                             UsuarioEditor = 1
                         },
@@ -1887,9 +1766,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 5,
                             DescripcionPerfil = "Usuario privado profesor perteneciente al club",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(399),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5937),
                             NombrePerfil = "Profesor",
                             UsuarioEditor = 1
                         },
@@ -1897,9 +1774,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 6,
                             DescripcionPerfil = "Usuario privado arbitro oficial para partidos",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(400),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5938),
                             NombrePerfil = "Arbitro",
                             UsuarioEditor = 1
                         },
@@ -1907,9 +1782,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 7,
                             DescripcionPerfil = "Usuario privado ayudante de profesor en partidos",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(426),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5940),
                             NombrePerfil = "Planillero",
                             UsuarioEditor = 1
                         });
@@ -2019,9 +1892,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 1,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(454),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5965),
                             Funcionalidades = "ABM usuario",
                             Modulo = "Usuario",
                             NombrePermiso = "Configuracion del sistema"
@@ -2029,9 +1900,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 2,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(458),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5970),
                             Funcionalidades = "ABM solicitud",
                             Modulo = "Solicitudes",
                             NombrePermiso = "Configuracion del sistema"
@@ -2039,9 +1908,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 3,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(460),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5971),
                             Funcionalidades = "ABM perfil",
                             Modulo = "Perfiles",
                             NombrePermiso = "Configuracion del sistema"
@@ -2049,9 +1916,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 4,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(461),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5974),
                             Funcionalidades = "ABM configuración del sistema",
                             Modulo = "Configuraciones generales",
                             NombrePermiso = "Configuracion del sistema"
@@ -2059,9 +1924,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 5,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(462),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5975),
                             Funcionalidades = "ABM disciplina",
                             Modulo = "Disciplina",
                             NombrePermiso = "Configuracion del sistema"
@@ -2069,9 +1932,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 6,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(464),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5977),
                             Funcionalidades = "ABM categoria",
                             Modulo = "Categoria",
                             NombrePermiso = "Configuracion del sistema"
@@ -2079,9 +1940,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 7,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(465),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5978),
                             Funcionalidades = "Ver disciplinas",
                             Modulo = "Disciplina",
                             NombrePermiso = "Disciplina"
@@ -2089,9 +1948,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 8,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(467),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5980),
                             Funcionalidades = "Ver instalaciones",
                             Modulo = "Usuario",
                             NombrePermiso = "Instalaciones"
@@ -2099,9 +1956,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 9,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(468),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5981),
                             Funcionalidades = "ABM instalación",
                             Modulo = "Usuario",
                             NombrePermiso = "Instalaciones"
@@ -2109,9 +1964,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 10,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(470),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5982),
                             Funcionalidades = "Ver / Compartir noticias",
                             Modulo = "Noticias",
                             NombrePermiso = "Noticias"
@@ -2119,9 +1972,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 11,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(471),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5984),
                             Funcionalidades = "ABM noticia",
                             Modulo = "Noticias",
                             NombrePermiso = "Noticias"
@@ -2129,9 +1980,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 12,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(472),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5985),
                             Funcionalidades = "ABM notificación",
                             Modulo = "Notificaciones",
                             NombrePermiso = "Noticias"
@@ -2139,9 +1988,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 13,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(473),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5986),
                             Funcionalidades = "Ver partidos",
                             Modulo = "Partidos",
                             NombrePermiso = "Partidos"
@@ -2149,9 +1996,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 14,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(475),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5988),
                             Funcionalidades = "Gestionar partido",
                             Modulo = "Partidos",
                             NombrePermiso = "Partidos"
@@ -2159,9 +2004,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 15,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(476),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5990),
                             Funcionalidades = "Gestionar estadisticas partido",
                             Modulo = "Partidos",
                             NombrePermiso = "Partidos"
@@ -2169,9 +2012,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 16,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(477),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5991),
                             Funcionalidades = "Ver mi perfil",
                             Modulo = "Mi perfil",
                             NombrePermiso = "Mi perfil"
@@ -2179,9 +2020,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 17,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(478),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5992),
                             Funcionalidades = "Generar QR",
                             Modulo = "Mi perfil",
                             NombrePermiso = "Mi perfil"
@@ -2189,9 +2028,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 18,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(480),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5993),
                             Funcionalidades = "ABM reserva",
                             Modulo = "Reservas",
                             NombrePermiso = "Reservas"
@@ -2199,9 +2036,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 19,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(482),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5995),
                             Funcionalidades = "Ver lección",
                             Modulo = "Lecciones",
                             NombrePermiso = "Lecciones"
@@ -2209,9 +2044,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 20,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(483),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5996),
                             Funcionalidades = "Gestionar lección",
                             Modulo = "Lecciones",
                             NombrePermiso = "Lecciones"
@@ -2219,9 +2052,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 21,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(484),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5997),
                             Funcionalidades = "Gestionar evento",
                             Modulo = "Eventos",
                             NombrePermiso = "Eventos"
@@ -2229,9 +2060,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 22,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(485),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5999),
                             Funcionalidades = "Asistencia evento",
                             Modulo = "Eventos",
                             NombrePermiso = "Eventos"
@@ -2239,9 +2068,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 23,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(487),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6000),
                             Funcionalidades = "Ver estadisticas de lección y partidos",
                             Modulo = "Estadisticas",
                             NombrePermiso = "Estadisticas"
@@ -2249,9 +2076,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 24,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(489),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6001),
                             Funcionalidades = "ABM torneo",
                             Modulo = "Torneos",
                             NombrePermiso = "Torneos"
@@ -2259,9 +2084,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 25,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(490),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6005),
                             Funcionalidades = "Inscripción torneo",
                             Modulo = "Torneos",
                             NombrePermiso = "Torneos"
@@ -2269,9 +2092,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 26,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(491),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6007),
                             Funcionalidades = "Gestionar equipo",
                             Modulo = "Equipos",
                             NombrePermiso = "Torneos"
@@ -2279,9 +2100,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 27,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(492),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6008),
                             Funcionalidades = "ABM estado equipo",
                             Modulo = "Equipo",
                             NombrePermiso = "Estados"
@@ -2289,9 +2108,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 28,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(494),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6009),
                             Funcionalidades = "ABM estado evento",
                             Modulo = "Evento",
                             NombrePermiso = "Estados"
@@ -2299,9 +2116,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 29,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(496),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6010),
                             Funcionalidades = "ABM estado usuario",
                             Modulo = "Usuario",
                             NombrePermiso = "Estados"
@@ -2309,9 +2124,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 30,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(497),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6012),
                             Funcionalidades = "ABM estado lección",
                             Modulo = "Lección",
                             NombrePermiso = "Estados"
@@ -2319,9 +2132,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 31,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(498),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6013),
                             Funcionalidades = "ABM estado instalación",
                             Modulo = "Instalación",
                             NombrePermiso = "Estados"
@@ -2329,9 +2140,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 32,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(499),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6014),
                             Funcionalidades = "ABM estado torneo",
                             Modulo = "Torneo",
                             NombrePermiso = "Estados"
@@ -2339,9 +2148,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 33,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(501),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6016),
                             Funcionalidades = "ABM tipo evento",
                             Modulo = "Evento",
                             NombrePermiso = "Tipos"
@@ -2349,9 +2156,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 34,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(502),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6017),
                             Funcionalidades = "ABM tipo accion",
                             Modulo = "Accion",
                             NombrePermiso = "Tipos"
@@ -2359,9 +2164,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 35,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(503),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6018),
                             Funcionalidades = "Modificar backup",
                             Modulo = "Backup",
                             NombrePermiso = "Backup"
@@ -2369,9 +2172,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 36,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(504),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6019),
                             Funcionalidades = "Visualizar Backup",
                             Modulo = "Backup",
                             NombrePermiso = "Backup"
@@ -2379,9 +2180,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 37,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(505),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6021),
                             Funcionalidades = "Descargar PDF/Excel",
                             Modulo = "Reservas",
                             NombrePermiso = "Reportes"
@@ -2389,9 +2188,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 38,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(507),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6022),
                             Funcionalidades = "Descargar PDF/Excel",
                             Modulo = "Asistencia lecciones",
                             NombrePermiso = "Reportes"
@@ -2399,9 +2196,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 39,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(508),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6023),
                             Funcionalidades = "Descargar PDF/Excel",
                             Modulo = "Asistencias eventos",
                             NombrePermiso = "Reportes"
@@ -2409,9 +2204,7 @@ namespace ApiNet8.Migrations
                         new
                         {
                             Id = 40,
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(509),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(6025),
                             Funcionalidades = "Descargar PDF/Excel",
                             Modulo = "Estadisticas",
                             NombrePermiso = "Reportes"
@@ -2597,9 +2390,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 1,
                             DescripcionEstado = "Usuario activo en el club",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(246),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5704),
                             NombreEstado = "Activo",
                             UsuarioEditor = 1
                         },
@@ -2607,9 +2398,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 2,
                             DescripcionEstado = "Usuario bloqueado",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(248),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5717),
                             NombreEstado = "Bloqueado",
                             UsuarioEditor = 1
                         },
@@ -2617,9 +2406,7 @@ namespace ApiNet8.Migrations
                         {
                             Id = 3,
                             DescripcionEstado = "Usuario desactivado",
-
-                            FechaCreacion = new DateTime(2024, 10, 21, 20, 37, 6, 596, DateTimeKind.Local).AddTicks(250),
-
+                            FechaCreacion = new DateTime(2024, 10, 21, 20, 19, 6, 183, DateTimeKind.Local).AddTicks(5719),
                             NombreEstado = "Desactivado",
                             UsuarioEditor = 1
                         });
@@ -2814,17 +2601,7 @@ namespace ApiNet8.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("ApiNet8.Models.Usuarios.Usuario", "Usuario")
-                        .WithMany()
-                        .HasForeignKey("UsuarioId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.Navigation("Leccion");
-
-
-
-                    b.Navigation("Usuario");
                 });
 
             modelBuilder.Entity("ApiNet8.Models.Lecciones.InscripcionUsuario", b =>

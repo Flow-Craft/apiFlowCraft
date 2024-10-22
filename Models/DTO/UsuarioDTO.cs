@@ -4,7 +4,7 @@ namespace ApiNet8.Models.DTO
 {
     public class UsuarioDTO
     {   
-        public int? Id { get; set; }
+        public int Id { get; set; }
         public string? Nombre { get; set; }
         public string? Apellido { get; set; }
         public int? CodPostal { get; set; }        

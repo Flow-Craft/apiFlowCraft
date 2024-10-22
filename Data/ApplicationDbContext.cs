@@ -122,8 +122,10 @@ namespace ApiNet8.Data
             //    new Partidos { Id = 1, EquipoA = "Independiente", EquipoB = "Boca", Name = "Fecha 1 copa de la liga", Resultado = "2-0" });
 
             modelBuilder.Entity<Disciplina>().HasData(
-                new Disciplina { Id = 1, Nombre = "Futbol", Descripcion = "Juego entre dos equipos de once jugadores cada uno, cuyo objetivo es hacer entrar en la portería contraria un balón que no puede ser tocado con las manos ni con los brazos, salvo por el portero en su área de meta.", CantJugadores =11, PeriodosMax = 2, TarjetasAdvertencia=2, TarjetasExpulsion=1, CantJugadoresEnBanca=11, FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
-                new Disciplina { Id = 2, Nombre = "Voleyball", Descripcion = "Es un deporte donde dos equipos se enfrentan sobre un terreno de juego liso separados por una red central, tratando de pasar el balón por encima de la red hacia el suelo del campo contrario.", CantJugadores=7, PeriodosMax = 5, TarjetasAdvertencia=2, TarjetasExpulsion=1, CantJugadoresEnBanca=7, FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 });
+
+                new Disciplina { Id = 1, Nombre = "Futbol", Descripcion = "Juego entre dos equipos de once jugadores cada uno, cuyo objetivo es hacer entrar en la portería contraria un balón que no puede ser tocado con las manos ni con los brazos, salvo por el portero en su área de meta.", CantJugadores = 11, PeriodosMax = 2, TarjetasAdvertencia = 2, TarjetasExpulsion = 1, CantJugadoresEnBanca = 11, FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+                new Disciplina { Id = 2, Nombre = "Voleyball", Descripcion = "Es un deporte donde dos equipos se enfrentan sobre un terreno de juego liso separados por una red central, tratando de pasar el balón por encima de la red hacia el suelo del campo contrario.", CantJugadores = 7, PeriodosMax = 5, TarjetasAdvertencia = 2, TarjetasExpulsion = 1, CantJugadoresEnBanca = 7, FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 });
+
 
             modelBuilder.Entity<UsuarioEstado>().HasData(
                 new UsuarioEstado { Id = 1, DescripcionEstado = "Usuario activo en el club", NombreEstado = "Activo", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
@@ -139,11 +141,12 @@ namespace ApiNet8.Data
                 new EstadoEvento { Id = 6, DescripcionEstado = "Evento en entretiempo", NombreEstado = "Entretiempo", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 });
 
             modelBuilder.Entity<TipoEvento>().HasData(
-                new TipoEvento { Id = 1, NombreTipoEvento = "Partido", Descripcion = "Partido de un deporte", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
-                new TipoEvento { Id = 6, NombreTipoEvento = "Recital", Descripcion = "Recital en el club", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
-                new TipoEvento { Id = 3, NombreTipoEvento = "Taller", Descripcion = "Taller de enseñanza", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
-                new TipoEvento { Id = 4, NombreTipoEvento = "Curso", Descripcion = "Curso", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
-                new TipoEvento { Id = 5, NombreTipoEvento = "Feria", Descripcion = "Feria", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 });
+
+               new TipoEvento { Id = 1, NombreTipoEvento = "Partido", Descripcion = "Partido de un deporte", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+               new TipoEvento { Id = 6, NombreTipoEvento = "Recital", Descripcion = "Recital en el club", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+               new TipoEvento { Id = 3, NombreTipoEvento = "Taller", Descripcion = "Taller de enseñanza", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+               new TipoEvento { Id = 4, NombreTipoEvento = "Curso", Descripcion = "Curso", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
+               new TipoEvento { Id = 5, NombreTipoEvento = "Feria", Descripcion = "Feria", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 });
 
 
             modelBuilder.Entity<EquipoEstado>().HasData(
@@ -166,61 +169,63 @@ namespace ApiNet8.Data
               new Perfil { Id = 7, NombrePerfil = "Planillero", DescripcionPerfil = "Usuario privado ayudante de profesor en partidos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 });
 
             modelBuilder.Entity<Permiso>().HasData(
-               new Permiso { Id = 1, NombrePermiso = "Configuracion del sistema", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Usuario", Funcionalidades = "ABM usuario" },
-               new Permiso { Id = 2, NombrePermiso = "Configuracion del sistema", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Solicitudes", Funcionalidades = "ABM solicitud" },
-               new Permiso { Id = 3, NombrePermiso = "Configuracion del sistema", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Perfiles", Funcionalidades = "ABM perfil" },
-               new Permiso { Id = 4, NombrePermiso = "Configuracion del sistema", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Configuraciones generales", Funcionalidades = "ABM configuración del sistema" },
-               new Permiso { Id = 5, NombrePermiso = "Configuracion del sistema", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Disciplina", Funcionalidades = "ABM disciplina" },
-               new Permiso { Id = 6, NombrePermiso = "Configuracion del sistema", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Categoria", Funcionalidades = "ABM categoria" },
 
-               new Permiso { Id = 7, NombrePermiso = "Disciplina", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Disciplina", Funcionalidades = "Ver disciplinas" },
+   new Permiso { Id = 1, NombrePermiso = "Configuracion del sistema", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Usuario", Funcionalidades = "ABM usuario" },
+   new Permiso { Id = 2, NombrePermiso = "Configuracion del sistema", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Solicitudes", Funcionalidades = "ABM solicitud" },
+   new Permiso { Id = 3, NombrePermiso = "Configuracion del sistema", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Perfiles", Funcionalidades = "ABM perfil" },
+   new Permiso { Id = 4, NombrePermiso = "Configuracion del sistema", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Configuraciones generales", Funcionalidades = "ABM configuración del sistema" },
+   new Permiso { Id = 5, NombrePermiso = "Configuracion del sistema", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Disciplina", Funcionalidades = "ABM disciplina" },
+   new Permiso { Id = 6, NombrePermiso = "Configuracion del sistema", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Categoria", Funcionalidades = "ABM categoria" },
 
-               new Permiso { Id = 8, NombrePermiso = "Instalaciones", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Usuario", Funcionalidades = "Ver instalaciones" },
-               new Permiso { Id = 9, NombrePermiso = "Instalaciones", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Usuario", Funcionalidades = "ABM instalación" },
+   new Permiso { Id = 7, NombrePermiso = "Disciplina", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Disciplina", Funcionalidades = "Ver disciplinas" },
 
-               new Permiso { Id = 10, NombrePermiso = "Noticias", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Noticias", Funcionalidades = "Ver / Compartir noticias" },
-               new Permiso { Id = 11, NombrePermiso = "Noticias", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Noticias", Funcionalidades = "ABM noticia" },
-               new Permiso { Id = 12, NombrePermiso = "Noticias", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Notificaciones", Funcionalidades = "ABM notificación" },
+   new Permiso { Id = 8, NombrePermiso = "Instalaciones", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Usuario", Funcionalidades = "Ver instalaciones" },
+   new Permiso { Id = 9, NombrePermiso = "Instalaciones", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Usuario", Funcionalidades = "ABM instalación" },
 
-               new Permiso { Id = 13, NombrePermiso = "Partidos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Partidos", Funcionalidades = "Ver partidos" },
-               new Permiso { Id = 14, NombrePermiso = "Partidos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Partidos", Funcionalidades = "Gestionar partido" },
-               new Permiso { Id = 15, NombrePermiso = "Partidos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Partidos", Funcionalidades = "Gestionar estadisticas partido" },
+   new Permiso { Id = 10, NombrePermiso = "Noticias", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Noticias", Funcionalidades = "Ver / Compartir noticias" },
+   new Permiso { Id = 11, NombrePermiso = "Noticias", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Noticias", Funcionalidades = "ABM noticia" },
+   new Permiso { Id = 12, NombrePermiso = "Noticias", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Notificaciones", Funcionalidades = "ABM notificación" },
 
-               new Permiso { Id = 16, NombrePermiso = "Mi perfil", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Mi perfil", Funcionalidades = "Ver mi perfil" },
-               new Permiso { Id = 17, NombrePermiso = "Mi perfil", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Mi perfil", Funcionalidades = "Generar QR" },
+   new Permiso { Id = 13, NombrePermiso = "Partidos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Partidos", Funcionalidades = "Ver partidos" },
+   new Permiso { Id = 14, NombrePermiso = "Partidos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Partidos", Funcionalidades = "Gestionar partido" },
+   new Permiso { Id = 15, NombrePermiso = "Partidos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Partidos", Funcionalidades = "Gestionar estadisticas partido" },
 
-               new Permiso { Id = 18, NombrePermiso = "Reservas", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Reservas", Funcionalidades = "ABM reserva" },
+   new Permiso { Id = 16, NombrePermiso = "Mi perfil", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Mi perfil", Funcionalidades = "Ver mi perfil" },
+   new Permiso { Id = 17, NombrePermiso = "Mi perfil", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Mi perfil", Funcionalidades = "Generar QR" },
 
-               new Permiso { Id = 19, NombrePermiso = "Lecciones", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Lecciones", Funcionalidades = "Ver lección" },
-               new Permiso { Id = 20, NombrePermiso = "Lecciones", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Lecciones", Funcionalidades = "Gestionar lección" },
+   new Permiso { Id = 18, NombrePermiso = "Reservas", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Reservas", Funcionalidades = "ABM reserva" },
 
-               new Permiso { Id = 21, NombrePermiso = "Eventos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Eventos", Funcionalidades = "Gestionar evento" },
-               new Permiso { Id = 22, NombrePermiso = "Eventos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Eventos", Funcionalidades = "Asistencia evento" },
+   new Permiso { Id = 19, NombrePermiso = "Lecciones", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Lecciones", Funcionalidades = "Ver lección" },
+   new Permiso { Id = 20, NombrePermiso = "Lecciones", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Lecciones", Funcionalidades = "Gestionar lección" },
 
-               new Permiso { Id = 23, NombrePermiso = "Estadisticas", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Estadisticas", Funcionalidades = "Ver estadisticas de lección y partidos" },
+   new Permiso { Id = 21, NombrePermiso = "Eventos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Eventos", Funcionalidades = "Gestionar evento" },
+   new Permiso { Id = 22, NombrePermiso = "Eventos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Eventos", Funcionalidades = "Asistencia evento" },
 
-               new Permiso { Id = 24, NombrePermiso = "Torneos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Torneos", Funcionalidades = "ABM torneo" },
-               new Permiso { Id = 25, NombrePermiso = "Torneos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Torneos", Funcionalidades = "Inscripción torneo" },
-               new Permiso { Id = 26, NombrePermiso = "Torneos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Equipos", Funcionalidades = "Gestionar equipo" },
+   new Permiso { Id = 23, NombrePermiso = "Estadisticas", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Estadisticas", Funcionalidades = "Ver estadisticas de lección y partidos" },
 
-               new Permiso { Id = 27, NombrePermiso = "Estados", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Equipo", Funcionalidades = "ABM estado equipo" },
-               new Permiso { Id = 28, NombrePermiso = "Estados", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Evento", Funcionalidades = "ABM estado evento" },
-               new Permiso { Id = 29, NombrePermiso = "Estados", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Usuario", Funcionalidades = "ABM estado usuario" },
-               new Permiso { Id = 30, NombrePermiso = "Estados", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Lección", Funcionalidades = "ABM estado lección" },
-               new Permiso { Id = 31, NombrePermiso = "Estados", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Instalación", Funcionalidades = "ABM estado instalación" },
-               new Permiso { Id = 32, NombrePermiso = "Estados", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Torneo", Funcionalidades = "ABM estado torneo" },
+   new Permiso { Id = 24, NombrePermiso = "Torneos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Torneos", Funcionalidades = "ABM torneo" },
+   new Permiso { Id = 25, NombrePermiso = "Torneos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Torneos", Funcionalidades = "Inscripción torneo" },
+   new Permiso { Id = 26, NombrePermiso = "Torneos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Equipos", Funcionalidades = "Gestionar equipo" },
 
-               new Permiso { Id = 33, NombrePermiso = "Tipos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Evento", Funcionalidades = "ABM tipo evento" },
-               new Permiso { Id = 34, NombrePermiso = "Tipos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Accion", Funcionalidades = "ABM tipo accion" },
+   new Permiso { Id = 27, NombrePermiso = "Estados", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Equipo", Funcionalidades = "ABM estado equipo" },
+   new Permiso { Id = 28, NombrePermiso = "Estados", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Evento", Funcionalidades = "ABM estado evento" },
+   new Permiso { Id = 29, NombrePermiso = "Estados", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Usuario", Funcionalidades = "ABM estado usuario" },
+   new Permiso { Id = 30, NombrePermiso = "Estados", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Lección", Funcionalidades = "ABM estado lección" },
+   new Permiso { Id = 31, NombrePermiso = "Estados", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Instalación", Funcionalidades = "ABM estado instalación" },
+   new Permiso { Id = 32, NombrePermiso = "Estados", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Torneo", Funcionalidades = "ABM estado torneo" },
 
-               new Permiso { Id = 35, NombrePermiso = "Backup", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Backup", Funcionalidades = "Modificar backup" },
-               new Permiso { Id = 36, NombrePermiso = "Backup", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Backup", Funcionalidades = "Visualizar Backup" },
+   new Permiso { Id = 33, NombrePermiso = "Tipos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Evento", Funcionalidades = "ABM tipo evento" },
+   new Permiso { Id = 34, NombrePermiso = "Tipos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Accion", Funcionalidades = "ABM tipo accion" },
 
-               new Permiso { Id = 37, NombrePermiso = "Reportes", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Reservas", Funcionalidades = "Descargar PDF/Excel" },
-               new Permiso { Id = 38, NombrePermiso = "Reportes", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Asistencia lecciones", Funcionalidades = "Descargar PDF/Excel" },
-               new Permiso { Id = 39, NombrePermiso = "Reportes", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Asistencias eventos", Funcionalidades = "Descargar PDF/Excel" },
-               new Permiso { Id = 40, NombrePermiso = "Reportes", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Estadisticas", Funcionalidades = "Descargar PDF/Excel" }
-            );
+   new Permiso { Id = 35, NombrePermiso = "Backup", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Backup", Funcionalidades = "Modificar backup" },
+   new Permiso { Id = 36, NombrePermiso = "Backup", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Backup", Funcionalidades = "Visualizar Backup" },
+
+   new Permiso { Id = 37, NombrePermiso = "Reportes", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Reservas", Funcionalidades = "Descargar PDF/Excel" },
+   new Permiso { Id = 38, NombrePermiso = "Reportes", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Asistencia lecciones", Funcionalidades = "Descargar PDF/Excel" },
+   new Permiso { Id = 39, NombrePermiso = "Reportes", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Asistencias eventos", Funcionalidades = "Descargar PDF/Excel" },
+   new Permiso { Id = 40, NombrePermiso = "Reportes", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Estadisticas", Funcionalidades = "Descargar PDF/Excel" }
+   );
+          
 
         }
     }

@@ -235,14 +235,14 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetEventoById(EventoDTO eventoDTO)
+        public IActionResult GetEventoById(int Id)
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
 
             try
             {
-                Evento evento = _eventoServices.GetEventoById(eventoDTO.Id);
+                Evento evento = _eventoServices.GetEventoById(Id);
 
                 if (evento == null)
                 {
@@ -258,8 +258,8 @@ namespace ApiNet8.Controllers
                 RespuestaAPI respuestaAPI = new RespuestaAPI
                 {
                     status = HttpStatusCode.InternalServerError,
-                    title = "Error al obtener evento con id: " + eventoDTO.Id,
-                    errors = new List<string> { e.Message }
+                    title = "Error al obtener evento con id: " + Id,
+                    errors = new List<string> { e.Message + " Exception: " + e.ToString() }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
@@ -285,7 +285,10 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al crear evento",
-                    errors = new List<string> { e.Message }
+                    errors = new List<string>{
+                                e.Message,
+                                "Exception: " + e.ToString()
+                            }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
@@ -311,7 +314,10 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al actualizar evento",
-                    errors = new List<string> { e.Message }
+                    errors = new List<string>{
+                                e.Message,
+                                "Exception: " + e.ToString()
+                            }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
@@ -336,7 +342,10 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al eliminar evento",
-                    errors = new List<string> { e.Message }
+                    errors = new List<string>{
+                                e.Message,                     
+                                "Exception: " + e.ToString() 
+                            }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
@@ -369,6 +378,31 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
+        public IActionResult InscribirseByUsuario(int IdEvento)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _eventoServices.InscribirseAEventoByUsuario(IdEvento);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al inscribirse a evento",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
         public IActionResult Desinscribirse(InscripcionEventoDTO inscripcion)
         {
             // seteo jwt en header de respuesta
@@ -378,6 +412,31 @@ namespace ApiNet8.Controllers
             try
             {
                 _eventoServices.DesinscribirseAEvento(inscripcion);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al desinscribirse a evento",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult DesinscribirseByUsuario(int IdEvento)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _eventoServices.DesinscribirseAEventoByUsuario(IdEvento);
                 return Ok();
             }
             catch (Exception e)
@@ -488,6 +547,31 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al obtener inscripciones del usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetEventoByIdByUsuario(int id)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                EventoByUsuarioDTO evento = _eventoServices.GetEventoByIdByUsuario(id);
+                return Ok(evento);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener evento",
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);

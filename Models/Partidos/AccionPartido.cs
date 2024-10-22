@@ -13,10 +13,10 @@
         public DateTime? FechaModificacion { get; set; }
         public int UsuarioEditor { get; set; }
         public int? Periodo { get; set; }
+        public int NroJugadorCambio { get; set; }
 
         // Relaciones
         public TipoAccionPartido TipoAccionPartido { get; set; }
         public Partido Partido { get; set; }
-
     }
 }
