@@ -8,6 +8,8 @@ using AutoMapper;
 using ApiNet8.Models.Usuarios;
 using Microsoft.EntityFrameworkCore;
 using System.Xml;
+using ApiNet8.Models.Eventos;
+using ApiNet8.Models.Partidos;
 
 namespace ApiNet8.Services
 {
@@ -233,5 +235,255 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
+        public List<InscripcionUsuario> GetInscripcionesALecciones(int id)
+        {
+            List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.Include(e => e.Leccion).Where(i => i.Leccion.Id == id).ToList();
+            return inscripciones;
+        }
+
+        public List<InscripcionUsuario> GetInscripcionesLeccionVigentes(int id)
+        {
+            List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.Include(u => u.Usuario).Include(e => e.Leccion).Where(i => i.Leccion.Id == id && i.FechaBaja == null).ToList();
+            return inscripciones;
+        }
+
+        public List<InscripcionUsuario> GetInscripcionesByUsuario(int id)
+        {
+            List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(u => u.Usuario.Id == id).ToList();
+            return inscripciones;
+        }
+
+        public List<InscripcionUsuario> GetInscripcionesByUsuarioActivas(int id)
+        {
+            List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(u => u.Usuario.Id == id && u.FechaBaja == null).ToList();
+            return inscripciones;
+        }
+
+        public void InscribirseALeccion(InscripcionLeccionDTO inscripcion)
+        {
+            try
+            {
+                // verificar si existe leccion
+                Leccion leccion = GetLeccionById(inscripcion.IdLeccion);
+                List<InscripcionUsuario> alumnosInsc = GetInscripcionesLeccionVigentes(leccion.Id);
+                
+                if (leccion == null)
+                {
+                    throw new Exception("No existe la lección");
+                }
+
+                // verificar si hay cupo disponible
+                if (alumnosInsc.Count() == leccion.CantMaxima)
+                {
+                    throw new Exception("La lección esta completa.");
+                }
+
+                // verificar estado leccion
+                if (leccion?.LeccionHistoriales?.Where(f => f.FechaFin == null)?.OrderByDescending(f => f.FechaInicio)?.FirstOrDefault()?.LeccionEstado.NombreEstado != Enums.LeccionEstado.Vigente.ToString())
+                {
+                    throw new Exception("Las inscripciones a la lección estan cerradas: la lección ya no esta vigente.");
+                }
+
+                // verificar si ya esta inscripto
+                List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(u => u.Usuario.Id == inscripcion.IdUsuario && u.Leccion.Id == inscripcion.IdLeccion && u.FechaBaja == null).ToList();
+                if (inscripciones.Count() > 0)
+                {
+                    throw new Exception("El usuario ya esta inscripto para esta lección.");
+                }
+
+                // verificar estado del usuario y perfil
+                Usuario? usuario = _db.Usuario
+                        .Include(u => u.UsuarioHistoriales).ThenInclude(a => a.UsuarioEstado)
+                        .Where(u => u.Id == inscripcion.IdUsuario)
+                        .FirstOrDefault();
+
+                if (usuario == null)
+                {
+                    throw new Exception("No existe el usuario que se quiere inscribir");
+                }
+
+                if (usuario?.UsuarioHistoriales?.Where(h => h.FechaFin == null)?.FirstOrDefault()?.UsuarioEstado.NombreEstado != Enums.EstadoUsuario.Activo.ToString())
+                {
+                    throw new Exception("El usuario no esta activo");
+                }
+
+                int edad = DateTime.Now.Year - usuario.FechaNacimiento.Year;
+
+                // Ajustar si aún no ha cumplido años este año
+                if (DateTime.Now.DayOfYear < usuario.FechaNacimiento.DayOfYear)
+                {
+                    edad--;
+                }
+
+                if (leccion.Categoria.Genero != usuario.Sexo || edad < leccion.Categoria.EdadMinima || edad > leccion.Categoria.EdadMaxima)
+                {
+                    throw new Exception("No es posible inscribirse a esta categoria");
+                }
+
+                List<PerfilUsuario> perfilesUsuario = _db.PerfilUsuario.Include(u => u.Usuario).Include(p => p.Perfil).Where(pu => pu.Usuario.Id == inscripcion.IdUsuario).ToList();
+                bool tienePerfilSocio = perfilesUsuario.Any(pu => pu.Perfil.NombrePerfil == Enums.Perfiles.Socio.ToString());
+
+                if (!tienePerfilSocio)
+                {
+                    throw new Exception("No puede inscribirse porque no tiene perfil de socio");
+                }
+
+                // crear instancia de inscripcion
+                InscripcionUsuario inscripcionLeccion = new InscripcionUsuario
+                {
+                    Leccion = leccion,
+                    Usuario = usuario,
+                    FechaCreacion = DateTime.Now,
+                };
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.InscripcionUsuario.Add(inscripcionLeccion);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+        }
+
+        public void DesinscribirseALeccion(int id)
+        {
+            try
+            {
+                // busco la inscripcion y la doy de baja
+                InscripcionUsuario? inscripcionLeccion = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(f => f.Id==id).FirstOrDefault();
+
+                inscripcionLeccion.FechaBaja = DateTime.Now;
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.InscripcionUsuario.Update(inscripcionLeccion);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+
+        }
+        public void IniciarLeccion(AsistenciaLeccionDTO asistencias)
+        {
+            try
+            {
+                Leccion leccion = GetLeccionById(asistencias.IdLeccion);
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+                
+                //Cambio estado
+                LeccionHistorial? ultimoHistorial = leccion.LeccionHistoriales.Where(ih => ih.FechaFin == null).FirstOrDefault();
+
+                if (ultimoHistorial != null)
+                {
+                    ultimoHistorial.FechaFin = DateTime.Now;
+                    _db.LeccionHistorial.Update(ultimoHistorial);
+                }
+                else
+                {
+                    leccion.LeccionHistoriales = new List<LeccionHistorial>();
+                }
+
+                // creo nuevo historial y lo asigno
+                LeccionHistorial nuevoHistorial = new LeccionHistorial
+                {
+                    FechaInicio = DateTime.Now,
+                    DetalleCambioEstado = "Se inició lección",
+                    UsuarioEditor = currentUser?.Id,
+                    LeccionEstado = _leccionEstadoServices.GetLeccionEstadoById(2) // asigno estado Iniciado
+                };
+
+                leccion.LeccionHistoriales.Add(nuevoHistorial);
+
+                //Guardo lista de asistentes
+
+                foreach (var idAlum in asistencias.AlumnosAsist)
+                {
+                    Usuario? usuario = _db.Usuario
+                        .Include(u => u.UsuarioHistoriales).ThenInclude(a => a.UsuarioEstado)
+                        .Where(u => u.Id == idAlum)
+                        .FirstOrDefault();
+
+                    AsistenciaLeccion asist = new AsistenciaLeccion
+                    {
+                        FechaCreacion = DateTime.Now,
+                        AsistioAlumno = true,
+                        Usuario = usuario,
+                        Leccion = leccion
+                    };
+                    
+                    _db.AsistenciaLeccion.Add(asist);
+                }
+
+
+                _db.LeccionHistorial.Add(nuevoHistorial);
+                _db.Leccion.Update(leccion);
+                _db.SaveChanges();
+
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
+        public void FinalizarLeccion(int id)
+        {
+            try
+            {
+                Leccion leccion = GetLeccionById(id);
+                List<AsistenciaLeccion> asistencias = _db.AsistenciaLeccion.Where(a => a.Leccion.Id == id && a.FechaCreacion.Date == DateTime.Now.Date).ToList();
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                //Cambio estado
+                LeccionHistorial? ultimoHistorial = leccion.LeccionHistoriales.Where(ih => ih.FechaFin == null).FirstOrDefault();
+
+                if (ultimoHistorial != null)
+                {
+                    ultimoHistorial.FechaFin = DateTime.Now;
+                    _db.LeccionHistorial.Update(ultimoHistorial);
+                }
+                else
+                {
+                    leccion.LeccionHistoriales = new List<LeccionHistorial>();
+                }
+
+                // creo nuevo historial y lo asigno
+                LeccionHistorial nuevoHistorial = new LeccionHistorial
+                {
+                    FechaInicio = DateTime.Now,
+                    DetalleCambioEstado = "Se finalizó la leccion",
+                    UsuarioEditor = currentUser?.Id,
+                    LeccionEstado = _leccionEstadoServices.GetLeccionEstadoById(1) // asigno estado Vigente
+                };
+
+                leccion.LeccionHistoriales.Add(nuevoHistorial);
+
+                foreach (var idAlum in asistencias)
+                {
+                    idAlum.ClaseCompleta = true;
+
+                    _db.AsistenciaLeccion.Update(idAlum);
+                }
+
+                _db.LeccionHistorial.Add(nuevoHistorial);
+                _db.Leccion.Update(leccion);
+                _db.SaveChanges();
+
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
     }
 }

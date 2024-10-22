@@ -7,6 +7,7 @@ namespace ApiNet8.Services.IServices
     {
         List<TipoAccionPartido> GetTiposAccionPartido();
         TipoAccionPartido GetTipoAccionPartidoById(int Id);
+        List<TipoAccionPartido> GetTiposAccionPaneles(TipoAccionPartidoDTO tipAc);
         void CrearTipoAccionPartido(TipoAccionPartidoDTO tipoAccionPartidoDTO);
         void ActualizarTipoAccionPartido(TipoAccionPartidoDTO tipoAccionPartidoDTO);
         void EliminarTipoAccionPartido(TipoAccionPartidoDTO tipoAccionPartidoDTO);

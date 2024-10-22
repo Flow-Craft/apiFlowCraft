@@ -17,16 +17,19 @@ namespace ApiNet8.Services.IServices
         List<AccionPartido> GetAccionPartidoByPartidoTipoAccion(AccionPartidoDTO accion);//
         AccionPartidoDTO AltaAccionPartido(AccionPartidoDTO accion);//
         AccionPartido GetAccionPartidoById(int Id);//
-        void BajaAccionPartido(int idAccionPartido);//
+        void BajaAccionPartido(AccionPartidoDTO accion);//
 
         List<EquipoUsuario> GetEquipoLocal(int partidoId);//
         List<EquipoUsuario> GetEquipoVisitante(int partidoId);//
 
         //Estadisticas
-        Estadistica AltaEstadisticaPartido();//
-        List<Estadistica> GetEstadisticasPartidos(int Id);//
-        void ActualizarEstadisticaPartido(); //
-        void BajaEstadisticaPartido();//
+        Estadistica AltaEstadistica(EstadisticaDTO estadisticaDTO);//
+        List<Estadistica> GetEstadisticasByUsuario(EstadisticaDTO estadisticaDTO);//
+        List<Estadistica> GetEstadisticasByEquipo(int IdEquipo);
+        List<Estadistica> GetEstadisticasByPartido(int IdPart);
+        Estadistica GetEstadisticaById(int Id);
+        void ActualizarEstadistica(EstadisticaDTO estadisticaDTO); //
+        void BajaEstadistica(EstadisticaDTO estadisticaDTO);//
 
     }
 }

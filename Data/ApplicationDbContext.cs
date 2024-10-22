@@ -122,8 +122,10 @@ namespace ApiNet8.Data
             //    new Partidos { Id = 1, EquipoA = "Independiente", EquipoB = "Boca", Name = "Fecha 1 copa de la liga", Resultado = "2-0" });
 
             modelBuilder.Entity<Disciplina>().HasData(
+
                 new Disciplina { Id = 1, Nombre = "Futbol", Descripcion = "Juego entre dos equipos de once jugadores cada uno, cuyo objetivo es hacer entrar en la portería contraria un balón que no puede ser tocado con las manos ni con los brazos, salvo por el portero en su área de meta.", CantJugadores = 11, PeriodosMax = 2, TarjetasAdvertencia = 2, TarjetasExpulsion = 1, CantJugadoresEnBanca = 11, FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
                 new Disciplina { Id = 2, Nombre = "Voleyball", Descripcion = "Es un deporte donde dos equipos se enfrentan sobre un terreno de juego liso separados por una red central, tratando de pasar el balón por encima de la red hacia el suelo del campo contrario.", CantJugadores = 7, PeriodosMax = 5, TarjetasAdvertencia = 2, TarjetasExpulsion = 1, CantJugadoresEnBanca = 7, FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 });
+
 
             modelBuilder.Entity<UsuarioEstado>().HasData(
                 new UsuarioEstado { Id = 1, DescripcionEstado = "Usuario activo en el club", NombreEstado = "Activo", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
@@ -139,11 +141,13 @@ namespace ApiNet8.Data
                 new EstadoEvento { Id = 6, DescripcionEstado = "Evento en entretiempo", NombreEstado = "Entretiempo", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 });
 
             modelBuilder.Entity<TipoEvento>().HasData(
+
                new TipoEvento { Id = 1, NombreTipoEvento = "Partido", Descripcion = "Partido de un deporte", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
                new TipoEvento { Id = 6, NombreTipoEvento = "Recital", Descripcion = "Recital en el club", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
                new TipoEvento { Id = 3, NombreTipoEvento = "Taller", Descripcion = "Taller de enseñanza", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
                new TipoEvento { Id = 4, NombreTipoEvento = "Curso", Descripcion = "Curso", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
                new TipoEvento { Id = 5, NombreTipoEvento = "Feria", Descripcion = "Feria", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 });
+
 
             modelBuilder.Entity<EquipoEstado>().HasData(
                 new EquipoEstado { Id = 1, DescripcionEstado = "Equipo activo", NombreEstado = "Activo", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
@@ -165,6 +169,7 @@ namespace ApiNet8.Data
               new Perfil { Id = 7, NombrePerfil = "Planillero", DescripcionPerfil = "Usuario privado ayudante de profesor en partidos", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 });
 
             modelBuilder.Entity<Permiso>().HasData(
+
    new Permiso { Id = 1, NombrePermiso = "Configuracion del sistema", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Usuario", Funcionalidades = "ABM usuario" },
    new Permiso { Id = 2, NombrePermiso = "Configuracion del sistema", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Solicitudes", Funcionalidades = "ABM solicitud" },
    new Permiso { Id = 3, NombrePermiso = "Configuracion del sistema", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Perfiles", Funcionalidades = "ABM perfil" },
@@ -221,6 +226,7 @@ namespace ApiNet8.Data
    new Permiso { Id = 40, NombrePermiso = "Reportes", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Estadisticas", Funcionalidades = "Descargar PDF/Excel" }
    );
           
+
         }
     }
 }
