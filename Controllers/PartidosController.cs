@@ -56,7 +56,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetTiposAccionPaneles([FromBody] TipoAccionPartidoDTO tipAc)
+        public IActionResult GetTiposAccionPaneles(TipoAccionPartidoDTO tipAc)
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
 
@@ -107,7 +107,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetTipoAccionPartidoById([FromBody] TipoAccionPartidoDTO tipoAccionPartidoDTO)
+        public IActionResult GetTipoAccionPartidoById(TipoAccionPartidoDTO tipoAccionPartidoDTO)
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
@@ -450,7 +450,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetAccionPartidoByPartidoTipoAccion([FromBody] AccionPartidoDTO accion)
+        public IActionResult GetAccionPartidoByPartidoTipoAccion(AccionPartidoDTO accion)
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -653,7 +653,7 @@ namespace ApiNet8.Controllers
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-
+        [HttpPost]
         public IActionResult BajaEstadistica([FromBody] EstadisticaDTO estadisticaDTO)//int id)
 
         {
@@ -680,7 +680,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetEstadisticasByUsuario([FromBody] EstadisticaDTO estadisticaDTO)
+        public IActionResult GetEstadisticasByUsuario(EstadisticaDTO estadisticaDTO)
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
