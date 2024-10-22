@@ -267,7 +267,7 @@ namespace ApiNet8.Services
                     ThenInclude(v => v.Visitante).
                     ThenInclude(e => e.Equipo).
                     Include(p => p.Partido).
-                    ThenInclude(d => d.Disciplinas).
+                    ThenInclude(d => d.Disciplina).
                     Include(p => p.Partido).
                     ThenInclude(c => c.Categoria).
                     Include(p => p.TipoAccionPartido).
@@ -300,7 +300,7 @@ namespace ApiNet8.Services
                     ThenInclude(eq => eq.EquipoUsuarios).
                     ThenInclude(u => u.Usuario).
                     Include(p => p.Partido).
-                    ThenInclude(d => d.Disciplinas).
+                    ThenInclude(d => d.Disciplina).
                     Include(p => p.Partido).
                     ThenInclude(c => c.Categoria).
                     Include(p => p.TipoAccionPartido).
@@ -449,7 +449,7 @@ namespace ApiNet8.Services
                         if (accionPartido.TipoAccionPartido.ModificaTarjetasAdvertencia == true)
                         {
                             List<AccionPartido> acciones = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Partido.Id == part.Id && a.TipoAccionPartido.ModificaTarjetasAdvertencia == true && a.FechaBaja==null).ToList();
-                            if (acciones.Count == part.Disciplinas.FirstOrDefault().TarjetasAdvertencia)
+                            if (acciones.Count == part.Disciplina.TarjetasAdvertencia)
                             {
                                 part = IncorporarJugador(part, accionPartido.NroJugador.ToString(), accionPartido.EquipoLocal);
                             }
@@ -458,7 +458,7 @@ namespace ApiNet8.Services
                         if (accionPartido.TipoAccionPartido.ModificaTarjetasExpulsion == true)
                         {
                             List<AccionPartido> acciones = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Partido.Id == part.Id && a.TipoAccionPartido.ModificaTarjetasExpulsion == true && a.FechaBaja == null).ToList();
-                            if (acciones.Count == part.Disciplinas.FirstOrDefault().TarjetasExpulsion)
+                            if (acciones.Count == part.Disciplina.TarjetasExpulsion)
                             {
                                 part = IncorporarJugador(part, accionPartido.NroJugador.ToString(), accionPartido.EquipoLocal);
                             }
