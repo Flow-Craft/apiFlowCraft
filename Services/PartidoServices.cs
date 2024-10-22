@@ -139,52 +139,53 @@ namespace ApiNet8.Services
                 AsistenciaLeccion? asist = new AsistenciaLeccion();
                 Estadistica? estadistica = new Estadistica();
 
-                using (var transaction = _db.Database.BeginTransaction())
+                if (estadisticaDTO.Secuencial == false)  // si es false es voley, sino futbol
                 {
+                    estadistica = _db.Estadistica.Where(p => p.MarcaEstadistica == estadisticaDTO.MarcaEstadistica && p.TipoAccionPartido.Id == estadisticaDTO.IdTipoAccion && p.Partido.Id == estadisticaDTO.IdPartido && p.AsistenciaLeccion.Id == estadisticaDTO.IdAsistencia).FirstOrDefault();
+                }
+                else
+                {
+                    estadistica = _db.Estadistica.Where(p => p.TipoAccionPartido.Id == estadisticaDTO.IdTipoAccion && p.Partido.Id == estadisticaDTO.IdPartido && p.AsistenciaLeccion.Id == estadisticaDTO.IdAsistencia).FirstOrDefault();
+                }
 
-                    if (estadisticaDTO.Secuencial == false)  // si es false es voley, sino futbol
+                if (estadistica == null)
+                {
+                    if (estadisticaDTO.IdPartido != null)
                     {
-                        estadistica = _db.Estadistica.Where(p => p.MarcaEstadistica == estadisticaDTO.MarcaEstadistica && p.TipoAccionPartido.Id==estadisticaDTO.IdTipoAccion && p.Partido.Id==estadisticaDTO.IdPartido && p.AsistenciaLeccion.Id == estadisticaDTO.IdAsistencia).FirstOrDefault();
-                    }
-                    else 
-                    {
-                        estadistica = _db.Estadistica.Where(p => p.TipoAccionPartido.Id == estadisticaDTO.IdTipoAccion && p.Partido.Id == estadisticaDTO.IdPartido && p.AsistenciaLeccion.Id == estadisticaDTO.IdAsistencia).FirstOrDefault();
-                    }
-                    
-                    if (estadistica == null)
-                    {
-                        if (estadisticaDTO.IdPartido != null)
-                        {
-                            part = GetPartidoById((int)estadisticaDTO.IdPartido);
-                            equipo = _db.Equipo.Where(p => p.Id == estadisticaDTO.IdEquipo).FirstOrDefault();
-                            asist = null;
-                        }
-                        else
-                        {
-                            part = null;
-                            equipo = null;
-                            asist = _db.AsistenciaLeccion.Where(p => p.Id == estadisticaDTO.IdAsistencia).FirstOrDefault();
-                        }
-                        estadistica = new Estadistica()
-                        {
-                            Partido = part,
-                            TipoAccionPartido = _tipoAccionPartidoServices.GetTipoAccionPartidoById(estadisticaDTO.IdTipoAccion),
-                            PuntajeTipoAccion = 1,
-                            AsistenciaLeccion = asist,
-                            MarcaEstadistica = estadisticaDTO.MarcaEstadistica,
-                            FechaCreacion = DateTime.Now,
-                            Equipo = equipo,
-                            RazonBaja = "",
-                            UsuarioEditor = currentUser.Id
-                        };
-                        _db.Estadistica.Add(estadistica);
+                        part = GetPartidoById((int)estadisticaDTO.IdPartido);
+                        equipo = _db.Equipo.Where(p => p.Id == estadisticaDTO.IdEquipo).FirstOrDefault();
+                        asist = _db.AsistenciaLeccion.Include(u=>u.Usuario).Include(l=>l.Leccion).Where(p => p.Id == estadisticaDTO.IdAsistencia).FirstOrDefault();
                     }
                     else
                     {
-                        estadistica.PuntajeTipoAccion = estadistica.PuntajeTipoAccion + 1;
-                        _db.Estadistica.Update(estadistica);
+                        part = null;
+                        equipo = null;
+                        asist = _db.AsistenciaLeccion.Where(p => p.Id == estadisticaDTO.IdAsistencia).FirstOrDefault();
                     }
+                    estadistica = new Estadistica()
+                    {
+                        Partido = part,
+                        TipoAccionPartido = _tipoAccionPartidoServices.GetTipoAccionPartidoById(estadisticaDTO.IdTipoAccion),
+                        PuntajeTipoAccion = 1,
+                        AsistenciaLeccion = asist,
+                        MarcaEstadistica = estadisticaDTO.MarcaEstadistica,
+                        FechaCreacion = DateTime.Now,
+                        Equipo = equipo,
+                        RazonBaja = "",
+                        UsuarioEditor = currentUser != null ? currentUser.Id : 0
+                    };
+                    _db.Estadistica.Add(estadistica);
+                }
+                else
+                {
+                    estadistica.PuntajeTipoAccion = estadistica.PuntajeTipoAccion + 1;
+                    _db.Estadistica.Update(estadistica);
+                }
 
+               
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
                     _db.SaveChanges();
                     transaction.Commit();
                 }
