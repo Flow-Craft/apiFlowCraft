@@ -12,6 +12,7 @@ using ApiNet8.Models.Reservas;
 using ApiNet8.Models.Eventos;
 using System;
 using XSystem.Security.Cryptography;
+using XAct;
 
 namespace ApiNet8.Services
 {
@@ -177,17 +178,23 @@ namespace ApiNet8.Services
 
                     estadistica = new Estadistica()
                     {
-                        Partido = GetPartidoById((int)estadisticaDTO.IdPartido),
+                        Partido = part,
                         TipoAccionPartido = _tipoAccionPartidoServices.GetTipoAccionPartidoById(estadisticaDTO.IdTipoAccion),
                         PuntajeTipoAccion = 1,
                         AsistenciaLeccion = asist,
                         MarcaEstadistica = estadisticaDTO.MarcaEstadistica,
                         FechaCreacion = DateTime.Now,
-                        Equipo = _db.Equipo.Where(p => p.Id == estadisticaDTO.IdEquipo).FirstOrDefault(),
+                        Equipo = equipo,
                         RazonBaja = "",
                         UsuarioEditor = currentUser != null ? currentUser.Id : 0
                     };
                     _db.Estadistica.Add(estadistica);
+                    estadistica.Equipo = equipo;
+                    estadistica.AsistenciaLeccion = asist;
+                    estadistica.Partido = part;
+                    //estadistica.TipoAccionPartido = _tipoAccionPartidoServices.GetTipoAccionPartidoById(estadisticaDTO.IdTipoAccion);
+
+
                 }
                 else
                 {
