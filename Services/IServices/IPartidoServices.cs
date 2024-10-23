@@ -30,6 +30,7 @@ namespace ApiNet8.Services.IServices
         Estadistica GetEstadisticaById(int Id);
         void ActualizarEstadistica(EstadisticaDTO estadisticaDTO); //
         void BajaEstadistica(EstadisticaDTO estadisticaDTO);//
+        void Asistencia();
 
     }
 }

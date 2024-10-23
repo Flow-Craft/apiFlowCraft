@@ -15,13 +15,13 @@ namespace ApiNet8.Models.Partidos
         public DateTime? FechaModificacion { get; set; }
         public int UsuarioEditor { get; set; }
 
-        // Relaciones
+        // Relaciones      
         [DeleteBehavior(DeleteBehavior.Restrict)]
         public TipoAccionPartido TipoAccionPartido { get; set; }
 
 
         [DeleteBehavior(DeleteBehavior.Restrict)]
-        public Partido? Partido { get; set; }
+        public Partido Partido { get; set; }
 
 
         [DeleteBehavior(DeleteBehavior.Restrict)]
