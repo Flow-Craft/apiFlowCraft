@@ -456,17 +456,17 @@ namespace ApiNet8.Migrations
                 column: "FechaCreacion",
                 value: new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(8291));
 
-            //migrationBuilder.InsertData(
-            //    table: "TipoEvento",
-            //    columns: new[] { "Id", "Descripcion", "FechaBaja", "FechaCreacion", "FechaModificacion", "NombreTipoEvento", "UsuarioEditor" },
-            //    values: new object[,]
-            //    {
-            //        { 1, "Partido de un deporte", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7909), null, "Partido", 1 },
-            //        { 6, "Recital en el club", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7914), null, "Recital", 1 },
-            //        { 3, "Taller de enseñanza", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7916), null, "Taller", 1 },
-            //        { 4, "Curso", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7918), null, "Curso", 1 },
-            //        { 5, "Feria", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7920), null, "Feria", 1 }
-            //    });
+            migrationBuilder.InsertData(
+                table: "TipoEvento",
+                columns: new[] { "Id", "Descripcion", "FechaBaja", "FechaCreacion", "FechaModificacion", "NombreTipoEvento", "UsuarioEditor" },
+                values: new object[,]
+                {
+                    { 1, "Partido de un deporte", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7909), null, "Partido", 1 },
+                    { 6, "Recital en el club", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7914), null, "Recital", 1 },
+                    { 3, "Taller de enseñanza", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7916), null, "Taller", 1 },
+                    { 4, "Curso", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7918), null, "Curso", 1 },
+                    { 5, "Feria", null, new DateTime(2024, 10, 19, 18, 50, 55, 37, DateTimeKind.Local).AddTicks(7920), null, "Feria", 1 }
+                });
 
             migrationBuilder.UpdateData(
                 table: "UsuarioEstado",

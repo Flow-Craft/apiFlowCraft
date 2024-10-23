@@ -108,7 +108,7 @@ namespace ApiNet8.Services
         {
             try
             {
-                return _db.TipoAccionPartido.Where(u => u.Id == id).FirstOrDefault();
+                return _db.TipoAccionPartido.Include(h=>h.TipoAccionHistoriales).Where(u => u.Id == id).FirstOrDefault();
             }
             catch (Exception e)
             {
@@ -151,7 +151,7 @@ namespace ApiNet8.Services
                         throw new Exception("No existe la disciplina seleccionada");
                     }
                 }
-                
+                tipoAccionPartido.TipoAccionHistoriales = new List<TipoAccionHistorial>();
                 tipoAccionPartido.FechaCreacion = DateTime.Now;
                 tipoAccionPartido.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
                 tipoAccionPartido.Disciplina = disciplina;   

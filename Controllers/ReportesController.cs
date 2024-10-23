@@ -17,7 +17,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult ReporteEventoByUsuarioPeriodo(EventoReporteDTO reporte)
+        public IActionResult ReporteEventoByUsuarioPeriodo([FromQuery] EventoReporteDTO reporte)
         {
             // Llamar al servicio para crear el reporte
             byte[] pdfReporte = _reporteServices.ReporteEventoUsuarioPeriodo(reporte.periodoInicio, reporte.periodoFin, reporte.idUsuario);
@@ -28,7 +28,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult ReporteEventoByTipoEventoPeriodo(EventoReporteDTO reporte)
+        public IActionResult ReporteEventoByTipoEventoPeriodo([FromQuery] EventoReporteDTO reporte)
         {
             // Llamar al servicio para crear el reporte
             byte[] pdfReporte = _reporteServices.ReporteEventoTipoEventoPeriodo(reporte.periodoInicio, reporte.periodoFin, reporte.idTipoEvento);
@@ -39,7 +39,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult ReporteEventoByInstalacionPeriodo(EventoReporteDTO reporte)
+        public IActionResult ReporteEventoByInstalacionPeriodo([FromQuery] EventoReporteDTO reporte)
         {
             // Llamar al servicio para crear el reporte
             byte[] pdfReporte = _reporteServices.ReporteEventoInstalacionPeriodo(reporte.periodoInicio, reporte.periodoFin, reporte.idInstalacion);
@@ -50,7 +50,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult ReporteEventoByEvento(EventoReporteDTO reporte)
+        public IActionResult ReporteEventoByEvento([FromQuery] EventoReporteDTO reporte)
         {
             // Llamar al servicio para crear el reporte
             byte[] pdfReporte = _reporteServices.ReporteEventoByEvento(reporte.idEvento);

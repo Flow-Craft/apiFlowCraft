@@ -12,6 +12,7 @@ using ApiNet8.Models.Reservas;
 using ApiNet8.Models.Eventos;
 using System;
 using XSystem.Security.Cryptography;
+using XAct;
 
 namespace ApiNet8.Services
 {
@@ -25,8 +26,9 @@ namespace ApiNet8.Services
         private readonly IEventoServices _eventoServices;
         private readonly IEventoEstadoService _eventoEstadoServices;
         private readonly ITipoAccionPartidoServices _tipoAccionPartidoServices;
+        private readonly ILeccionesServices _leccionesServices;
 
-        public PartidoServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor, IUsuarioServices usuarioServices, IEventoEstadoService eventoEstadoServices, ITipoAccionPartidoServices tipoAccionPartidoServices, IEventoServices eventoServices)
+        public PartidoServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor, IUsuarioServices usuarioServices, IEventoEstadoService eventoEstadoServices, ITipoAccionPartidoServices tipoAccionPartidoServices, IEventoServices eventoServices, ILeccionesServices leccionesServices)
         {
             this._db = db;
             this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
@@ -36,6 +38,7 @@ namespace ApiNet8.Services
             _eventoEstadoServices = eventoEstadoServices;
             _tipoAccionPartidoServices = tipoAccionPartidoServices;
             _eventoServices = eventoServices;
+            _leccionesServices = leccionesServices;
         }
 
         public void ActualizarEstadistica(EstadisticaDTO estadisticaDTO)
@@ -128,6 +131,7 @@ namespace ApiNet8.Services
             }
         }
 
+        // si es una estadistica de partido usar siempre el id=1 para la propiedad de asistencia leccion
         public Estadistica AltaEstadistica(EstadisticaDTO estadisticaDTO)
         {
             try
@@ -162,6 +166,7 @@ namespace ApiNet8.Services
                         equipo = null;
                         asist = _db.AsistenciaLeccion.Where(p => p.Id == estadisticaDTO.IdAsistencia).FirstOrDefault();
                     }
+
                     estadistica = new Estadistica()
                     {
                         Partido = part,
@@ -174,7 +179,8 @@ namespace ApiNet8.Services
                         RazonBaja = "",
                         UsuarioEditor = currentUser != null ? currentUser.Id : 0
                     };
-                    _db.Estadistica.Add(estadistica);
+                    _db.Estadistica.Add(estadistica);                    
+
                 }
                 else
                 {
@@ -197,6 +203,35 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
+        public void Asistencia()
+        {
+            try
+            {
+                AsistenciaLeccion asistenciaLeccion = new AsistenciaLeccion
+                {
+                    AsistioAlumno = false,
+                    ClaseCompleta = false,
+                    FechaCreacion = DateTime.Now,
+                    Leccion = _leccionesServices.GetLeccionById(1),
+                    Usuario = _usuarioServices.GetUsuarioById(15)
+                };
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    
+
+                    _db.AsistenciaLeccion.Add(asistenciaLeccion);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
         public void BajaEstadistica(EstadisticaDTO estadisticaDTO)
         {
             try
@@ -267,7 +302,7 @@ namespace ApiNet8.Services
                     ThenInclude(v => v.Visitante).
                     ThenInclude(e => e.Equipo).
                     Include(p => p.Partido).
-                    ThenInclude(d => d.Disciplinas).
+                    ThenInclude(d => d.Disciplina).
                     Include(p => p.Partido).
                     ThenInclude(c => c.Categoria).
                     Include(p => p.TipoAccionPartido).
@@ -300,7 +335,7 @@ namespace ApiNet8.Services
                     ThenInclude(eq => eq.EquipoUsuarios).
                     ThenInclude(u => u.Usuario).
                     Include(p => p.Partido).
-                    ThenInclude(d => d.Disciplinas).
+                    ThenInclude(d => d.Disciplina).
                     Include(p => p.Partido).
                     ThenInclude(c => c.Categoria).
                     Include(p => p.TipoAccionPartido).
@@ -449,7 +484,7 @@ namespace ApiNet8.Services
                         if (accionPartido.TipoAccionPartido.ModificaTarjetasAdvertencia == true)
                         {
                             List<AccionPartido> acciones = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Partido.Id == part.Id && a.TipoAccionPartido.ModificaTarjetasAdvertencia == true && a.FechaBaja==null).ToList();
-                            if (acciones.Count == part.Disciplinas.FirstOrDefault().TarjetasAdvertencia)
+                            if (acciones.Count == part.Disciplina.TarjetasAdvertencia)
                             {
                                 part = IncorporarJugador(part, accionPartido.NroJugador.ToString(), accionPartido.EquipoLocal);
                             }
@@ -458,7 +493,7 @@ namespace ApiNet8.Services
                         if (accionPartido.TipoAccionPartido.ModificaTarjetasExpulsion == true)
                         {
                             List<AccionPartido> acciones = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Partido.Id == part.Id && a.TipoAccionPartido.ModificaTarjetasExpulsion == true && a.FechaBaja == null).ToList();
-                            if (acciones.Count == part.Disciplinas.FirstOrDefault().TarjetasExpulsion)
+                            if (acciones.Count == part.Disciplina.TarjetasExpulsion)
                             {
                                 part = IncorporarJugador(part, accionPartido.NroJugador.ToString(), accionPartido.EquipoLocal);
                             }
