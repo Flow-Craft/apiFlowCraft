@@ -50,6 +50,7 @@ namespace ApiNet8.Data
         public DbSet<EquipoPartido> EquipoPartido { get; set; }
         public DbSet<EquipoUsuario> EquipoUsuario { get; set; }
         public DbSet<Estadistica> Estadistica { get; set; }
+        public DbSet<Estadisticas> Estadisticas { get; set; }
         public DbSet<Partido> Partido { get; set; }
         public DbSet<TipoAccionEstado> TipoAccionEstado { get; set; }
         public DbSet<TipoAccionHistorial> TipoAccionHistorial { get; set; }

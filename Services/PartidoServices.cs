@@ -132,7 +132,7 @@ namespace ApiNet8.Services
         }
 
         // si es una estadistica de partido usar siempre el id=1 para la propiedad de asistencia leccion
-        public Estadistica AltaEstadistica(EstadisticaDTO estadisticaDTO)
+        public Estadisticas AltaEstadistica(EstadisticaDTO estadisticaDTO)
         {
             try
             {
@@ -141,15 +141,15 @@ namespace ApiNet8.Services
                 Partido? part = new Partido();
                 Equipo? equipo = new Equipo();
                 AsistenciaLeccion? asist = new AsistenciaLeccion();
-                Estadistica? estadistica = new Estadistica();
+                Estadisticas? estadistica = new Estadisticas();
 
                 if (estadisticaDTO.Secuencial == false)  // si es false es voley, sino futbol
                 {
-                    estadistica = _db.Estadistica.Where(p => p.MarcaEstadistica == estadisticaDTO.MarcaEstadistica && p.TipoAccionPartido.Id == estadisticaDTO.IdTipoAccion && p.Partido.Id == estadisticaDTO.IdPartido && p.AsistenciaLeccion.Id == estadisticaDTO.IdAsistencia).FirstOrDefault();
+                    estadistica = _db.Estadisticas.Where(p => p.MarcaEstadistica == estadisticaDTO.MarcaEstadistica && p.TipoAccionPartido.Id == estadisticaDTO.IdTipoAccion && p.Partido.Id == estadisticaDTO.IdPartido && p.AsistenciaLeccionId == estadisticaDTO.IdAsistencia).FirstOrDefault();
                 }
                 else
                 {
-                    estadistica = _db.Estadistica.Where(p => p.TipoAccionPartido.Id == estadisticaDTO.IdTipoAccion && p.Partido.Id == estadisticaDTO.IdPartido && p.AsistenciaLeccion.Id == estadisticaDTO.IdAsistencia).FirstOrDefault();
+                    estadistica = _db.Estadisticas.Where(p => p.TipoAccionPartido.Id == estadisticaDTO.IdTipoAccion && p.Partido.Id == estadisticaDTO.IdPartido && p.AsistenciaLeccionId == estadisticaDTO.IdAsistencia).FirstOrDefault();
                 }
 
                 if (estadistica == null)
@@ -167,25 +167,26 @@ namespace ApiNet8.Services
                         asist = _db.AsistenciaLeccion.Where(p => p.Id == estadisticaDTO.IdAsistencia).FirstOrDefault();
                     }
 
-                    estadistica = new Estadistica()
+                    estadistica = new Estadisticas()
                     {
                         Partido = part,
                         TipoAccionPartido = _tipoAccionPartidoServices.GetTipoAccionPartidoById(estadisticaDTO.IdTipoAccion),
                         PuntajeTipoAccion = 1,
-                        AsistenciaLeccion = asist,
+                        AsistenciaLeccionId = 1,
                         MarcaEstadistica = estadisticaDTO.MarcaEstadistica,
                         FechaCreacion = DateTime.Now,
                         Equipo = equipo,
                         RazonBaja = "",
                         UsuarioEditor = currentUser != null ? currentUser.Id : 0
                     };
-                    _db.Estadistica.Add(estadistica);                    
+                    _db.Estadisticas.Add(estadistica);
+                    
 
                 }
                 else
                 {
                     estadistica.PuntajeTipoAccion = estadistica.PuntajeTipoAccion + 1;
-                    _db.Estadistica.Update(estadistica);
+                    _db.Estadisticas.Update(estadistica);
                 }
 
                

@@ -23,7 +23,7 @@ namespace ApiNet8.Services.IServices
         List<EquipoUsuario> GetEquipoVisitante(int partidoId);//
 
         //Estadisticas
-        Estadistica AltaEstadistica(EstadisticaDTO estadisticaDTO);//
+        Estadisticas AltaEstadistica(EstadisticaDTO estadisticaDTO);//
         List<Estadistica> GetEstadisticasByUsuario(EstadisticaDTO estadisticaDTO);//
         List<Estadistica> GetEstadisticasByEquipo(int IdEquipo);
         List<Estadistica> GetEstadisticasByPartido(int IdPart);
