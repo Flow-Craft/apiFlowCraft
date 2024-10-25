@@ -936,6 +936,11 @@ namespace ApiNet8.Services
             {
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
+                if (currentUser == null)
+                {
+                    throw new Exception("Current user es null");
+                }
+
                 PerfilUsuario arbitro = _db.PerfilUsuario.Where(pu => pu.FechaBaja == null && pu.Usuario.Id == currentUser.Id && (pu.Perfil.Id == 6 || pu.Perfil.Id == 1)).FirstOrDefault();
 
                 if (arbitro != null)
