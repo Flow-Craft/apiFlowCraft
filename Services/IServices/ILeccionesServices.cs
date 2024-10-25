@@ -17,7 +17,7 @@ namespace ApiNet8.Services.IServices
         List<InscripcionUsuario> GetInscripcionesByUsuario(int id);
         List<InscripcionUsuario> GetInscripcionesByUsuarioActivas(int id);
         void InscribirseALeccion(InscripcionLeccionDTO inscripcion);
-        void DesinscribirseALeccion(int id);
+        void DesinscribirseALeccion(InscripcionLeccionDTO inscripcion);
         void IniciarLeccion(AsistenciaLeccionDTO asistencias);
         void FinalizarLeccion(int id);
     }

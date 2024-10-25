@@ -810,7 +810,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
-        public IActionResult DesinscribirseALeccion(int id)
+        public IActionResult DesinscribirseALeccion(InscripcionLeccionDTO inscripcion)
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -818,7 +818,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-                _leccionesServices.DesinscribirseALeccion(id);
+                _leccionesServices.DesinscribirseALeccion(inscripcion);
                 return Ok();
             }
             catch (Exception e)

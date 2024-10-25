@@ -679,7 +679,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetEstadisticasByUsuario([FromQuery] EstadisticaDTO estadisticaDTO)
+        public IActionResult GetEstadisticasByDiscUsuPer([FromQuery] EstadisticaDTO estadisticaDTO)
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -687,7 +687,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-                List<Estadistica> estadisticas = _partidoServices.GetEstadisticasByUsuario(estadisticaDTO);
+                List<Estadisticas> estadisticas = _partidoServices.GetEstadisticasByDiscUsuPer(estadisticaDTO);
                 return Ok(estadisticas);
             }
             catch (Exception e)
@@ -713,7 +713,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-                Estadistica estadistica = _partidoServices.GetEstadisticaById(Id);
+                Estadisticas estadistica = _partidoServices.GetEstadisticaById(Id);
                 return Ok(estadistica);
             }
             catch (Exception e)
@@ -731,7 +731,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetEstadisticasByEquipo([FromQuery] int IdEquipo)
+        public IActionResult GetEstadisticasByEquipo([FromQuery] EstadisticaDTO estadisticaDTO)
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -739,7 +739,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-                List<Estadistica> estadisticas = _partidoServices.GetEstadisticasByEquipo(IdEquipo);
+                List<Estadisticas> estadisticas = _partidoServices.GetEstadisticasByEquipo(estadisticaDTO);
                 return Ok(estadisticas);
             }
             catch (Exception e)
@@ -757,7 +757,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetEstadisticasByPartido([FromQuery] int IdPart)
+        public IActionResult GetEstadisticasByPartidoUsu([FromQuery] EstadisticaDTO estadisticaDTO)
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -765,7 +765,33 @@ namespace ApiNet8.Controllers
 
             try
             {
-                List<Estadistica> estadisticas = _partidoServices.GetEstadisticasByPartido(IdPart);
+                List<Estadisticas> estadisticas = _partidoServices.GetEstadisticasByPartidoUsu(estadisticaDTO);
+                return Ok(estadisticas);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al buscar estadisticas del partido",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetEstadisticasByPartidoEquip([FromQuery] EstadisticaDTO estadisticaDTO)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<Estadisticas> estadisticas = _partidoServices.GetEstadisticasByPartidoEquip(estadisticaDTO);
                 return Ok(estadisticas);
             }
             catch (Exception e)
