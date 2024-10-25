@@ -13,6 +13,9 @@ using ApiNet8.Models.Eventos;
 using System;
 using XSystem.Security.Cryptography;
 using XAct;
+using ApiNet8.Migrations;
+using Estadisticas = ApiNet8.Models.Partidos.Estadisticas;
+using TipoAccionPartido = ApiNet8.Models.Partidos.TipoAccionPartido;
 
 namespace ApiNet8.Services
 {
@@ -41,64 +44,38 @@ namespace ApiNet8.Services
             _leccionesServices = leccionesServices;
         }
 
-        public void ActualizarEstadistica(EstadisticaDTO estadisticaDTO)
+        public void ActualizarEstadistica(EstadisticaDTO estadisticaDTO)//listo
         {
             try
             {
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
-                Estadistica estadistica = new Estadistica();
-                Partido? part = new Partido();
-                Equipo? equipo = new Equipo();
-                AsistenciaLeccion? asist = new AsistenciaLeccion();
+                Estadisticas estadistica = new Estadisticas();
 
-                using (var transaction = _db.Database.BeginTransaction())
+                if (estadisticaDTO.Id == null)
                 {
-                    if (estadisticaDTO.Id == null)
+                    AltaEstadistica(estadisticaDTO);
+                }
+                else
+                {
+                    estadistica = GetEstadisticaById((int)estadisticaDTO.Id);
+                    if (estadisticaDTO.Resta == true)
                     {
-                        if (estadisticaDTO.IdPartido != null)
-                        {
-                            part = GetPartidoById((int)estadisticaDTO.IdPartido);
-                            equipo = _db.Equipo.Where(p => p.Id == estadisticaDTO.IdEquipo).FirstOrDefault();
-                            asist = null;
-                        }
-                        else
-                        {
-                            part = null;
-                            equipo = null;
-                            asist = _db.AsistenciaLeccion.Where(p => p.Id == estadisticaDTO.IdAsistencia).FirstOrDefault();
-                        }
-                        estadistica = new Estadistica()
-                        {
-                            Partido = part,
-                            TipoAccionPartido = _tipoAccionPartidoServices.GetTipoAccionPartidoById(estadisticaDTO.IdTipoAccion),
-                            PuntajeTipoAccion = 1,
-                            AsistenciaLeccion = asist,
-                            MarcaEstadistica = estadisticaDTO.MarcaEstadistica,
-                            FechaCreacion = DateTime.Now,
-                            Equipo = equipo,
-                            UsuarioEditor = currentUser.Id
-                        };
-                        _db.Estadistica.Add(estadistica);
+                        estadistica.PuntajeTipoAccion = estadistica.PuntajeTipoAccion - 1;
                     }
                     else
                     {
-                        estadistica = GetEstadisticaById((int)estadisticaDTO.Id);
-                        if (estadisticaDTO.Resta == true)
-                        {
-                            estadistica.PuntajeTipoAccion = estadistica.PuntajeTipoAccion - 1;
-                        }
-                        else
-                        {
-                            estadistica.PuntajeTipoAccion = estadistica.PuntajeTipoAccion + 1;
-                        }
-
-                        estadistica.FechaModificacion = DateTime.Now;
-                        estadistica.UsuarioEditor = currentUser.Id;
-
-                        _db.Estadistica.Update(estadistica);
+                        estadistica.PuntajeTipoAccion = estadistica.PuntajeTipoAccion + 1;
                     }
-                    _db.SaveChanges();
-                    transaction.Commit();
+
+                    estadistica.FechaModificacion = DateTime.Now;
+                    estadistica.UsuarioEditor = currentUser.Id;
+
+                    _db.Estadisticas.Update(estadistica);
+                    using (var transaction = _db.Database.BeginTransaction())
+                    {
+                        _db.SaveChanges();
+                        transaction.Commit();
+                    }
                 }
             }
             catch (Exception e)
@@ -107,22 +84,25 @@ namespace ApiNet8.Services
             }
         }
 
-        public Estadistica GetEstadisticaById(int Id)//listo
+        public Estadisticas GetEstadisticaById(int Id)//listo
         {
             try
             {
-                Estadistica est = _db.Estadistica.
+                Estadisticas? est = _db.Estadisticas.
                     Include(p => p.Equipo).
                     ThenInclude(eq => eq.EquipoUsuarios).
                     ThenInclude(u => u.Usuario).
                     Include(p => p.Partido).
                     Include(p => p.TipoAccionPartido).
-                    Include(p => p.AsistenciaLeccion).
-                    ThenInclude(u => u.Usuario).
-                    Include(p => p.AsistenciaLeccion).
-                    ThenInclude(u => u.Leccion).
                     Where(a => a.Id == Id).FirstOrDefault();
 
+                int idEvento = (est?.Partido as Evento)?.Id ?? 0;
+
+                if (idEvento != 0)
+                {
+                    est.Partido = GetPartidoById(idEvento);
+                }
+                    
                 return est;
             }
             catch (Exception e)
@@ -132,7 +112,7 @@ namespace ApiNet8.Services
         }
 
         // si es una estadistica de partido usar siempre el id=1 para la propiedad de asistencia leccion
-        public Estadisticas AltaEstadistica(EstadisticaDTO estadisticaDTO)
+        public Estadisticas AltaEstadistica(EstadisticaDTO estadisticaDTO) //Listo
         {
             try
             {
@@ -145,11 +125,11 @@ namespace ApiNet8.Services
 
                 if (estadisticaDTO.Secuencial == false)  // si es false es voley, sino futbol
                 {
-                    estadistica = _db.Estadisticas.Where(p => p.MarcaEstadistica == estadisticaDTO.MarcaEstadistica && p.TipoAccionPartido.Id == estadisticaDTO.IdTipoAccion && p.Partido.Id == estadisticaDTO.IdPartido && p.AsistenciaLeccionId == estadisticaDTO.IdAsistencia).FirstOrDefault();
+                    estadistica = _db.Estadisticas.Where(p => p.MarcaEstadistica == estadisticaDTO.MarcaEstadistica && p.Equipo.Id == estadisticaDTO.IdEquipo && p.TipoAccionPartido.Id == estadisticaDTO.IdTipoAccion && p.Partido.Id == estadisticaDTO.IdPartido && p.AsistenciaLeccionId == estadisticaDTO.IdAsistencia && p.NroJugador==estadisticaDTO.NroJugador && p.FechaBaja==null).FirstOrDefault();
                 }
                 else
                 {
-                    estadistica = _db.Estadisticas.Where(p => p.TipoAccionPartido.Id == estadisticaDTO.IdTipoAccion && p.Partido.Id == estadisticaDTO.IdPartido && p.AsistenciaLeccionId == estadisticaDTO.IdAsistencia).FirstOrDefault();
+                    estadistica = _db.Estadisticas.Where(p => p.TipoAccionPartido.Id == estadisticaDTO.IdTipoAccion && p.Equipo.Id == estadisticaDTO.IdEquipo && p.Partido.Id == estadisticaDTO.IdPartido && p.AsistenciaLeccionId == estadisticaDTO.IdAsistencia && p.NroJugador == estadisticaDTO.NroJugador && p.FechaBaja == null).FirstOrDefault();
                 }
 
                 if (estadistica == null)
@@ -172,7 +152,8 @@ namespace ApiNet8.Services
                         Partido = part,
                         TipoAccionPartido = _tipoAccionPartidoServices.GetTipoAccionPartidoById(estadisticaDTO.IdTipoAccion),
                         PuntajeTipoAccion = 1,
-                        AsistenciaLeccionId = 1,
+                        AsistenciaLeccionId = estadisticaDTO.IdAsistencia,
+                        NroJugador = estadisticaDTO.NroJugador,
                         MarcaEstadistica = estadisticaDTO.MarcaEstadistica,
                         FechaCreacion = DateTime.Now,
                         Equipo = equipo,
@@ -233,12 +214,12 @@ namespace ApiNet8.Services
             }
         }
 
-        public void BajaEstadistica(EstadisticaDTO estadisticaDTO)
+        public void BajaEstadistica(EstadisticaDTO estadisticaDTO)//listo
         {
             try
             {
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
-                Estadistica estadistica = GetEstadisticaById((int)estadisticaDTO.Id);
+                Estadisticas estadistica = GetEstadisticaById((int)estadisticaDTO.Id);
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
@@ -246,7 +227,7 @@ namespace ApiNet8.Services
                     estadistica.FechaBaja = DateTime.Now;
                     estadistica.UsuarioEditor = currentUser.Id;
 
-                    _db.Estadistica.Update(estadistica);
+                    _db.Estadisticas.Update(estadistica);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
@@ -256,29 +237,44 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
-        public List<Estadistica> GetEstadisticasByUsuario(EstadisticaDTO estadisticaDTO)
+        public List<Estadisticas> GetEstadisticasByDiscUsuPer(EstadisticaDTO estadisticaDTO)//listo
         {
             try
             {
-                List<Estadistica> est = new List<Estadistica>();
+                List<Estadisticas> est = new List<Estadisticas>();
                 if (estadisticaDTO.Leccion == true)
                 {
-                    est = _db.Estadistica.
-                    Include(p => p.TipoAccionPartido).
-                    Include(p => p.AsistenciaLeccion).
-                    ThenInclude(u => u.Usuario).
-                    Include(p => p.AsistenciaLeccion).
-                    ThenInclude(u => u.Leccion).
-                    Where(a => a.AsistenciaLeccion.Usuario.Id == estadisticaDTO.IdUsuario).ToList();
+                    List<int> asist = _db.AsistenciaLeccion.Where(a => 
+                    a.Usuario.Dni == estadisticaDTO.DNIUsuario && 
+                    a.Leccion.Disciplina.Id == estadisticaDTO.IdDisciplina && 
+                    a.FechaCreacion < estadisticaDTO.FechaHasta && 
+                    a.FechaCreacion > estadisticaDTO.FechaDesde && 
+                    a.FechaBaja==null).
+                    Select(a => a.Id).ToList();
+
+                    foreach (var item in asist)
+                    {
+                        est.Add(_db.Estadisticas.
+                        Include(p => p.TipoAccionPartido).
+                        Where(a => a.AsistenciaLeccionId==item).ToList());
+                    }
+
                 }
                 else {
-                    est = _db.Estadistica.
-                    Include(p => p.Equipo).
-                    ThenInclude(eq => eq.EquipoUsuarios).
-                    ThenInclude(u => u.Usuario).
-                    Include(p => p.Partido).
-                    Include(p => p.TipoAccionPartido).
-                    Where(a => a.Equipo.EquipoUsuarios.Any(u => u.Usuario.Id == estadisticaDTO.IdUsuario)).ToList();
+                    //int nroJugador = _db.EquipoUsuario.Where(a => a.Usuario.Dni == estadisticaDTO.DNIUsuario).Select(a => a.NumCamiseta).FirstOrDefault();
+
+                    List<int> estadisticasIds= _db.Estadisticas.
+                    Where(a => a.NroJugador==estadisticaDTO.NroJugador && 
+                    a.Partido.Disciplina.Id==estadisticaDTO.IdDisciplina &&
+                    a.FechaCreacion < estadisticaDTO.FechaHasta &&
+                    a.FechaCreacion > estadisticaDTO.FechaDesde &&
+                    a.FechaBaja==null).
+                    Select(a => a.Id).ToList();
+
+                    foreach (var item in estadisticasIds)
+                    {
+                        est.Add(GetEstadisticaById(item));
+                    }
                 }
                 return est;
             }
@@ -288,27 +284,25 @@ namespace ApiNet8.Services
             }
         }
 
-        public List<Estadistica> GetEstadisticasByEquipo(int IdEquipo)
+        public List<Estadisticas> GetEstadisticasByEquipo(EstadisticaDTO estadisticaDTO)//listo
         {
             try
             {
-                List<Estadistica> est = _db.Estadistica.
-                    Include(p => p.Equipo).
-                    ThenInclude(eq => eq.EquipoUsuarios).
-                    ThenInclude(u => u.Usuario).
-                    Include(p => p.Partido).
-                    ThenInclude(l => l.Local).
-                    ThenInclude(e => e.Equipo).
-                    Include(p => p.Partido).
-                    ThenInclude(v => v.Visitante).
-                    ThenInclude(e => e.Equipo).
-                    Include(p => p.Partido).
-                    ThenInclude(d => d.Disciplina).
-                    Include(p => p.Partido).
-                    ThenInclude(c => c.Categoria).
-                    Include(p => p.TipoAccionPartido).
-                    Where(a => a.Equipo.Id==IdEquipo).ToList();
-                
+                List<Estadisticas> est = new List<Estadisticas>();
+
+                List<int> estadisticasIds = _db.Estadisticas.
+                    Where(a => a.Equipo.Id == estadisticaDTO.IdEquipo &&
+                    a.Partido.Disciplina.Id == estadisticaDTO.IdDisciplina &&
+                    a.FechaCreacion < estadisticaDTO.FechaHasta &&
+                    a.FechaCreacion > estadisticaDTO.FechaDesde &&
+                    a.FechaBaja == null).
+                    Select(a => a.Id).ToList();
+
+                foreach (var item in estadisticasIds)
+                {
+                    est.Add(GetEstadisticaById(item));
+                }
+
                 return est;
             }
             catch (Exception e)
@@ -317,30 +311,47 @@ namespace ApiNet8.Services
             }
         }
 
-        public List<Estadistica> GetEstadisticasByPartido(int IdPart)
+        public List<Estadisticas> GetEstadisticasByPartidoUsu(EstadisticaDTO estadisticaDTO)//listo
         {
             try
             {
-                List<Estadistica> est = _db.Estadistica.
-                    Include(p => p.Equipo).
-                    ThenInclude(eq => eq.EquipoUsuarios).
-                    ThenInclude(u => u.Usuario).
-                    Include(p => p.Partido).
-                    ThenInclude(l => l.Local).
-                    ThenInclude(e => e.Equipo).
-                    ThenInclude(eq => eq.EquipoUsuarios).
-                    ThenInclude(u => u.Usuario).
-                    Include(p => p.Partido).
-                    ThenInclude(v => v.Visitante).
-                    ThenInclude(e => e.Equipo).
-                    ThenInclude(eq => eq.EquipoUsuarios).
-                    ThenInclude(u => u.Usuario).
-                    Include(p => p.Partido).
-                    ThenInclude(d => d.Disciplina).
-                    Include(p => p.Partido).
-                    ThenInclude(c => c.Categoria).
-                    Include(p => p.TipoAccionPartido).
-                    Where(a => a.Partido.Id == IdPart).ToList();
+                List<Estadisticas> est = new List<Estadisticas>();
+
+                List<int> ids = _db.Estadisticas.
+                    Where(a => a.Partido.Id == estadisticaDTO.IdPartido && 
+                    a.NroJugador==estadisticaDTO.NroJugador &&
+                    a.FechaBaja == null).
+                    Select(a => a.Id).ToList();
+
+                foreach (var item in ids)
+                {
+                    est.Add(GetEstadisticaById(item));
+                }
+
+                return est;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
+        public List<Estadisticas> GetEstadisticasByPartidoEquip(EstadisticaDTO estadisticaDTO)//listo
+        {
+            try
+            {
+                List<Estadisticas> est = new List<Estadisticas>();
+
+                List<int> ids = _db.Estadisticas.
+                    Where(a => a.Partido.Id == estadisticaDTO.IdPartido &&
+                    a.Equipo.Id == estadisticaDTO.IdEquipo &&
+                    a.FechaBaja == null).
+                    Select(a => a.Id).ToList();
+
+                foreach (var item in ids)
+                {
+                    est.Add(GetEstadisticaById(item));
+                }
 
                 return est;
             }
@@ -366,6 +377,16 @@ namespace ApiNet8.Services
                         using (var transaction = _db.Database.BeginTransaction())
                         {
                             TipoAccionPartido tipAcc = _tipoAccionPartidoServices.GetTipoAccionPartidoById(accion.IdTipoAccion);
+                            int jugBanca;
+                            if(accion.IdJugadorEnBanca == 0)
+                            {
+                                jugBanca = 0;
+                            }
+                            else
+                            {
+                                jugBanca = _db.EquipoUsuario.Where(p => p.Id == accion.IdJugadorEnBanca).FirstOrDefault().NumCamiseta;
+                            }
+                            
 
                             AccionPartido accionPartido = new AccionPartido()
                             {
@@ -378,7 +399,7 @@ namespace ApiNet8.Services
                                 TipoAccionPartido = tipAcc,
                                 EquipoLocal = accion.EquipoLocal,
                                 Partido = part,
-                                NroJugadorCambio = _db.EquipoUsuario.Where(p => p.Id == accion.IdJugadorEnBanca).FirstOrDefault().NumCamiseta
+                                NroJugadorCambio = jugBanca
                             };
 
                             if (tipAcc.NombreTipoAccion == "Gol")

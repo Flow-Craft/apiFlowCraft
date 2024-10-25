@@ -238,32 +238,54 @@ namespace ApiNet8.Services
 
         public List<InscripcionUsuario> GetInscripcionesALecciones(int id)
         {
-            List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.Include(e => e.Leccion).Where(i => i.Leccion.Id == id).ToList();
+            List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.
+                Include(e => e.Leccion).
+                ThenInclude(e => e.LeccionHistoriales).
+                ThenInclude(e => e.LeccionEstado).
+                Include(u => u.Usuario).
+                Where(i => i.Leccion.Id == id).ToList();
+
             return inscripciones;
         }
 
         public List<InscripcionUsuario> GetInscripcionesLeccionVigentes(int id)
         {
-            List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.Include(u => u.Usuario).Include(e => e.Leccion).Where(i => i.Leccion.Id == id && i.FechaBaja == null).ToList();
+            List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.
+                Include(u => u.Usuario).
+                Include(e => e.Leccion).
+                ThenInclude(e => e.LeccionHistoriales).
+                ThenInclude(e => e.LeccionEstado).
+                Where(i => i.Leccion.Id == id && i.FechaBaja == null).ToList();
             return inscripciones;
         }
 
         public List<InscripcionUsuario> GetInscripcionesByUsuario(int id)
         {
-            List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(u => u.Usuario.Id == id).ToList();
+            List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.
+                Include(e => e.Leccion).
+                ThenInclude(e => e.LeccionHistoriales).
+                ThenInclude(e => e.LeccionEstado).
+                Include(u => u.Usuario).
+                Where(u => u.Usuario.Id == id).ToList();
             return inscripciones;
         }
 
         public List<InscripcionUsuario> GetInscripcionesByUsuarioActivas(int id)
         {
-            List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(u => u.Usuario.Id == id && u.FechaBaja == null).ToList();
+            List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.
+                Include(e => e.Leccion).
+                ThenInclude(e => e.LeccionHistoriales).
+                ThenInclude(e => e.LeccionEstado).
+                Include(u => u.Usuario).
+                Where(u => u.Usuario.Id == id && u.FechaBaja == null).ToList();
             return inscripciones;
         }
 
-        public void InscribirseALeccion(InscripcionLeccionDTO inscripcion)
+        public void InscribirseALeccion(InscripcionLeccionDTO inscripcion)//listo
         {
             try
             {
+                
                 // verificar si existe leccion
                 Leccion leccion = GetLeccionById(inscripcion.IdLeccion);
                 List<InscripcionUsuario> alumnosInsc = GetInscripcionesLeccionVigentes(leccion.Id);
@@ -329,33 +351,43 @@ namespace ApiNet8.Services
                     throw new Exception("No puede inscribirse porque no tiene perfil de socio");
                 }
 
-                // crear instancia de inscripcion
-                InscripcionUsuario inscripcionLeccion = new InscripcionUsuario
+                InscripcionUsuario? inscripcionLeccion = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(f => f.Leccion.Id == inscripcion.IdLeccion && f.Usuario.Id == inscripcion.IdUsuario).FirstOrDefault();
+                if (inscripcionLeccion == null)
                 {
-                    Leccion = leccion,
-                    Usuario = usuario,
-                    FechaCreacion = DateTime.Now,
-                };
+                    inscripcionLeccion = new InscripcionUsuario
+                    {
+                        Leccion = leccion,
+                        Usuario = usuario,
+                        FechaCreacion = DateTime.Now,
+                    };
+                    _db.InscripcionUsuario.Add(inscripcionLeccion);
+                }
+                else {
+                    inscripcionLeccion.FechaBaja = null;
+                    inscripcionLeccion.FechaModificacion = DateTime.Now;
+                    _db.InscripcionUsuario.Update(inscripcionLeccion);
+                }
+
+                // crear instancia de inscripcion
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
-                    _db.InscripcionUsuario.Add(inscripcionLeccion);
                     _db.SaveChanges();
                     transaction.Commit();
                 }
             }
-            catch (Exception e)
+             catch (Exception e)
             {
                 throw new Exception(e.Message);
             }
         }
 
-        public void DesinscribirseALeccion(int id)
+        public void DesinscribirseALeccion(InscripcionLeccionDTO inscripcion)//listo
         {
             try
             {
                 // busco la inscripcion y la doy de baja
-                InscripcionUsuario? inscripcionLeccion = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(f => f.Id==id).FirstOrDefault();
+                InscripcionUsuario? inscripcionLeccion = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(f => f.Leccion.Id==inscripcion.IdLeccion && f.Usuario.Id==inscripcion.IdUsuario && f.FechaBaja==null).FirstOrDefault();
 
                 inscripcionLeccion.FechaBaja = DateTime.Now;
 
@@ -372,7 +404,7 @@ namespace ApiNet8.Services
             }
 
         }
-        public void IniciarLeccion(AsistenciaLeccionDTO asistencias)
+        public void IniciarLeccion(AsistenciaLeccionDTO asistencias)//listo
         {
             try
             {
@@ -435,7 +467,7 @@ namespace ApiNet8.Services
             }
         }
 
-        public void FinalizarLeccion(int id)
+        public void FinalizarLeccion(int id)//listo
         {
             try
             {

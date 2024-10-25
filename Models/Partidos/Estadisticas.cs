@@ -18,6 +18,7 @@ namespace ApiNet8.Models.Partidos
         public DateTime? FechaBaja { get; set; }
         public DateTime? FechaModificacion { get; set; }
         public int UsuarioEditor { get; set; }
+        public int? NroJugador { get; set; }
 
         // Relaciones      
         public TipoAccionPartido? TipoAccionPartido { get; set; }
