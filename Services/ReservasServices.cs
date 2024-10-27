@@ -1,7 +1,10 @@
 ﻿using ApiNet8.Data;
+using ApiNet8.Models.DTO;
+using ApiNet8.Models;
 using ApiNet8.Models.Eventos;
 using ApiNet8.Models.Reservas;
 using ApiNet8.Services.IServices;
+using ApiNet8.Utils;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using XAct.Events;
@@ -22,6 +25,144 @@ namespace ApiNet8.Services
             _httpContextAccessor = httpContextAccessor;
             _instalacionServices = instalacionServices;
         }
+
+        //public void ActualizarInstalacion(InstalacionDTO instalacionDTO)
+        //{
+        //    try
+        //    {
+        //        Instalacion inst;
+        //        var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+        //        using (var transaction = _db.Database.BeginTransaction())
+        //        {
+
+        //            inst = GetInstalacionById((int)instalacionDTO.Id);
+
+        //            inst.Nombre = instalacionDTO.Nombre ?? inst.Nombre;
+        //            inst.Ubicacion = instalacionDTO.Ubicacion ?? inst.Ubicacion;
+        //            inst.Precio = instalacionDTO.Precio ?? inst.Precio;
+        //            inst.Condiciones = instalacionDTO.Condiciones ?? inst.Condiciones;
+        //            inst.HoraInicio = instalacionDTO.HoraInicio ?? inst.HoraInicio;
+        //            inst.HoraCierre = instalacionDTO.HoraCierre ?? inst.HoraCierre;
+
+        //            // obtengo ultimo historial y lo doy de baja
+        //            InstalacionHistorial? ultimoHistorial = inst.instalacionHistoriales.Where(ih => ih.FechaFin == null).FirstOrDefault();
+
+        //            if (ultimoHistorial != null)
+        //            {
+        //                ultimoHistorial.FechaFin = DateTime.Now;
+        //                _db.InstalacionHistorial.Update(ultimoHistorial);
+        //            }
+        //            else
+        //            {
+        //                inst.instalacionHistoriales = new List<InstalacionHistorial>();
+        //            }
+
+        //            // creo nuevo historial y lo asigno
+        //            InstalacionHistorial nuevoHistorial = new InstalacionHistorial
+        //            {
+        //                FechaInicio = DateTime.Now,
+        //                DetalleCambioEstado = "Se actualiza instalacion",
+        //                UsuarioEditor = currentUser?.Id,
+        //                InstalacionEstado = _instalacionEstadoServices.GetInstalacionEstadoById(instalacionDTO.EstadoId) // asigno estado ACTIVO
+        //            };
+
+        //            inst.instalacionHistoriales.Add(nuevoHistorial);
+
+        //            _db.InstalacionHistorial.Add(nuevoHistorial);
+        //            _db.Instalacion.Update(inst);
+        //            _db.SaveChanges();
+        //            transaction.Commit();
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        throw new Exception(e.Message, e);
+        //    }
+        //}
+
+        //public void CrearReserva(ReservaDTO reservaDTO)
+        //{
+        //    try
+        //    {
+        //        Reserva reserva = _mapper.Map<Reserva>(reservaDTO);
+        //        var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+        //        using (var transaction = _db.Database.BeginTransaction())
+        //        {
+        //            InstalacionHistorial historial = new InstalacionHistorial()
+        //            {
+        //                FechaInicio = DateTime.Now,
+        //                DetalleCambioEstado = "Alta Instalacion",
+        //                UsuarioEditor = currentUser?.Id,
+        //                InstalacionEstado = _instalacionEstadoServices.GetInstalacionEstadoById(1) // asigno estado ACTIVO
+        //            };
+
+        //            instalacion.instalacionHistoriales = new List<InstalacionHistorial>();
+        //            instalacion.instalacionHistoriales.Add(historial);
+
+        //            _db.InstalacionHistorial.Add(historial);
+        //            _db.Instalacion.Add(instalacion);
+        //            _db.SaveChanges();
+        //            transaction.Commit();
+        //        }
+
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        throw new Exception(ex.Message, ex);
+        //    }
+        //}
+
+        //public void EliminarInstalacion(int id)
+        //{
+        //    try
+        //    {
+        //        Instalacion instalacionAEliminar = GetInstalacionById(id);
+
+        //        if (instalacionAEliminar == null)
+        //        {
+        //            throw new Exception("No se encontró la instalación.");
+        //        }
+
+        //        var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+        //        using (var transaction = _db.Database.BeginTransaction())
+        //        {
+        //            // obtengo ultimo historial y lo doy de baja
+        //            InstalacionHistorial? ultimoHistorial = instalacionAEliminar.instalacionHistoriales.Where(ih => ih.FechaFin == null).FirstOrDefault();
+
+        //            if (ultimoHistorial != null)
+        //            {
+        //                ultimoHistorial.FechaFin = DateTime.Now;
+        //                _db.InstalacionHistorial.Update(ultimoHistorial);
+        //            }
+        //            else
+        //            {
+        //                instalacionAEliminar.instalacionHistoriales = new List<InstalacionHistorial>();
+        //            }
+
+        //            InstalacionHistorial nuevoHistorial = new InstalacionHistorial
+        //            {
+        //                DetalleCambioEstado = "Se elimina instalacion",
+        //                FechaInicio = DateTime.Now,
+        //                UsuarioEditor = currentUser?.Id,
+        //                InstalacionEstado = _instalacionEstadoServices.GetInstalacionEstadoById(2) // asigno estado DESACTIVADO
+        //            };
+
+        //            instalacionAEliminar.instalacionHistoriales.Add(nuevoHistorial);
+
+        //            _db.InstalacionHistorial.Add(nuevoHistorial);
+        //            _db.Instalacion.Update(instalacionAEliminar);
+        //            _db.SaveChanges();
+        //            transaction.Commit();
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        throw new Exception(e.Message, e);
+        //    }
+        //}
 
         public List<Reserva> GetReservas()
         {
