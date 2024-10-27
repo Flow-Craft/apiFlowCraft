@@ -20,6 +20,7 @@ namespace ApiNet8.Utils.Mappers
             CreateMap<Perfil, PerfilDTO>().ReverseMap();
             CreateMap<Noticias, NoticiaDTO>().ReverseMap();
             CreateMap<Instalacion, InstalacionDTO>().ReverseMap();
+            CreateMap<Reserva, ReservaDTO>().ReverseMap();
             CreateMap<UsuarioEstado, UsuarioEstadoDTO>().ReverseMap();
             CreateMap<EstadoEvento, EstadoEventoDTO>().ReverseMap();
             CreateMap<EquipoEstado, EquipoEstadoDTO>().ReverseMap();
