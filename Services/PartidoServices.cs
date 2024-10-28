@@ -959,6 +959,52 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
+        public AsignacionDTO AsignacionPartido(AsignacionDTO asignacion)//LISTO
+        {
+            try
+            {
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+                
+                Partido partido = GetPartidoById(asignacion.PartidoId);
+                bool seEncuentra = partido.Usuarios.Any(a => a.Id == currentUser.Id);
+
+                if (seEncuentra)
+                {
+                    PerfilUsuario usuario = _db.PerfilUsuario.Include(l => l.Perfil).Where(a => a.Usuario.Id == currentUser.Id && a.FechaBaja==null).FirstOrDefault();
+                    if (usuario.Perfil.Id == 1)//admin
+                    {
+                        asignacion.Planillero = true;
+                        asignacion.Arbitro = true;
+                    }
+                    else if (usuario.Perfil.Id == 6)//arbitro
+                    {
+                        asignacion.Planillero = false;
+                        asignacion.Arbitro = true;
+                    }
+                    else if (usuario.Perfil.Id == 7)//planillero
+                    {
+                        asignacion.Planillero = true;
+                        asignacion.Arbitro = false;
+                    }
+                    else//ninguno de los anteriores
+                    {
+                        asignacion.Planillero = false;
+                        asignacion.Arbitro = false;
+                    }
+                }
+                else
+                {
+                    throw new Exception("No se encuentra el usuario asignado de ninguna forma al partido");
+                }
+                
+                return asignacion;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
         public List<Partido> GetPartidosAsignados()//LISTO
         {
             try

@@ -81,38 +81,26 @@ namespace ApiNet8.Services
         //    }
         //}
 
-        //public void CrearReserva(ReservaDTO reservaDTO)
-        //{
-        //    try
-        //    {
-        //        Reserva reserva = _mapper.Map<Reserva>(reservaDTO);
-        //        var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+        public void CrearReserva(ReservaDTO reservaDTO)
+        {
+            try
+            {
+                Reserva reserva = _mapper.Map<Reserva>(reservaDTO);
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
-        //        using (var transaction = _db.Database.BeginTransaction())
-        //        {
-        //            InstalacionHistorial historial = new InstalacionHistorial()
-        //            {
-        //                FechaInicio = DateTime.Now,
-        //                DetalleCambioEstado = "Alta Instalacion",
-        //                UsuarioEditor = currentUser?.Id,
-        //                InstalacionEstado = _instalacionEstadoServices.GetInstalacionEstadoById(1) // asigno estado ACTIVO
-        //            };
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.Reserva.Add(reserva);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
 
-        //            instalacion.instalacionHistoriales = new List<InstalacionHistorial>();
-        //            instalacion.instalacionHistoriales.Add(historial);
-
-        //            _db.InstalacionHistorial.Add(historial);
-        //            _db.Instalacion.Add(instalacion);
-        //            _db.SaveChanges();
-        //            transaction.Commit();
-        //        }
-
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        throw new Exception(ex.Message, ex);
-        //    }
-        //}
+            }
+            catch (Exception ex)
+            {
+                throw new Exception(ex.Message, ex);
+            }
+        }
 
         //public void EliminarInstalacion(int id)
         //{
@@ -219,5 +207,35 @@ namespace ApiNet8.Services
             // Si hay conflicto, la instalación no está disponible
             return !hayConflicto;
         }
+
+        //public bool VerificarInstalacionDisponible(ReservaDTO reservaDTO)
+        //{
+        //    List<Evento> eventosDia = _db.Evento.Where(e => e.FechaInicio == reservaDTO.FechaReserva).ToList();
+        //    foreach (Evento e in eventosDia)
+        //    {
+
+        //    }
+        //    // Obtener las reservas asociadas al evento actual
+        //    List<Reserva> reservasDelEvento = GetReservasByEvento(evento);
+
+        //    // Obtener reservas de la instalación
+        //    List<Reserva> reservasInstalacion = GetReservasByInstalacion(instalacion);
+
+        //    // Verificar si hay alguna reserva que se solape con el rango [fechaInicio, fechaFin]
+        //    bool hayConflicto = reservasInstalacion.Any(r =>
+        //        // Ignorar las reservas asociadas al evento actual
+        //        !reservasDelEvento.Contains(r) &&
+        //        // Verificar solapamiento de horarios
+        //        ((fechaInicio > r.HoraInicio && fechaInicio < r.HoraFin) ||
+        //        (fechaFin > r.HoraInicio && fechaFin < r.HoraFin) ||
+        //        (r.HoraInicio >= fechaInicio && r.HoraFin <= fechaFin))
+        //        // Verificar que no esté dada de baja
+        //        && r.FechaBaja == null
+        //    );
+
+        //    // Si hay conflicto, la instalación no está disponible
+        //    return !hayConflicto;
+        //}
+
     }
 }
