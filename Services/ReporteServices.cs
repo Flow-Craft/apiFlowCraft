@@ -8,9 +8,16 @@ using iText.IO.Image;
 using iText.Layout.Properties;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Models.Eventos;
-using ApiNet8.Migrations;
 using iText.Layout.Borders;
 using ApiNet8.Models.Reservas;
+using ApiNet8.Models.Lecciones;
+using ApiNet8.Models.DTO;
+using ApiNet8.Models.Partidos;
+using ApiNet8.Utils;
+using OxyPlot.Axes;
+using OxyPlot.Series;
+using OxyPlot.WindowsForms;
+using OxyPlot;
 
 namespace ApiNet8.Services
 {
@@ -23,9 +30,14 @@ namespace ApiNet8.Services
         private readonly IUsuarioServices _usuarioServices;      
         private readonly ITipoEventoServices _tipoEventoServices;
         private readonly IInstalacionServices _instalacionServices;
+        private readonly IDisciplinasYLeccionesServices _disciplinasYLeccionesServices;
+        private readonly IEquipoServices _equipoServices;
+        private readonly IPartidoServices _partidoServices;
+        private readonly ITipoAccionPartidoServices _tipoAccionPartidoServices;
+        private readonly ILeccionesServices _leccionesServices;
 
 
-        public ReporteServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IEventoServices eventoServices, IUsuarioServices usuarioServices, ITipoEventoServices tipoEventoServices, IInstalacionServices instalacionServices)
+        public ReporteServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IEventoServices eventoServices, IUsuarioServices usuarioServices, ITipoEventoServices tipoEventoServices, IInstalacionServices instalacionServices, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, IEquipoServices equipoServices, IPartidoServices partidoServices, ITipoAccionPartidoServices tipoAccionPartidoServices, ILeccionesServices leccionesServices)
         {
             this._db = db;
             _mapper = mapper;
@@ -34,6 +46,11 @@ namespace ApiNet8.Services
             _usuarioServices = usuarioServices;
             _tipoEventoServices = tipoEventoServices;
             _instalacionServices = instalacionServices;
+            _disciplinasYLeccionesServices = disciplinasYLeccionesServices;
+            _equipoServices = equipoServices;
+            _partidoServices = partidoServices;
+            _tipoAccionPartidoServices = tipoAccionPartidoServices;
+            _leccionesServices = leccionesServices;
         }
 
         public byte[] ReporteEventoUsuarioPeriodo(DateTime periodoInicio, DateTime periodoFin, int idUsuario)
@@ -382,6 +399,767 @@ namespace ApiNet8.Services
                 return memoryStream.ToArray();
             }
         }
+
+        public byte[] ReporteEstadisticaDiscUsuPeriodo(DateTime periodoInicio, DateTime periodoFin, int idDisciplina, int idUsuario) 
+        {
+
+            // Crear el PDF en memoria
+            using (var memoryStream = new MemoryStream())
+            {
+                PdfWriter writer = new PdfWriter(memoryStream);
+                PdfDocument pdf = new PdfDocument(writer);
+                Document document = new Document(pdf);
+
+                // Obtén el directorio raíz de la aplicación
+                var rootPath = Directory.GetCurrentDirectory();
+
+                // Construye la ruta a la carpeta "Images" dentro del proyecto
+                var imagePath = Path.Combine(rootPath, "Images", "LogoReporte.jpeg");
+
+                // Agregar logo
+                Image logo = new Image(ImageDataFactory.Create(imagePath));
+                logo.ScaleToFit(50, 50); // Cambia el tamaño a 50x50 puntos
+                document.Add(logo);
+
+                // Título
+                Paragraph title = new Paragraph("Estadísticas por disciplina, usuario y periodo")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(18);
+                document.Add(title);
+
+                // Fecha de generación y periodo
+                DateTime fechaGeneracion = DateTime.Now;
+                document.Add(new Paragraph($"Fecha de generación: {fechaGeneracion}")
+                    .SetTextAlignment(TextAlignment.RIGHT)
+                    .SetFontSize(12));
+                document.Add(new Paragraph($"Periodo: {periodoInicio.ToShortDateString()} a {periodoFin.ToShortDateString()}")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(12));
+
+                // disciplina
+                Disciplina? disciplina = _disciplinasYLeccionesServices.GetDisciplinaById(idDisciplina);
+                if (disciplina == null)
+                {
+                    throw new Exception("No existe la disciplina seleccionada");
+                }
+                document.Add(new Paragraph($"Disciplina: {disciplina.Nombre}")
+                   .SetFontSize(12));
+
+                // Datos del usuario
+                Usuario? usuario = _usuarioServices.GetUsuarioById(idUsuario);
+                if (usuario == null)
+                {
+                    throw new Exception("No existe el usuario");
+                }
+                document.Add(new Paragraph($"Nombre y apellido Usuario: {usuario.Nombre} {usuario.Apellido}")
+                    .SetFontSize(12));
+                document.Add(new Paragraph($"Fecha de nacimiento: {usuario.FechaNacimiento}")
+                    .SetFontSize(12));
+
+                // puesto jugador
+                List<string> posicionesJugador = _equipoServices.GetPuestosJugador(idUsuario);
+                string puestos = string.Join(", ", posicionesJugador);
+
+                // voley
+                if (disciplina.Nombre == Enums.Disciplinas.Voleyball.ToString())
+                {
+                    // Tabla de estadisticas
+                    Table table = new Table(new float[] { 4, 4, 2, 4, 2, 4, 2, 4 });
+                    table.SetWidth(UnitValue.CreatePercentValue(100));
+
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Acciones")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("+")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Porcentaje +")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("/")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Porcentaje /")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("-")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Porcentaje -")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Total")).SetBorderBottom(new SolidBorder(1)));
+
+                    // traer estadisticas por usuario en rango fechas de la disciplina
+                    EstadisticaDTO estadisticasDTO = new EstadisticaDTO
+                    {
+                        Leccion = false,
+                        IdDisciplina = idDisciplina,
+                        FechaDesde = periodoInicio,
+                        FechaHasta = periodoFin,
+                        DNIUsuario = usuario.Dni
+                    };
+                    List<Estadisticas> estadisticas = _partidoServices.GetEstadisticasByDiscUsuPer(estadisticasDTO);
+                    List<ReporteEstadisticaDTO> tablaEstadisticas = new List<ReporteEstadisticaDTO>();
+
+                    // Obtener las estadísticas agrupadas por el nombre del tipo de acción
+                    var estadisticasAgrupadas = estadisticas
+                        .GroupBy(e => e.TipoAccionPartido?.NombreTipoAccion)
+                        .Where(grupo => grupo.Key != null); // Ignorar acciones sin tipo
+
+                    foreach (var grupo in estadisticasAgrupadas)
+                    {
+                        var tipoAccion = grupo.Key;
+
+                        // Filtrar por el tipo de acción actual y contar cada marca
+                        int totalBien = grupo.Where(e => e.MarcaEstadistica == "+").FirstOrDefault() != null ? grupo.Where(e => e.MarcaEstadistica == "+").FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int totalRegular = grupo.Where(e => e.MarcaEstadistica == "/").FirstOrDefault() != null ? grupo.Where(e => e.MarcaEstadistica == "/").FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int totalMal = grupo.Where(e => e.MarcaEstadistica == "-").FirstOrDefault() != null ? grupo.Where(e => e.MarcaEstadistica == "-").FirstOrDefault()!.PuntajeTipoAccion : 0;
+                                          
+                        int total = totalBien + totalRegular + totalMal;
+                        
+                        // Calcular porcentajes
+                        int porcentajeBien = total > 0 ? (totalBien * 100) / total : 0;
+                        int porcentajeRegular = total > 0 ? (totalRegular * 100) / total : 0;
+                        int porcentajeMal = total > 0 ? (totalMal * 100) / total : 0;
+
+                        // Crear un nuevo ReporteEstadisticaDTO y asignar valores
+                        ReporteEstadisticaDTO reporte = new ReporteEstadisticaDTO
+                        {
+                            Accion = tipoAccion!,
+                            Bien = totalBien,
+                            PorcentajeBien = porcentajeBien,
+                            Regular = totalRegular,
+                            PorcentajeRegular = porcentajeRegular,
+                            Mal = totalMal,
+                            PorcentajeMal = porcentajeMal,
+                            Total = total
+                        };
+
+                        // Añadir el reporte a la lista final
+                        tablaEstadisticas.Add(reporte);
+                    }
+
+                    foreach (var est in tablaEstadisticas)
+                    {
+                        table.AddCell(new Cell().Add(new Paragraph(est.Accion)).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Bien.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.PorcentajeBien.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Regular.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.PorcentajeRegular.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Mal.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.PorcentajeMal.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Total.ToString())).SetBorderBottom(new SolidBorder(1)));
+                    }
+                    document.Add(table);
+
+                    // Generar el gráfico de estadísticas
+                    byte[] graficoBytes = GenerarGraficoEstadisticasVoley(tablaEstadisticas);
+                    ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
+                    Image graficoImage = new Image(graficoImageData);
+
+                    // Ajustar tamaño del gráfico y añadir separación del contenido anterior
+                    graficoImage.ScaleToFit(400, 300);
+                    graficoImage.SetMarginTop(20); // Espacio superior de 20 unidades
+                    document.Add(graficoImage);
+                }
+
+                if (disciplina.Nombre == Enums.Disciplinas.Futbol.ToString()) 
+                {
+                    // Tabla de estadisticas
+                    Table table = new Table(new float[] { 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
+                    table.SetWidth(UnitValue.CreatePercentValue(100));
+
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Partido")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Pases correctos")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Goles")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Remates afuera")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Remates a puerta")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Asistencias")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Amarillas")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Rojas")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Faltas")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Remates atajados")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Goles recibidos")).SetBorderBottom(new SolidBorder(1)));
+
+                    // traer estadisticas por usuario en rango fechas de la disciplina
+                    EstadisticaDTO estadisticasDTO = new EstadisticaDTO
+                    {
+                        Leccion = false,
+                        IdDisciplina = idDisciplina,
+                        FechaDesde = periodoInicio,
+                        FechaHasta = periodoFin,
+                        DNIUsuario = usuario.Dni
+                    };
+                    List<Estadisticas> estadisticas = _partidoServices.GetEstadisticasByDiscUsuPer(estadisticasDTO);
+                    List<ReporteEstadisticaDTO> tablaEstadisticas = new List<ReporteEstadisticaDTO>();
+
+                    // Obtener las estadísticas agrupadas por partido
+                    var estadisticasAgrupadas = estadisticas
+                        .GroupBy(e => e.Partido?.Titulo)
+                        .Where(grupo => grupo.Key != null); // Ignorar acciones sin tipo
+
+                    int totalPasesCorrectos = 0;
+                    int totalGoles = 0;
+                    int totalRematesFuera = 0;
+                    int totalRematesAPuerta = 0;
+                    int totalAsistencias = 0;
+                    int totalAmarillas = 0;
+                    int totalRojas = 0;
+                    int totalFaltas = 0;
+                    int totalRematesAtajados = 0;
+                    int totalGolesRecibidos = 0;
+
+                    foreach (var grupo in estadisticasAgrupadas)
+                    {
+                        var partido = grupo.Key;
+
+                        int pasesCorrectos = grupo.Where(e => e?.TipoAccionPartido?.Id == 6).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 6).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int goles = grupo.Where(e => e?.TipoAccionPartido?.Id == 1).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 1).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rematesFuera = grupo.Where(e => e?.TipoAccionPartido?.Id == 9).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 9).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rematesAPuerta = grupo.Where(e => e?.TipoAccionPartido?.Id == 8).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 8).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int asistencias = grupo.Where(e => e?.TipoAccionPartido?.Id == 7).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 7).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int amarillas = grupo.Where(e => e?.TipoAccionPartido?.Id == 3).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 3).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rojas = grupo.Where(e => e?.TipoAccionPartido?.Id == 4).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 4).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int faltas = grupo.Where(e => e?.TipoAccionPartido?.Id == 2).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 2).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rematesAtajados = grupo.Where(e => e?.TipoAccionPartido?.Id == 11).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 11).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int golesRecibidos = grupo.Where(e => e?.TipoAccionPartido?.Id == 12).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 12).FirstOrDefault()!.PuntajeTipoAccion : 0;
+
+                        // actualizar totales
+                        totalPasesCorrectos += pasesCorrectos;
+                        totalGoles += goles;
+                        totalRematesFuera += rematesFuera;
+                        totalRematesAPuerta += rematesAPuerta;
+                        totalAsistencias += asistencias;
+                        totalAmarillas += amarillas;
+                        totalRojas += rojas;
+                        totalFaltas += faltas;
+                        totalRematesAtajados += rematesAtajados;
+                        totalGolesRecibidos += golesRecibidos;
+
+                        // Crear un nuevo ReporteEstadisticaDTO y asignar valores
+                        ReporteEstadisticaDTO reporte = new ReporteEstadisticaDTO
+                        {
+                            Partido = partido,
+                            PasesCorrectos = pasesCorrectos,
+                            Goles = goles,
+                            RematesAPuerta = rematesAPuerta,
+                            RematesAfuera = rematesFuera,
+                            Asistencias = asistencias,
+                            Amarillas = amarillas,
+                            Rojas = rojas,
+                            RematesAtajados = rematesAtajados,
+                            GolesRecibidos = golesRecibidos,
+                            Faltas = faltas
+                        };
+
+                        tablaEstadisticas.Add(reporte);
+                        // Añadir el reporte a la lista final
+                    }
+
+                    // creo otra fila con los totales
+                    ReporteEstadisticaDTO reporteTotales = new ReporteEstadisticaDTO
+                    {
+                        Partido = "Total",
+                        PasesCorrectos = totalPasesCorrectos,
+                        Goles = totalGoles,
+                        RematesAPuerta = totalRematesAPuerta,
+                        RematesAfuera = totalRematesFuera,
+                        Asistencias = totalAsistencias,
+                        Amarillas = totalAmarillas,
+                        Rojas = totalRojas,
+                        RematesAtajados = totalRematesAtajados,
+                        GolesRecibidos = totalGolesRecibidos,
+                        Faltas = totalFaltas
+                    };
+                    tablaEstadisticas.Add(reporteTotales);
+
+                    foreach (var est in tablaEstadisticas)
+                    {
+                        table.AddCell(new Cell().Add(new Paragraph(est.Partido)).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.PasesCorrectos.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Goles.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.RematesAfuera.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.RematesAPuerta.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Asistencias.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Amarillas.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Rojas.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Faltas.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.RematesAtajados.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.GolesRecibidos.ToString())).SetBorderBottom(new SolidBorder(1)));
+                    }
+                    document.Add(table);
+
+                    //Generar el gráfico de estadísticas
+                    byte[] graficoBytes = GenerarGraficoEstadisticasFutbol(tablaEstadisticas);
+                    ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
+                    Image graficoImage = new Image(graficoImageData);
+
+                    // Ajustar tamaño del gráfico y añadir separación del contenido anterior
+                    graficoImage.ScaleToFit(400, 300);
+                    graficoImage.SetMarginTop(20); // Espacio superior de 20 unidades
+                    document.Add(graficoImage);
+                }
+
+                    // Cerrar el documento
+                    document.Close();
+
+                // Retornar el PDF generado como un byte[]
+                return memoryStream.ToArray();
+            }
+        }
+
+        public byte[] ReporteEstadisticaDiscUsuLeccionPeriodo(DateTime periodoInicio, DateTime periodoFin, int idDisciplina, int idLeccion,int idUsuario)
+        {
+            // Crear el PDF en memoria
+            using (var memoryStream = new MemoryStream())
+            {
+                PdfWriter writer = new PdfWriter(memoryStream);
+                PdfDocument pdf = new PdfDocument(writer);
+                Document document = new Document(pdf);
+
+                // Obtén el directorio raíz de la aplicación
+                var rootPath = Directory.GetCurrentDirectory();
+
+                // Construye la ruta a la carpeta "Images" dentro del proyecto
+                var imagePath = Path.Combine(rootPath, "Images", "LogoReporte.jpeg");
+
+                // Agregar logo
+                Image logo = new Image(ImageDataFactory.Create(imagePath));
+                logo.ScaleToFit(50, 50); // Cambia el tamaño a 50x50 puntos
+                document.Add(logo);
+
+                // Título
+                Paragraph title = new Paragraph("Estadísticas por disciplina, usuario, leccion y periodo")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(18);
+                document.Add(title);
+
+                // Fecha de generación y periodo
+                DateTime fechaGeneracion = DateTime.Now;
+                document.Add(new Paragraph($"Fecha de generación: {fechaGeneracion}")
+                    .SetTextAlignment(TextAlignment.RIGHT)
+                    .SetFontSize(12));
+                document.Add(new Paragraph($"Periodo: {periodoInicio.ToShortDateString()} a {periodoFin.ToShortDateString()}")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(12));
+
+                // leccion
+                Leccion leccion = _leccionesServices.GetLeccionById(idLeccion);
+
+                if (leccion == null)
+                {
+                    throw new Exception("No existe la leccion seleccionada");
+                }
+
+                document.Add(new Paragraph($"Leccion: {leccion.Nombre}")
+                   .SetFontSize(12));
+
+                // disciplina
+                Disciplina? disciplina = _disciplinasYLeccionesServices.GetDisciplinaById(idDisciplina);
+                if (disciplina == null)
+                {
+                    throw new Exception("No existe la disciplina seleccionada");
+                }
+                document.Add(new Paragraph($"Disciplina: {disciplina.Nombre}")
+                   .SetFontSize(12));
+
+                // Datos del usuario
+                Usuario? usuario = _usuarioServices.GetUsuarioById(idUsuario);
+                if (usuario == null)
+                {
+                    throw new Exception("No existe el usuario");
+                }
+                document.Add(new Paragraph($"Nombre y apellido Usuario: {usuario.Nombre} {usuario.Apellido}")
+                    .SetFontSize(12));
+                document.Add(new Paragraph($"Fecha de nacimiento: {usuario.FechaNacimiento}")
+                    .SetFontSize(12));
+
+                // puesto jugador
+                List<string> posicionesJugador = _equipoServices.GetPuestosJugador(idUsuario);
+                string puestos = string.Join(", ", posicionesJugador);                
+
+                // voley
+                if (disciplina.Nombre == Enums.Disciplinas.Voleyball.ToString())
+                {
+                    // Tabla de estadisticas
+                    Table table = new Table(new float[] { 4, 4, 2, 4, 2, 4, 2, 4 });
+                    table.SetWidth(UnitValue.CreatePercentValue(100));
+
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Acciones")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("+")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Porcentaje +")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("/")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Porcentaje /")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("-")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Porcentaje -")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Total")).SetBorderBottom(new SolidBorder(1)));
+
+                    // traer estadisticas por usuario en rango fechas de la disciplina
+                    EstadisticaDTO estadisticasDTO = new EstadisticaDTO
+                    {
+                        Leccion = true,
+                        IdDisciplina = idDisciplina,
+                        FechaDesde = periodoInicio,
+                        FechaHasta = periodoFin,
+                        DNIUsuario = usuario.Dni,
+                        IdLeccion = idLeccion,
+                    };
+                    List<Estadisticas> estadisticas = _partidoServices.GetEstadisticasByDiscUsuPer(estadisticasDTO);
+                    List<ReporteEstadisticaDTO> tablaEstadisticas = new List<ReporteEstadisticaDTO>();
+
+                    // Obtener las estadísticas agrupadas por el nombre del tipo de acción
+                    var estadisticasAgrupadas = estadisticas
+                        .GroupBy(e => e.TipoAccionPartido?.NombreTipoAccion)
+                        .Where(grupo => grupo.Key != null); // Ignorar acciones sin tipo
+
+                    foreach (var grupo in estadisticasAgrupadas)
+                    {
+                        var tipoAccion = grupo.Key;
+
+                        // Filtrar por el tipo de acción actual y contar cada marca
+                        int totalBien = grupo.Where(e => e.MarcaEstadistica == "+").FirstOrDefault() != null ? grupo.Where(e => e.MarcaEstadistica == "+").FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int totalRegular = grupo.Where(e => e.MarcaEstadistica == "/").FirstOrDefault() != null ? grupo.Where(e => e.MarcaEstadistica == "/").FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int totalMal = grupo.Where(e => e.MarcaEstadistica == "-").FirstOrDefault() != null ? grupo.Where(e => e.MarcaEstadistica == "-").FirstOrDefault()!.PuntajeTipoAccion : 0;
+
+                        int total = totalBien + totalRegular + totalMal;
+
+                        // Calcular porcentajes
+                        int porcentajeBien = total > 0 ? (totalBien * 100) / total : 0;
+                        int porcentajeRegular = total > 0 ? (totalRegular * 100) / total : 0;
+                        int porcentajeMal = total > 0 ? (totalMal * 100) / total : 0;
+
+                        // Crear un nuevo ReporteEstadisticaDTO y asignar valores
+                        ReporteEstadisticaDTO reporte = new ReporteEstadisticaDTO
+                        {
+                            Accion = tipoAccion!,
+                            Bien = totalBien,
+                            PorcentajeBien = porcentajeBien,
+                            Regular = totalRegular,
+                            PorcentajeRegular = porcentajeRegular,
+                            Mal = totalMal,
+                            PorcentajeMal = porcentajeMal,
+                            Total = total
+                        };
+
+                        // Añadir el reporte a la lista final
+                        tablaEstadisticas.Add(reporte);
+                    }
+
+                    foreach (var est in tablaEstadisticas)
+                    {
+                        table.AddCell(new Cell().Add(new Paragraph(est.Accion)).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Bien.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.PorcentajeBien.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Regular.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.PorcentajeRegular.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Mal.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.PorcentajeMal.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Total.ToString())).SetBorderBottom(new SolidBorder(1)));
+                    }
+                    document.Add(table);
+
+                    // Generar el gráfico de estadísticas
+                    byte[] graficoBytes = GenerarGraficoEstadisticasVoley(tablaEstadisticas);
+                    ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
+                    Image graficoImage = new Image(graficoImageData);
+
+                    // Ajustar tamaño del gráfico y añadir separación del contenido anterior
+                    graficoImage.ScaleToFit(400, 300);
+                    graficoImage.SetMarginTop(20); // Espacio superior de 20 unidades
+                    document.Add(graficoImage);
+                }
+
+                if (disciplina.Nombre == Enums.Disciplinas.Futbol.ToString())
+                {
+                    // Tabla de estadisticas
+                    Table table = new Table(new float[] { 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
+                    table.SetWidth(UnitValue.CreatePercentValue(100));
+
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Partido")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Pases correctos")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Goles")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Remates afuera")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Remates a puerta")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Asistencias")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Amarillas")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Rojas")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Faltas")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Remates atajados")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Goles recibidos")).SetBorderBottom(new SolidBorder(1)));
+
+                    // traer estadisticas por usuario en rango fechas de la disciplina
+                    EstadisticaDTO estadisticasDTO = new EstadisticaDTO
+                    {
+                        Leccion = true,
+                        IdDisciplina = idDisciplina,
+                        FechaDesde = periodoInicio,
+                        FechaHasta = periodoFin,
+                        DNIUsuario = usuario.Dni
+                    };
+                    List<Estadisticas> estadisticas = _partidoServices.GetEstadisticasByDiscUsuPer(estadisticasDTO);
+                    List<ReporteEstadisticaDTO> tablaEstadisticas = new List<ReporteEstadisticaDTO>();
+
+                    // Obtener las estadísticas agrupadas por partido
+                    var estadisticasAgrupadas = estadisticas
+                        .GroupBy(e => e.Partido?.Titulo)
+                        .Where(grupo => grupo.Key != null); // Ignorar acciones sin tipo
+
+                    int totalPasesCorrectos = 0;
+                    int totalGoles = 0;
+                    int totalRematesFuera = 0;
+                    int totalRematesAPuerta = 0;
+                    int totalAsistencias = 0;
+                    int totalAmarillas = 0;
+                    int totalRojas = 0;
+                    int totalFaltas = 0;
+                    int totalRematesAtajados = 0;
+                    int totalGolesRecibidos = 0;
+
+                    foreach (var grupo in estadisticasAgrupadas)
+                    {
+                        var partido = grupo.Key;
+
+                        int pasesCorrectos = grupo.Where(e => e?.TipoAccionPartido?.Id == 6).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 6).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int goles = grupo.Where(e => e?.TipoAccionPartido?.Id == 1).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 1).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rematesFuera = grupo.Where(e => e?.TipoAccionPartido?.Id == 9).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 9).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rematesAPuerta = grupo.Where(e => e?.TipoAccionPartido?.Id == 8).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 8).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int asistencias = grupo.Where(e => e?.TipoAccionPartido?.Id == 7).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 7).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int amarillas = grupo.Where(e => e?.TipoAccionPartido?.Id == 3).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 3).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rojas = grupo.Where(e => e?.TipoAccionPartido?.Id == 4).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 4).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int faltas = grupo.Where(e => e?.TipoAccionPartido?.Id == 2).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 2).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rematesAtajados = grupo.Where(e => e?.TipoAccionPartido?.Id == 11).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 11).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int golesRecibidos = grupo.Where(e => e?.TipoAccionPartido?.Id == 12).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 12).FirstOrDefault()!.PuntajeTipoAccion : 0;
+
+                        // actualizar totales
+                        totalPasesCorrectos += pasesCorrectos;
+                        totalGoles += goles;
+                        totalRematesFuera += rematesFuera;
+                        totalRematesAPuerta += rematesAPuerta;
+                        totalAsistencias += asistencias;
+                        totalAmarillas += amarillas;
+                        totalRojas += rojas;
+                        totalFaltas += faltas;
+                        totalRematesAtajados += rematesAtajados;
+                        totalGolesRecibidos += golesRecibidos;
+
+                        // Crear un nuevo ReporteEstadisticaDTO y asignar valores
+                        ReporteEstadisticaDTO reporte = new ReporteEstadisticaDTO
+                        {
+                            Partido = partido,
+                            PasesCorrectos = pasesCorrectos,
+                            Goles = goles,
+                            RematesAPuerta = rematesAPuerta,
+                            RematesAfuera = rematesFuera,
+                            Asistencias = asistencias,
+                            Amarillas = amarillas,
+                            Rojas = rojas,
+                            RematesAtajados = rematesAtajados,
+                            GolesRecibidos = golesRecibidos,
+                            Faltas = faltas
+                        };
+
+                        tablaEstadisticas.Add(reporte);
+                        // Añadir el reporte a la lista final
+                    }
+
+                    // creo otra fila con los totales
+                    ReporteEstadisticaDTO reporteTotales = new ReporteEstadisticaDTO
+                    {
+                        Partido = "Total",
+                        PasesCorrectos = totalPasesCorrectos,
+                        Goles = totalGoles,
+                        RematesAPuerta = totalRematesAPuerta,
+                        RematesAfuera = totalRematesFuera,
+                        Asistencias = totalAsistencias,
+                        Amarillas = totalAmarillas,
+                        Rojas = totalRojas,
+                        RematesAtajados = totalRematesAtajados,
+                        GolesRecibidos = totalGolesRecibidos,
+                        Faltas = totalFaltas
+                    };
+                    tablaEstadisticas.Add(reporteTotales);
+
+                    foreach (var est in tablaEstadisticas)
+                    {
+                        table.AddCell(new Cell().Add(new Paragraph(est.Partido)).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.PasesCorrectos.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Goles.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.RematesAfuera.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.RematesAPuerta.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Asistencias.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Amarillas.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Rojas.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.Faltas.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.RematesAtajados.ToString())).SetBorderBottom(new SolidBorder(1)));
+                        table.AddCell(new Cell().Add(new Paragraph(est.GolesRecibidos.ToString())).SetBorderBottom(new SolidBorder(1)));
+                    }
+                    document.Add(table);
+
+                    //Generar el gráfico de estadísticas
+                    byte[] graficoBytes = GenerarGraficoEstadisticasFutbol(tablaEstadisticas);
+                    ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
+                    Image graficoImage = new Image(graficoImageData);
+
+                    // Ajustar tamaño del gráfico y añadir separación del contenido anterior
+                    graficoImage.ScaleToFit(400, 300);
+                    graficoImage.SetMarginTop(20); // Espacio superior de 20 unidades
+                    document.Add(graficoImage);
+                }
+
+                // Cerrar el documento
+                document.Close();
+
+                // Retornar el PDF generado como un byte[]
+                return memoryStream.ToArray();
+            }
+        }
+
+        private byte[] GenerarGraficoEstadisticasVoley(List<ReporteEstadisticaDTO> tabla)
+        {
+            // Crear el modelo de gráfico
+            var plotModel = new PlotModel { Title = "Estadísticas de Acciones" };
+
+            // Configurar el eje X con nombres de acciones
+            var categoryAxis = new CategoryAxis
+            {
+                Position = AxisPosition.Bottom
+            };
+            foreach (var item in tabla)
+            {
+                categoryAxis.Labels.Add(item.Accion);
+            }
+            plotModel.Axes.Add(categoryAxis);
+
+            // Configurar el eje Y para mostrar el porcentaje de 0 a 100
+            var valueAxis = new LinearAxis
+            {
+                Position = AxisPosition.Left,
+                Minimum = 0,
+                Maximum = 100,
+                Title = "Porcentaje (%)"
+            };
+            plotModel.Axes.Add(valueAxis);
+
+            // Agregar series de columnas apiladas para los tres valores: Bien, Regular, Mal
+            var bienSeries = new ColumnSeries { Title = "Bien", FillColor = OxyColors.Green, IsStacked = true };
+            var regularSeries = new ColumnSeries { Title = "Regular", FillColor = OxyColors.Yellow, IsStacked = true };
+            var malSeries = new ColumnSeries { Title = "Mal", FillColor = OxyColors.Red, IsStacked = true };
+
+            foreach (var item in tabla)
+            {
+                bienSeries.Items.Add(new ColumnItem(item.PorcentajeBien) { CategoryIndex = tabla.IndexOf(item) });
+                regularSeries.Items.Add(new ColumnItem(item.PorcentajeRegular) { CategoryIndex = tabla.IndexOf(item) });
+                malSeries.Items.Add(new ColumnItem(item.PorcentajeMal) { CategoryIndex = tabla.IndexOf(item) });
+            }
+
+            plotModel.Series.Add(bienSeries);
+            plotModel.Series.Add(regularSeries);
+            plotModel.Series.Add(malSeries);
+
+            // Configurar la leyenda para que se muestre en la parte inferior
+            plotModel.LegendPosition = LegendPosition.BottomCenter;
+            plotModel.LegendPlacement = LegendPlacement.Outside;
+            plotModel.LegendOrientation = LegendOrientation.Horizontal;
+
+            // Renderizar el gráfico en memoria
+            using (var stream = new MemoryStream())
+            {
+                var pngExporter = new PngExporter { Width = 600, Height = 300 };
+                pngExporter.Export(plotModel, stream);
+                return stream.ToArray();
+            }
+        }
+
+        private byte[] GenerarGraficoEstadisticasFutbol(List<ReporteEstadisticaDTO> tabla)
+        {
+            // Crear el modelo de gráfico
+            var plotModel = new PlotModel { Title = "Estadísticas de Acciones" };
+
+            // Configurar el eje X con nombres de acciones de futbol
+            var categoryAxis = new CategoryAxis
+            {
+                Position = AxisPosition.Bottom
+            };
+            categoryAxis.Labels.Add("Pases y asistencias");
+            categoryAxis.Labels.Add("Goles y remates");
+            categoryAxis.Labels.Add("Faltas y cartulinas");
+            categoryAxis.Labels.Add("Remates en contra");
+            plotModel.Axes.Add(categoryAxis);
+
+            // Calcular el valor máximo de las estadísticas para ajustar el eje Y
+            int maxValue = Math.Max(
+                tabla.Max(item => Math.Max(item.PasesCorrectos + item.Asistencias, item.Goles + item.RematesAPuerta + item.RematesAfuera)),
+                Math.Max(tabla.Max(item => item.Faltas + item.Amarillas + item.Rojas), tabla.Max(item => item.RematesAtajados + item.GolesRecibidos))
+            );
+
+            // Configurar el eje Y para mostrar desde 0 hasta el valor máximo encontrado
+            var valueAxis = new LinearAxis
+            {
+                Position = AxisPosition.Left,
+                Minimum = 0,
+                Maximum = maxValue,
+                Title = "Totales"
+            };
+            plotModel.Axes.Add(valueAxis);
+
+            // elimino la fila de totales
+            tabla.RemoveAt(tabla.Count - 1);
+
+            // Asistencias y pases
+            var pasesSeries = new ColumnSeries { Title = "Pases", FillColor = OxyColors.Green, IsStacked = true };
+            var asistenciasSeries = new ColumnSeries { Title = "Asistencias", FillColor = OxyColors.Yellow, IsStacked = true };
+            foreach (var item in tabla)
+            {
+                pasesSeries.Items.Add(new ColumnItem(item.PasesCorrectos) { CategoryIndex = 0 });
+                asistenciasSeries.Items.Add(new ColumnItem(item.Asistencias) { CategoryIndex = 0 });
+            }
+            plotModel.Series.Add(pasesSeries);
+            plotModel.Series.Add(asistenciasSeries);
+
+            // Goles, remates a puerta y remates afuera
+            var golesSeries = new ColumnSeries { Title = "Goles", FillColor = OxyColors.Green, IsStacked = true };
+            var rematesPuertaSeries = new ColumnSeries { Title = "Remates a puerta", FillColor = OxyColors.Yellow, IsStacked = true };
+            var rematesFueraSeries = new ColumnSeries { Title = "Remates fuera", FillColor = OxyColors.Red, IsStacked = true };
+            foreach (var item in tabla)
+            {
+                golesSeries.Items.Add(new ColumnItem(item.Goles) { CategoryIndex = 1 });
+                rematesPuertaSeries.Items.Add(new ColumnItem(item.RematesAPuerta) { CategoryIndex = 1 });
+                rematesFueraSeries.Items.Add(new ColumnItem(item.RematesAfuera) { CategoryIndex = 1 });
+            }
+            plotModel.Series.Add(golesSeries);
+            plotModel.Series.Add(rematesPuertaSeries);
+            plotModel.Series.Add(rematesFueraSeries);
+
+            // Faltas, amarillas y rojas
+            var faltasSeries = new ColumnSeries { Title = "Faltas", FillColor = OxyColors.Green, IsStacked = true };
+            var amarillasSeries = new ColumnSeries { Title = "Amarillas", FillColor = OxyColors.Yellow, IsStacked = true };
+            var rojasSeries = new ColumnSeries { Title = "Rojas", FillColor = OxyColors.Red, IsStacked = true };
+            foreach (var item in tabla)
+            {
+                faltasSeries.Items.Add(new ColumnItem(item.Faltas) { CategoryIndex = 2 });
+                amarillasSeries.Items.Add(new ColumnItem(item.Amarillas) { CategoryIndex = 2 });
+                rojasSeries.Items.Add(new ColumnItem(item.Rojas) { CategoryIndex = 2 });
+            }
+            plotModel.Series.Add(faltasSeries);
+            plotModel.Series.Add(amarillasSeries);
+            plotModel.Series.Add(rojasSeries);
+
+            // Remates atajados y goles recibidos
+            var rematesAtajadosSeries = new ColumnSeries { Title = "Atajados", FillColor = OxyColors.Green, IsStacked = true };
+            var golesRecibidosSeries = new ColumnSeries { Title = "Goles recibidos", FillColor = OxyColors.Red, IsStacked = true };
+            foreach (var item in tabla)
+            {
+                rematesAtajadosSeries.Items.Add(new ColumnItem(item.RematesAtajados) { CategoryIndex = 3 });
+                golesRecibidosSeries.Items.Add(new ColumnItem(item.GolesRecibidos) { CategoryIndex = 3 });
+            }
+            plotModel.Series.Add(rematesAtajadosSeries);
+            plotModel.Series.Add(golesRecibidosSeries);
+
+            // Configurar la leyenda para que se muestre en la parte inferior
+            plotModel.LegendPosition = LegendPosition.BottomCenter;
+            plotModel.LegendPlacement = LegendPlacement.Outside;
+            plotModel.LegendOrientation = LegendOrientation.Horizontal;
+
+
+            // Renderizar el gráfico en memoria
+            using (var stream = new MemoryStream())
+            {
+                var pngExporter = new PngExporter { Width = 800, Height = 600 };
+                pngExporter.Export(plotModel, stream);
+                return stream.ToArray();
+            }
+        }       
+
+
+
+
 
 
 

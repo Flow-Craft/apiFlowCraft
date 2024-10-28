@@ -221,7 +221,7 @@ namespace ApiNet8.Data
    new Permiso { Id = 39, NombrePermiso = "Reportes", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Asistencias eventos", Funcionalidades = "Descargar PDF/Excel" },
    new Permiso { Id = 40, NombrePermiso = "Reportes", FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, Modulo = "Estadisticas", Funcionalidades = "Descargar PDF/Excel" }
    );
-          
+
         }
     }
 }

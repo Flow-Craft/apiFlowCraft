@@ -56,7 +56,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetTiposAccionPaneles([FromBody] TipoAccionPartidoDTO tipAc)
+        public IActionResult GetTiposAccionPaneles([FromQuery] TipoAccionPartidoDTO tipAc)
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
 
@@ -107,7 +107,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetTipoAccionPartidoById([FromBody] TipoAccionPartidoDTO tipoAccionPartidoDTO)
+        public IActionResult GetTipoAccionPartidoById([FromQuery] TipoAccionPartidoDTO tipoAccionPartidoDTO)
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
@@ -268,7 +268,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetPartidoById(int id)
+        public IActionResult GetPartidoById([FromQuery] int id)
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -424,7 +424,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetAccionPartidoByPartido(int IdPartido)
+        public IActionResult GetAccionPartidoByPartido([FromQuery] int IdPartido)
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -501,7 +501,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetAccionPartidoById(int Id)
+        public IActionResult GetAccionPartidoById([FromQuery] int Id)
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -552,7 +552,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetEquipoLocal(int partidoId)
+        public IActionResult GetEquipoLocal([FromQuery] int partidoId)
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -578,7 +578,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetEquipoVisitante(int partidoId)
+        public IActionResult GetEquipoVisitante([FromQuery] int partidoId)
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -703,7 +703,6 @@ namespace ApiNet8.Controllers
 
         }
 
-        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult AsignacionPartido([FromQuery] AsignacionDTO asignacion)
         {
@@ -730,8 +729,9 @@ namespace ApiNet8.Controllers
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-        [HttpGet]
-        public IActionResult GetEstadisticaById(int Id)
+       [HttpGet("{Id}")]
+        public IActionResult GetEstadisticaById([FromQuery] int Id)
+
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -887,7 +887,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetEquipoById(int Id)
+        public IActionResult GetEquipoById([FromQuery] int Id)
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
@@ -919,7 +919,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetEquiposByCategoriaAndDisciplinaActivos(int IdCategoria, int IdDisciplina)
+        public IActionResult GetEquiposByCategoriaAndDisciplinaActivos([FromQuery] int IdCategoria, int IdDisciplina)
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
@@ -1021,9 +1021,7 @@ namespace ApiNet8.Controllers
         [HttpPost]
         public IActionResult CrearAsistencia()
         {
-            // seteo jwt en header de respuesta
-            var TOKEN = HttpContext.Items[JWT].ToString();
-            Response.Headers.Append(JWT, TOKEN);
+           
 
             try
             {

@@ -196,7 +196,7 @@ namespace ApiNet8.Services
                     ClaseCompleta = false,
                     FechaCreacion = DateTime.Now,
                     Leccion = _leccionesServices.GetLeccionById(1),
-                    Usuario = _usuarioServices.GetUsuarioById(15)
+                    Usuario = _usuarioServices.GetUsuarioById(13)
                 };
 
                 using (var transaction = _db.Database.BeginTransaction())
@@ -246,7 +246,8 @@ namespace ApiNet8.Services
                 {
                     List<int> asist = _db.AsistenciaLeccion.Where(a => 
                     a.Usuario.Dni == estadisticaDTO.DNIUsuario && 
-                    a.Leccion.Disciplina.Id == estadisticaDTO.IdDisciplina && 
+                    a.Leccion.Disciplina.Id == estadisticaDTO.IdDisciplina &&  
+                    a.Leccion.Id == estadisticaDTO.IdLeccion &&
                     a.FechaCreacion < estadisticaDTO.FechaHasta && 
                     a.FechaCreacion > estadisticaDTO.FechaDesde && 
                     a.FechaBaja==null).
@@ -260,14 +261,13 @@ namespace ApiNet8.Services
                     }
 
                 }
-                else {
-                    //int nroJugador = _db.EquipoUsuario.Where(a => a.Usuario.Dni == estadisticaDTO.DNIUsuario).Select(a => a.NumCamiseta).FirstOrDefault();
-
+                else {                    
                     List<int> estadisticasIds= _db.Estadisticas.
-                    Where(a => a.NroJugador==estadisticaDTO.NroJugador && 
+                    Where(a =>/* a.NroJugador==estadisticaDTO.NroJugador && */
                     a.Partido.Disciplina.Id==estadisticaDTO.IdDisciplina &&
                     a.FechaCreacion < estadisticaDTO.FechaHasta &&
                     a.FechaCreacion > estadisticaDTO.FechaDesde &&
+                    a.Equipo.EquipoUsuarios.Any(u=>u.Usuario.Dni == estadisticaDTO.DNIUsuario) &&
                     a.FechaBaja==null).
                     Select(a => a.Id).ToList();
 
@@ -318,8 +318,9 @@ namespace ApiNet8.Services
                 List<Estadisticas> est = new List<Estadisticas>();
 
                 List<int> ids = _db.Estadisticas.
-                    Where(a => a.Partido.Id == estadisticaDTO.IdPartido && 
-                    a.NroJugador==estadisticaDTO.NroJugador &&
+                    Where(a => a.Partido.Id == estadisticaDTO.IdPartido &&
+                    //a.NroJugador==estadisticaDTO.NroJugador &&
+                    a.Equipo.EquipoUsuarios.Any(u => u.Usuario.Dni == estadisticaDTO.DNIUsuario) &&
                     a.FechaBaja == null).
                     Select(a => a.Id).ToList();
 
@@ -421,8 +422,10 @@ namespace ApiNet8.Services
 
                             if (tipAcc.ModificaTarjetasAdvertencia == true)
                             {
+
                                 List<AccionPartido> acciones = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Partido.Id == part.Id && a.TipoAccionPartido.NombreTipoAccion == "Tarjeta Amarilla").ToList();
                                 if (acciones.Count+1 == part.Disciplina.TarjetasAdvertencia)
+
                                 {
                                     accion.TotalTarjetas = true;
                                     part = ExpulsionJugador(part, accion);
@@ -431,8 +434,10 @@ namespace ApiNet8.Services
 
                             if (tipAcc.ModificaTarjetasExpulsion == true)
                             {
+
                                 List<AccionPartido> acciones = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Partido.Id == part.Id && a.TipoAccionPartido.NombreTipoAccion == "Tarjeta Roja").ToList();
                                 if (acciones.Count+1 == part.Disciplina.TarjetasExpulsion)
+
                                 {
                                     accion.TotalTarjetas = true;
                                     part = ExpulsionJugador(part, accion);
@@ -931,6 +936,11 @@ namespace ApiNet8.Services
             try
             {
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                if (currentUser == null)
+                {
+                    throw new Exception("Current user es null");
+                }
 
                 PerfilUsuario arbitro = _db.PerfilUsuario.Where(pu => pu.FechaBaja == null && pu.Usuario.Id == currentUser.Id && (pu.Perfil.Id == 6 || pu.Perfil.Id == 1)).FirstOrDefault();
 

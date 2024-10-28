@@ -21,6 +21,7 @@
         public DateTime? FechaDesde { get; set; }
         public DateTime? FechaHasta { get; set; }
         public bool? Leccion { get; set; }
+        public int IdLeccion {  get; set; }
 
     }
 }
