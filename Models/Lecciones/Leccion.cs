@@ -11,6 +11,7 @@ namespace ApiNet8.Models.Lecciones
         public int CantMaxima { get; set; }
         public string Descripcion { get; set; }
         public string Lugar { get; set; }
+        public int idProfesor {  get; set; }
 
         // Relaciones
         public Disciplina Disciplina { get; set; }
