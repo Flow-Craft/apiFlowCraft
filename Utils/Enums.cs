@@ -71,5 +71,12 @@
             Curso = 5,
             Feria = 6
         }
+
+        public enum Disciplinas
+        {
+            Futbol = 1,
+            Voleyball = 2,           
+        }       
+
     }
 }

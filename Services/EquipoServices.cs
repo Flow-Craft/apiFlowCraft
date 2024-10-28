@@ -385,5 +385,18 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
+        public List<string> GetPuestosJugador (int idUsuario)
+        { 
+            List<string> result = new List<string>();
+            List<EquipoUsuario> equiposJugador = _db.EquipoUsuario.Where(u => u.Usuario.Id == idUsuario).ToList();
+
+            foreach (var item in equiposJugador)
+            {
+                result.Add(item.Puesto);
+            }
+
+            return result;
+        }
     }
 }

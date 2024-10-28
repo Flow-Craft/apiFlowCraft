@@ -260,14 +260,13 @@ namespace ApiNet8.Services
                     }
 
                 }
-                else {
-                    //int nroJugador = _db.EquipoUsuario.Where(a => a.Usuario.Dni == estadisticaDTO.DNIUsuario).Select(a => a.NumCamiseta).FirstOrDefault();
-
+                else {                    
                     List<int> estadisticasIds= _db.Estadisticas.
-                    Where(a => a.NroJugador==estadisticaDTO.NroJugador && 
+                    Where(a =>/* a.NroJugador==estadisticaDTO.NroJugador && */
                     a.Partido.Disciplina.Id==estadisticaDTO.IdDisciplina &&
                     a.FechaCreacion < estadisticaDTO.FechaHasta &&
                     a.FechaCreacion > estadisticaDTO.FechaDesde &&
+                    a.Equipo.EquipoUsuarios.Any(u=>u.Usuario.Dni == estadisticaDTO.DNIUsuario) &&
                     a.FechaBaja==null).
                     Select(a => a.Id).ToList();
 
