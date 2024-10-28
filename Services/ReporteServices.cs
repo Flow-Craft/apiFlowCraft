@@ -16,7 +16,7 @@ using ApiNet8.Models.Partidos;
 using ApiNet8.Utils;
 using OxyPlot.Axes;
 using OxyPlot.Series;
-using OxyPlot.WindowsForms;
+//using OxyPlot.WindowsForms;
 using OxyPlot;
 
 namespace ApiNet8.Services
@@ -539,15 +539,15 @@ namespace ApiNet8.Services
                     }
                     document.Add(table);
 
-                    // Generar el gráfico de estadísticas
-                    byte[] graficoBytes = GenerarGraficoEstadisticasVoley(tablaEstadisticas);
-                    ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
-                    Image graficoImage = new Image(graficoImageData);
+                    //// Generar el gráfico de estadísticas
+                    //byte[] graficoBytes = GenerarGraficoEstadisticasVoley(tablaEstadisticas);
+                    //ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
+                    //Image graficoImage = new Image(graficoImageData);
 
-                    // Ajustar tamaño del gráfico y añadir separación del contenido anterior
-                    graficoImage.ScaleToFit(400, 300);
-                    graficoImage.SetMarginTop(20); // Espacio superior de 20 unidades
-                    document.Add(graficoImage);
+                    //// Ajustar tamaño del gráfico y añadir separación del contenido anterior
+                    //graficoImage.ScaleToFit(400, 300);
+                    //graficoImage.SetMarginTop(20); // Espacio superior de 20 unidades
+                    //document.Add(graficoImage);
                 }
 
                 if (disciplina.Nombre == Enums.Disciplinas.Futbol.ToString()) 
@@ -676,15 +676,15 @@ namespace ApiNet8.Services
                     }
                     document.Add(table);
 
-                    //Generar el gráfico de estadísticas
-                    byte[] graficoBytes = GenerarGraficoEstadisticasFutbol(tablaEstadisticas);
-                    ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
-                    Image graficoImage = new Image(graficoImageData);
+                    ////Generar el gráfico de estadísticas
+                    //byte[] graficoBytes = GenerarGraficoEstadisticasFutbol(tablaEstadisticas);
+                    //ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
+                    //Image graficoImage = new Image(graficoImageData);
 
-                    // Ajustar tamaño del gráfico y añadir separación del contenido anterior
-                    graficoImage.ScaleToFit(400, 300);
-                    graficoImage.SetMarginTop(20); // Espacio superior de 20 unidades
-                    document.Add(graficoImage);
+                    //// Ajustar tamaño del gráfico y añadir separación del contenido anterior
+                    //graficoImage.ScaleToFit(400, 300);
+                    //graficoImage.SetMarginTop(20); // Espacio superior de 20 unidades
+                    //document.Add(graficoImage);
                 }
 
                     // Cerrar el documento
@@ -845,15 +845,15 @@ namespace ApiNet8.Services
                     }
                     document.Add(table);
 
-                    // Generar el gráfico de estadísticas
-                    byte[] graficoBytes = GenerarGraficoEstadisticasVoley(tablaEstadisticas);
-                    ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
-                    Image graficoImage = new Image(graficoImageData);
+                    //// Generar el gráfico de estadísticas
+                    //byte[] graficoBytes = GenerarGraficoEstadisticasVoley(tablaEstadisticas);
+                    //ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
+                    //Image graficoImage = new Image(graficoImageData);
 
-                    // Ajustar tamaño del gráfico y añadir separación del contenido anterior
-                    graficoImage.ScaleToFit(400, 300);
-                    graficoImage.SetMarginTop(20); // Espacio superior de 20 unidades
-                    document.Add(graficoImage);
+                    //// Ajustar tamaño del gráfico y añadir separación del contenido anterior
+                    //graficoImage.ScaleToFit(400, 300);
+                    //graficoImage.SetMarginTop(20); // Espacio superior de 20 unidades
+                    //document.Add(graficoImage);
                 }
 
                 if (disciplina.Nombre == Enums.Disciplinas.Futbol.ToString())
@@ -982,15 +982,15 @@ namespace ApiNet8.Services
                     }
                     document.Add(table);
 
-                    //Generar el gráfico de estadísticas
-                    byte[] graficoBytes = GenerarGraficoEstadisticasFutbol(tablaEstadisticas);
-                    ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
-                    Image graficoImage = new Image(graficoImageData);
+                    ////Generar el gráfico de estadísticas
+                    //byte[] graficoBytes = GenerarGraficoEstadisticasFutbol(tablaEstadisticas);
+                    //ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
+                    //Image graficoImage = new Image(graficoImageData);
 
-                    // Ajustar tamaño del gráfico y añadir separación del contenido anterior
-                    graficoImage.ScaleToFit(400, 300);
-                    graficoImage.SetMarginTop(20); // Espacio superior de 20 unidades
-                    document.Add(graficoImage);
+                    //// Ajustar tamaño del gráfico y añadir separación del contenido anterior
+                    //graficoImage.ScaleToFit(400, 300);
+                    //graficoImage.SetMarginTop(20); // Espacio superior de 20 unidades
+                    //document.Add(graficoImage);
                 }
 
                 // Cerrar el documento
@@ -1001,161 +1001,161 @@ namespace ApiNet8.Services
             }
         }
 
-        private byte[] GenerarGraficoEstadisticasVoley(List<ReporteEstadisticaDTO> tabla)
-        {
-            // Crear el modelo de gráfico
-            var plotModel = new PlotModel { Title = "Estadísticas de Acciones" };
+        //private byte[] GenerarGraficoEstadisticasVoley(List<ReporteEstadisticaDTO> tabla)
+        //{
+        //    // Crear el modelo de gráfico
+        //    var plotModel = new PlotModel { Title = "Estadísticas de Acciones" };
 
-            // Configurar el eje X con nombres de acciones
-            var categoryAxis = new CategoryAxis
-            {
-                Position = AxisPosition.Bottom
-            };
-            foreach (var item in tabla)
-            {
-                categoryAxis.Labels.Add(item.Accion);
-            }
-            plotModel.Axes.Add(categoryAxis);
+        //    // Configurar el eje X con nombres de acciones
+        //    var categoryAxis = new CategoryAxis
+        //    {
+        //        Position = AxisPosition.Bottom
+        //    };
+        //    foreach (var item in tabla)
+        //    {
+        //        categoryAxis.Labels.Add(item.Accion);
+        //    }
+        //    plotModel.Axes.Add(categoryAxis);
 
-            // Configurar el eje Y para mostrar el porcentaje de 0 a 100
-            var valueAxis = new LinearAxis
-            {
-                Position = AxisPosition.Left,
-                Minimum = 0,
-                Maximum = 100,
-                Title = "Porcentaje (%)"
-            };
-            plotModel.Axes.Add(valueAxis);
+        //    // Configurar el eje Y para mostrar el porcentaje de 0 a 100
+        //    var valueAxis = new LinearAxis
+        //    {
+        //        Position = AxisPosition.Left,
+        //        Minimum = 0,
+        //        Maximum = 100,
+        //        Title = "Porcentaje (%)"
+        //    };
+        //    plotModel.Axes.Add(valueAxis);
 
-            // Agregar series de columnas apiladas para los tres valores: Bien, Regular, Mal
-            var bienSeries = new ColumnSeries { Title = "Bien", FillColor = OxyColors.Green, IsStacked = true };
-            var regularSeries = new ColumnSeries { Title = "Regular", FillColor = OxyColors.Yellow, IsStacked = true };
-            var malSeries = new ColumnSeries { Title = "Mal", FillColor = OxyColors.Red, IsStacked = true };
+        //    // Agregar series de columnas apiladas para los tres valores: Bien, Regular, Mal
+        //    var bienSeries = new ColumnSeries { Title = "Bien", FillColor = OxyColors.Green, IsStacked = true };
+        //    var regularSeries = new ColumnSeries { Title = "Regular", FillColor = OxyColors.Yellow, IsStacked = true };
+        //    var malSeries = new ColumnSeries { Title = "Mal", FillColor = OxyColors.Red, IsStacked = true };
 
-            foreach (var item in tabla)
-            {
-                bienSeries.Items.Add(new ColumnItem(item.PorcentajeBien) { CategoryIndex = tabla.IndexOf(item) });
-                regularSeries.Items.Add(new ColumnItem(item.PorcentajeRegular) { CategoryIndex = tabla.IndexOf(item) });
-                malSeries.Items.Add(new ColumnItem(item.PorcentajeMal) { CategoryIndex = tabla.IndexOf(item) });
-            }
+        //    foreach (var item in tabla)
+        //    {
+        //        bienSeries.Items.Add(new ColumnItem(item.PorcentajeBien) { CategoryIndex = tabla.IndexOf(item) });
+        //        regularSeries.Items.Add(new ColumnItem(item.PorcentajeRegular) { CategoryIndex = tabla.IndexOf(item) });
+        //        malSeries.Items.Add(new ColumnItem(item.PorcentajeMal) { CategoryIndex = tabla.IndexOf(item) });
+        //    }
 
-            plotModel.Series.Add(bienSeries);
-            plotModel.Series.Add(regularSeries);
-            plotModel.Series.Add(malSeries);
+        //    plotModel.Series.Add(bienSeries);
+        //    plotModel.Series.Add(regularSeries);
+        //    plotModel.Series.Add(malSeries);
 
-            // Configurar la leyenda para que se muestre en la parte inferior
-            plotModel.LegendPosition = LegendPosition.BottomCenter;
-            plotModel.LegendPlacement = LegendPlacement.Outside;
-            plotModel.LegendOrientation = LegendOrientation.Horizontal;
+        //    // Configurar la leyenda para que se muestre en la parte inferior
+        //    plotModel.LegendPosition = LegendPosition.BottomCenter;
+        //    plotModel.LegendPlacement = LegendPlacement.Outside;
+        //    plotModel.LegendOrientation = LegendOrientation.Horizontal;
 
-            // Renderizar el gráfico en memoria
-            using (var stream = new MemoryStream())
-            {
-                var pngExporter = new PngExporter { Width = 600, Height = 300 };
-                pngExporter.Export(plotModel, stream);
-                return stream.ToArray();
-            }
-        }
+        //    // Renderizar el gráfico en memoria
+        //    using (var stream = new MemoryStream())
+        //    {
+        //        var pngExporter = new PngExporter { Width = 600, Height = 300 };
+        //        pngExporter.Export(plotModel, stream);
+        //        return stream.ToArray();
+        //    }
+        //}
 
-        private byte[] GenerarGraficoEstadisticasFutbol(List<ReporteEstadisticaDTO> tabla)
-        {
-            // Crear el modelo de gráfico
-            var plotModel = new PlotModel { Title = "Estadísticas de Acciones" };
+        //private byte[] GenerarGraficoEstadisticasFutbol(List<ReporteEstadisticaDTO> tabla)
+        //{
+        //    // Crear el modelo de gráfico
+        //    var plotModel = new PlotModel { Title = "Estadísticas de Acciones" };
 
-            // Configurar el eje X con nombres de acciones de futbol
-            var categoryAxis = new CategoryAxis
-            {
-                Position = AxisPosition.Bottom
-            };
-            categoryAxis.Labels.Add("Pases y asistencias");
-            categoryAxis.Labels.Add("Goles y remates");
-            categoryAxis.Labels.Add("Faltas y cartulinas");
-            categoryAxis.Labels.Add("Remates en contra");
-            plotModel.Axes.Add(categoryAxis);
+        //    // Configurar el eje X con nombres de acciones de futbol
+        //    var categoryAxis = new CategoryAxis
+        //    {
+        //        Position = AxisPosition.Bottom
+        //    };
+        //    categoryAxis.Labels.Add("Pases y asistencias");
+        //    categoryAxis.Labels.Add("Goles y remates");
+        //    categoryAxis.Labels.Add("Faltas y cartulinas");
+        //    categoryAxis.Labels.Add("Remates en contra");
+        //    plotModel.Axes.Add(categoryAxis);
 
-            // Calcular el valor máximo de las estadísticas para ajustar el eje Y
-            int maxValue = Math.Max(
-                tabla.Max(item => Math.Max(item.PasesCorrectos + item.Asistencias, item.Goles + item.RematesAPuerta + item.RematesAfuera)),
-                Math.Max(tabla.Max(item => item.Faltas + item.Amarillas + item.Rojas), tabla.Max(item => item.RematesAtajados + item.GolesRecibidos))
-            );
+        //    // Calcular el valor máximo de las estadísticas para ajustar el eje Y
+        //    int maxValue = Math.Max(
+        //        tabla.Max(item => Math.Max(item.PasesCorrectos + item.Asistencias, item.Goles + item.RematesAPuerta + item.RematesAfuera)),
+        //        Math.Max(tabla.Max(item => item.Faltas + item.Amarillas + item.Rojas), tabla.Max(item => item.RematesAtajados + item.GolesRecibidos))
+        //    );
 
-            // Configurar el eje Y para mostrar desde 0 hasta el valor máximo encontrado
-            var valueAxis = new LinearAxis
-            {
-                Position = AxisPosition.Left,
-                Minimum = 0,
-                Maximum = maxValue,
-                Title = "Totales"
-            };
-            plotModel.Axes.Add(valueAxis);
+        //    // Configurar el eje Y para mostrar desde 0 hasta el valor máximo encontrado
+        //    var valueAxis = new LinearAxis
+        //    {
+        //        Position = AxisPosition.Left,
+        //        Minimum = 0,
+        //        Maximum = maxValue,
+        //        Title = "Totales"
+        //    };
+        //    plotModel.Axes.Add(valueAxis);
 
-            // elimino la fila de totales
-            tabla.RemoveAt(tabla.Count - 1);
+        //    // elimino la fila de totales
+        //    tabla.RemoveAt(tabla.Count - 1);
 
-            // Asistencias y pases
-            var pasesSeries = new ColumnSeries { Title = "Pases", FillColor = OxyColors.Green, IsStacked = true };
-            var asistenciasSeries = new ColumnSeries { Title = "Asistencias", FillColor = OxyColors.Yellow, IsStacked = true };
-            foreach (var item in tabla)
-            {
-                pasesSeries.Items.Add(new ColumnItem(item.PasesCorrectos) { CategoryIndex = 0 });
-                asistenciasSeries.Items.Add(new ColumnItem(item.Asistencias) { CategoryIndex = 0 });
-            }
-            plotModel.Series.Add(pasesSeries);
-            plotModel.Series.Add(asistenciasSeries);
+        //    // Asistencias y pases
+        //    var pasesSeries = new ColumnSeries { Title = "Pases", FillColor = OxyColors.Green, IsStacked = true };
+        //    var asistenciasSeries = new ColumnSeries { Title = "Asistencias", FillColor = OxyColors.Yellow, IsStacked = true };
+        //    foreach (var item in tabla)
+        //    {
+        //        pasesSeries.Items.Add(new ColumnItem(item.PasesCorrectos) { CategoryIndex = 0 });
+        //        asistenciasSeries.Items.Add(new ColumnItem(item.Asistencias) { CategoryIndex = 0 });
+        //    }
+        //    plotModel.Series.Add(pasesSeries);
+        //    plotModel.Series.Add(asistenciasSeries);
 
-            // Goles, remates a puerta y remates afuera
-            var golesSeries = new ColumnSeries { Title = "Goles", FillColor = OxyColors.Green, IsStacked = true };
-            var rematesPuertaSeries = new ColumnSeries { Title = "Remates a puerta", FillColor = OxyColors.Yellow, IsStacked = true };
-            var rematesFueraSeries = new ColumnSeries { Title = "Remates fuera", FillColor = OxyColors.Red, IsStacked = true };
-            foreach (var item in tabla)
-            {
-                golesSeries.Items.Add(new ColumnItem(item.Goles) { CategoryIndex = 1 });
-                rematesPuertaSeries.Items.Add(new ColumnItem(item.RematesAPuerta) { CategoryIndex = 1 });
-                rematesFueraSeries.Items.Add(new ColumnItem(item.RematesAfuera) { CategoryIndex = 1 });
-            }
-            plotModel.Series.Add(golesSeries);
-            plotModel.Series.Add(rematesPuertaSeries);
-            plotModel.Series.Add(rematesFueraSeries);
+        //    // Goles, remates a puerta y remates afuera
+        //    var golesSeries = new ColumnSeries { Title = "Goles", FillColor = OxyColors.Green, IsStacked = true };
+        //    var rematesPuertaSeries = new ColumnSeries { Title = "Remates a puerta", FillColor = OxyColors.Yellow, IsStacked = true };
+        //    var rematesFueraSeries = new ColumnSeries { Title = "Remates fuera", FillColor = OxyColors.Red, IsStacked = true };
+        //    foreach (var item in tabla)
+        //    {
+        //        golesSeries.Items.Add(new ColumnItem(item.Goles) { CategoryIndex = 1 });
+        //        rematesPuertaSeries.Items.Add(new ColumnItem(item.RematesAPuerta) { CategoryIndex = 1 });
+        //        rematesFueraSeries.Items.Add(new ColumnItem(item.RematesAfuera) { CategoryIndex = 1 });
+        //    }
+        //    plotModel.Series.Add(golesSeries);
+        //    plotModel.Series.Add(rematesPuertaSeries);
+        //    plotModel.Series.Add(rematesFueraSeries);
 
-            // Faltas, amarillas y rojas
-            var faltasSeries = new ColumnSeries { Title = "Faltas", FillColor = OxyColors.Green, IsStacked = true };
-            var amarillasSeries = new ColumnSeries { Title = "Amarillas", FillColor = OxyColors.Yellow, IsStacked = true };
-            var rojasSeries = new ColumnSeries { Title = "Rojas", FillColor = OxyColors.Red, IsStacked = true };
-            foreach (var item in tabla)
-            {
-                faltasSeries.Items.Add(new ColumnItem(item.Faltas) { CategoryIndex = 2 });
-                amarillasSeries.Items.Add(new ColumnItem(item.Amarillas) { CategoryIndex = 2 });
-                rojasSeries.Items.Add(new ColumnItem(item.Rojas) { CategoryIndex = 2 });
-            }
-            plotModel.Series.Add(faltasSeries);
-            plotModel.Series.Add(amarillasSeries);
-            plotModel.Series.Add(rojasSeries);
+        //    // Faltas, amarillas y rojas
+        //    var faltasSeries = new ColumnSeries { Title = "Faltas", FillColor = OxyColors.Green, IsStacked = true };
+        //    var amarillasSeries = new ColumnSeries { Title = "Amarillas", FillColor = OxyColors.Yellow, IsStacked = true };
+        //    var rojasSeries = new ColumnSeries { Title = "Rojas", FillColor = OxyColors.Red, IsStacked = true };
+        //    foreach (var item in tabla)
+        //    {
+        //        faltasSeries.Items.Add(new ColumnItem(item.Faltas) { CategoryIndex = 2 });
+        //        amarillasSeries.Items.Add(new ColumnItem(item.Amarillas) { CategoryIndex = 2 });
+        //        rojasSeries.Items.Add(new ColumnItem(item.Rojas) { CategoryIndex = 2 });
+        //    }
+        //    plotModel.Series.Add(faltasSeries);
+        //    plotModel.Series.Add(amarillasSeries);
+        //    plotModel.Series.Add(rojasSeries);
 
-            // Remates atajados y goles recibidos
-            var rematesAtajadosSeries = new ColumnSeries { Title = "Atajados", FillColor = OxyColors.Green, IsStacked = true };
-            var golesRecibidosSeries = new ColumnSeries { Title = "Goles recibidos", FillColor = OxyColors.Red, IsStacked = true };
-            foreach (var item in tabla)
-            {
-                rematesAtajadosSeries.Items.Add(new ColumnItem(item.RematesAtajados) { CategoryIndex = 3 });
-                golesRecibidosSeries.Items.Add(new ColumnItem(item.GolesRecibidos) { CategoryIndex = 3 });
-            }
-            plotModel.Series.Add(rematesAtajadosSeries);
-            plotModel.Series.Add(golesRecibidosSeries);
+        //    // Remates atajados y goles recibidos
+        //    var rematesAtajadosSeries = new ColumnSeries { Title = "Atajados", FillColor = OxyColors.Green, IsStacked = true };
+        //    var golesRecibidosSeries = new ColumnSeries { Title = "Goles recibidos", FillColor = OxyColors.Red, IsStacked = true };
+        //    foreach (var item in tabla)
+        //    {
+        //        rematesAtajadosSeries.Items.Add(new ColumnItem(item.RematesAtajados) { CategoryIndex = 3 });
+        //        golesRecibidosSeries.Items.Add(new ColumnItem(item.GolesRecibidos) { CategoryIndex = 3 });
+        //    }
+        //    plotModel.Series.Add(rematesAtajadosSeries);
+        //    plotModel.Series.Add(golesRecibidosSeries);
 
-            // Configurar la leyenda para que se muestre en la parte inferior
-            plotModel.LegendPosition = LegendPosition.BottomCenter;
-            plotModel.LegendPlacement = LegendPlacement.Outside;
-            plotModel.LegendOrientation = LegendOrientation.Horizontal;
+        //    // Configurar la leyenda para que se muestre en la parte inferior
+        //    plotModel.LegendPosition = LegendPosition.BottomCenter;
+        //    plotModel.LegendPlacement = LegendPlacement.Outside;
+        //    plotModel.LegendOrientation = LegendOrientation.Horizontal;
 
 
-            // Renderizar el gráfico en memoria
-            using (var stream = new MemoryStream())
-            {
-                var pngExporter = new PngExporter { Width = 800, Height = 600 };
-                pngExporter.Export(plotModel, stream);
-                return stream.ToArray();
-            }
-        }       
+        //    // Renderizar el gráfico en memoria
+        //    using (var stream = new MemoryStream())
+        //    {
+        //        var pngExporter = new PngExporter { Width = 800, Height = 600 };
+        //        pngExporter.Export(plotModel, stream);
+        //        return stream.ToArray();
+        //    }
+        //}       
 
 
 
