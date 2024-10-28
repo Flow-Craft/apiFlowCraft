@@ -995,9 +995,7 @@ namespace ApiNet8.Controllers
         [HttpPost]
         public IActionResult CrearAsistencia()
         {
-            // seteo jwt en header de respuesta
-            var TOKEN = HttpContext.Items[JWT].ToString();
-            Response.Headers.Append(JWT, TOKEN);
+           
 
             try
             {

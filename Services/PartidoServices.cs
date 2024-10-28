@@ -196,7 +196,7 @@ namespace ApiNet8.Services
                     ClaseCompleta = false,
                     FechaCreacion = DateTime.Now,
                     Leccion = _leccionesServices.GetLeccionById(1),
-                    Usuario = _usuarioServices.GetUsuarioById(15)
+                    Usuario = _usuarioServices.GetUsuarioById(13)
                 };
 
                 using (var transaction = _db.Database.BeginTransaction())
@@ -246,7 +246,8 @@ namespace ApiNet8.Services
                 {
                     List<int> asist = _db.AsistenciaLeccion.Where(a => 
                     a.Usuario.Dni == estadisticaDTO.DNIUsuario && 
-                    a.Leccion.Disciplina.Id == estadisticaDTO.IdDisciplina && 
+                    a.Leccion.Disciplina.Id == estadisticaDTO.IdDisciplina &&  
+                    a.Leccion.Id == estadisticaDTO.IdLeccion &&
                     a.FechaCreacion < estadisticaDTO.FechaHasta && 
                     a.FechaCreacion > estadisticaDTO.FechaDesde && 
                     a.FechaBaja==null).
@@ -317,8 +318,9 @@ namespace ApiNet8.Services
                 List<Estadisticas> est = new List<Estadisticas>();
 
                 List<int> ids = _db.Estadisticas.
-                    Where(a => a.Partido.Id == estadisticaDTO.IdPartido && 
-                    a.NroJugador==estadisticaDTO.NroJugador &&
+                    Where(a => a.Partido.Id == estadisticaDTO.IdPartido &&
+                    //a.NroJugador==estadisticaDTO.NroJugador &&
+                    a.Equipo.EquipoUsuarios.Any(u => u.Usuario.Dni == estadisticaDTO.DNIUsuario) &&
                     a.FechaBaja == null).
                     Select(a => a.Id).ToList();
 

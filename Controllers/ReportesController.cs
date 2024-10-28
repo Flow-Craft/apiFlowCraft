@@ -61,8 +61,8 @@ namespace ApiNet8.Controllers
         }
 
         #endregion
-
-        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        #region estadisticas
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult ReporteEstadisticasByDiscUsuPeriodo([FromQuery] EstadisticasReporteDTO reporte)
         {
@@ -73,6 +73,17 @@ namespace ApiNet8.Controllers
             return File(pdfReporte, "application/pdf", "ReporteEstadisticass_Disciplina_Usuario_Periodo.pdf");
         }
 
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult ReporteEstadisticasByDiscUsuLeccionPeriodo([FromQuery] EstadisticasReporteDTO reporte)
+        {
+            // Llamar al servicio para crear el reporte
+            byte[] pdfReporte = _reporteServices.ReporteEstadisticaDiscUsuLeccionPeriodo(reporte.PeriodoInicio, reporte.PeriodoFin, reporte.IdDisciplina, reporte.IdLeccion,reporte.IdUsuario);
+
+            // Retornar el PDF como archivo descargable
+            return File(pdfReporte, "application/pdf", "ReporteEstadisticass_Disciplina_Usuario_Periodo.pdf");
+        }
+        #endregion
 
     }
 }

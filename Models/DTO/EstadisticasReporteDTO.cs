@@ -6,5 +6,6 @@
         public int IdUsuario { get; set; }
         public DateTime PeriodoInicio { get; set; }
         public DateTime PeriodoFin {  get; set; }
+        public int IdLeccion {  get; set; }
     }
 }
