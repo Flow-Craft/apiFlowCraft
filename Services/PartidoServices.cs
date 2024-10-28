@@ -371,7 +371,7 @@ namespace ApiNet8.Services
                     var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
                     HistorialEvento? ultimoHistorial = part.HistorialEventoList.Where(ih => ih.FechaFin == null).FirstOrDefault();
 
-                    if (ultimoHistorial.EstadoEvento.Id == 4)
+                    if (ultimoHistorial.EstadoEvento.Id == 4 || ultimoHistorial.EstadoEvento.Id == 6)
                     {
                         using (var transaction = _db.Database.BeginTransaction())
                         {
@@ -452,7 +452,7 @@ namespace ApiNet8.Services
                     }
                     else
                     {
-                        throw new Exception("El partido no se encuentra en estado iniciado");
+                        throw new Exception("El partido no se encuentra en estado iniciado o en entretiempo");
                     }
                 }
                 else
