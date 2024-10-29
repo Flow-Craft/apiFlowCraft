@@ -23,5 +23,7 @@
         public bool? Leccion { get; set; }
         public int IdLeccion {  get; set; }
 
+        public bool? NoEsta { get; set; }
+
     }
 }

@@ -8,6 +8,8 @@ using ApiNet8.Utils;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using XAct.Events;
+using ApiNet8.Models.Usuarios;
+using ApiNet8.Models.Partidos;
 
 namespace ApiNet8.Services
 {
@@ -17,13 +19,15 @@ namespace ApiNet8.Services
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;        
         private readonly IInstalacionServices _instalacionServices;
+        private readonly IUsuarioServices _usuarioServices;
 
-        public ReservasServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IInstalacionServices instalacionServices)
+        public ReservasServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IInstalacionServices instalacionServices, IUsuarioServices usuarioServices)
         {
             this._db = db;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _instalacionServices = instalacionServices;
+            _usuarioServices= usuarioServices;
         }
 
         //public void ActualizarInstalacion(InstalacionDTO instalacionDTO)
@@ -85,16 +89,42 @@ namespace ApiNet8.Services
         {
             try
             {
-                Reserva reserva = _mapper.Map<Reserva>(reservaDTO);
-                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
-
-                using (var transaction = _db.Database.BeginTransaction())
+                if (VerificarInstalacionDisponibleReserva(reservaDTO))
                 {
-                    _db.Reserva.Add(reserva);
-                    _db.SaveChanges();
-                    transaction.Commit();
-                }
+                    var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+                    
+                    Usuario usu = new Usuario();
+                    if (reservaDTO.UsuarioId != null)
+                    {
+                        usu = _usuarioServices.GetUsuarioById((int)reservaDTO.UsuarioId);
+                    }
+                    else
+                    {
+                        usu = _usuarioServices.GetUsuarioById(currentUser.Id);
+                    }
 
+                    using (var transaction = _db.Database.BeginTransaction())
+                    {
+                        Reserva reserva = new Reserva()
+                        {
+                            FechaReserva = DateTime.Now,
+                            FechaCreacion = DateTime.Now,
+                            HoraInicio = reservaDTO.HoraInicio,
+                            HoraFin = reservaDTO.HoraFin,
+                            UsuarioEditor = currentUser.Id,
+                            Usuario = usu,
+                            Instalacion = _instalacionServices.GetInstalacionById(reservaDTO.InstalacionId)
+                        };
+
+                        _db.Reserva.Add(reserva);
+                        _db.SaveChanges();
+                        transaction.Commit();
+                    }
+                }
+                else
+                {
+                    throw new Exception("No se puede crear la reserva ya que la instalacion se encuentra reservado para ese dia y horario");
+                }
             }
             catch (Exception ex)
             {
@@ -208,34 +238,25 @@ namespace ApiNet8.Services
             return !hayConflicto;
         }
 
-        //public bool VerificarInstalacionDisponible(ReservaDTO reservaDTO)
-        //{
-        //    List<Evento> eventosDia = _db.Evento.Where(e => e.FechaInicio == reservaDTO.FechaReserva).ToList();
-        //    foreach (Evento e in eventosDia)
-        //    {
+        public bool VerificarInstalacionDisponibleReserva(ReservaDTO reservaDTO)
+        {
 
-        //    }
-        //    // Obtener las reservas asociadas al evento actual
-        //    List<Reserva> reservasDelEvento = GetReservasByEvento(evento);
+            // Obtener reservas de la instalación
+            List<Reserva> reservasInstalacion = GetReservasByInstalacion(_instalacionServices.GetInstalacionById(reservaDTO.InstalacionId));
 
-        //    // Obtener reservas de la instalación
-        //    List<Reserva> reservasInstalacion = GetReservasByInstalacion(instalacion);
+            // Verificar si hay alguna reserva que se solape con el rango [fechaInicio, fechaFin]
+            bool hayConflicto = reservasInstalacion.Any(r =>
+                // Verificar solapamiento de horarios
+                ((reservaDTO.HoraInicio > r.HoraInicio && reservaDTO.HoraInicio < r.HoraFin) ||
+                (reservaDTO.HoraFin > r.HoraInicio && reservaDTO.HoraFin < r.HoraFin) ||
+                (r.HoraInicio >= reservaDTO.HoraInicio && r.HoraFin <= reservaDTO.HoraFin))
+                // Verificar que no esté dada de baja
+                && r.FechaBaja == null
+            );
 
-        //    // Verificar si hay alguna reserva que se solape con el rango [fechaInicio, fechaFin]
-        //    bool hayConflicto = reservasInstalacion.Any(r =>
-        //        // Ignorar las reservas asociadas al evento actual
-        //        !reservasDelEvento.Contains(r) &&
-        //        // Verificar solapamiento de horarios
-        //        ((fechaInicio > r.HoraInicio && fechaInicio < r.HoraFin) ||
-        //        (fechaFin > r.HoraInicio && fechaFin < r.HoraFin) ||
-        //        (r.HoraInicio >= fechaInicio && r.HoraFin <= fechaFin))
-        //        // Verificar que no esté dada de baja
-        //        && r.FechaBaja == null
-        //    );
-
-        //    // Si hay conflicto, la instalación no está disponible
-        //    return !hayConflicto;
-        //}
+            // Si hay conflicto, la instalación no está disponible
+            return !hayConflicto;
+        }
 
     }
 }
