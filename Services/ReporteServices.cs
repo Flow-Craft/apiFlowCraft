@@ -16,8 +16,12 @@ using ApiNet8.Models.Partidos;
 using ApiNet8.Utils;
 using OxyPlot.Axes;
 using OxyPlot.Series;
-using OxyPlot.WindowsForms;
+//using OxyPlot.WindowsForms;
 using OxyPlot;
+using SkiaSharp;
+using Svg.Skia;
+using System.Data.SqlTypes;
+
 
 namespace ApiNet8.Services
 {
@@ -27,7 +31,7 @@ namespace ApiNet8.Services
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IEventoServices _eventoServices;
-        private readonly IUsuarioServices _usuarioServices;      
+        private readonly IUsuarioServices _usuarioServices;
         private readonly ITipoEventoServices _tipoEventoServices;
         private readonly IInstalacionServices _instalacionServices;
         private readonly IDisciplinasYLeccionesServices _disciplinasYLeccionesServices;
@@ -169,14 +173,14 @@ namespace ApiNet8.Services
                     .SetFontSize(12));
 
                 // Datos del usuario
-                TipoEvento? tipoEvento= _tipoEventoServices.GetTipoEventoById(idTipoEvento);
+                TipoEvento? tipoEvento = _tipoEventoServices.GetTipoEventoById(idTipoEvento);
                 if (tipoEvento == null)
                 {
                     throw new Exception("No existe el tipo de evento");
                 }
                 document.Add(new Paragraph($"Tipo de evento: {tipoEvento.NombreTipoEvento}")
                     .SetFontSize(12));
-               
+
 
                 // Tabla de eventos
                 Table table = new Table(new float[] { 4, 4, 4, 4, 6 });
@@ -205,8 +209,8 @@ namespace ApiNet8.Services
 
                 // Contar la cantidad de eventos distintos en la lista de asistencias
                 int cantidadEventosDistintos = asistenciasUsuario
-                    .Select(a => a.Evento.Id)   
-                    .Distinct()                 
+                    .Select(a => a.Evento.Id)
+                    .Distinct()
                     .Count();
 
                 // Cantidad de eventos
@@ -349,7 +353,7 @@ namespace ApiNet8.Services
                 DateTime fechaGeneracion = DateTime.Now;
                 document.Add(new Paragraph($"Fecha de generación: {fechaGeneracion}")
                     .SetTextAlignment(TextAlignment.RIGHT)
-                    .SetFontSize(12));               
+                    .SetFontSize(12));
 
                 // fecha de evento
                 document.Add(new Paragraph($"Fecha de evento: {evento.FechaInicio}")
@@ -380,7 +384,7 @@ namespace ApiNet8.Services
                 List<Asistencia> asistenciasUsuario = _eventoServices.GetAsistenciasByEvento(idEvento);
 
                 foreach (var asistencia in asistenciasUsuario)
-                {                 
+                {
                     table.AddCell(new Cell().Add(new Paragraph(asistencia.Usuario.Dni.ToString())));
                     table.AddCell(new Cell().Add(new Paragraph($"{asistencia.Usuario.Nombre}  {asistencia.Usuario.Apellido}")));
                 }
@@ -400,7 +404,7 @@ namespace ApiNet8.Services
             }
         }
 
-        public byte[] ReporteEstadisticaDiscUsuPeriodo(DateTime periodoInicio, DateTime periodoFin, int idDisciplina, int idUsuario) 
+        public byte[] ReporteEstadisticaDiscUsuPeriodo(DateTime periodoInicio, DateTime periodoFin, int idDisciplina, int idUsuario)
         {
 
             // Crear el PDF en memoria
@@ -501,9 +505,9 @@ namespace ApiNet8.Services
                         int totalBien = grupo.Where(e => e.MarcaEstadistica == "+").FirstOrDefault() != null ? grupo.Where(e => e.MarcaEstadistica == "+").FirstOrDefault()!.PuntajeTipoAccion : 0;
                         int totalRegular = grupo.Where(e => e.MarcaEstadistica == "/").FirstOrDefault() != null ? grupo.Where(e => e.MarcaEstadistica == "/").FirstOrDefault()!.PuntajeTipoAccion : 0;
                         int totalMal = grupo.Where(e => e.MarcaEstadistica == "-").FirstOrDefault() != null ? grupo.Where(e => e.MarcaEstadistica == "-").FirstOrDefault()!.PuntajeTipoAccion : 0;
-                                          
+
                         int total = totalBien + totalRegular + totalMal;
-                        
+
                         // Calcular porcentajes
                         int porcentajeBien = total > 0 ? (totalBien * 100) / total : 0;
                         int porcentajeRegular = total > 0 ? (totalRegular * 100) / total : 0;
@@ -539,18 +543,17 @@ namespace ApiNet8.Services
                     }
                     document.Add(table);
 
-                    // Generar el gráfico de estadísticas
+                    // Uso de la imagen convertida en tu PDF
                     byte[] graficoBytes = GenerarGraficoEstadisticasVoley(tablaEstadisticas);
                     ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
                     Image graficoImage = new Image(graficoImageData);
-
                     // Ajustar tamaño del gráfico y añadir separación del contenido anterior
                     graficoImage.ScaleToFit(400, 300);
-                    graficoImage.SetMarginTop(20); // Espacio superior de 20 unidades
+                    graficoImage.SetMarginTop(40); // Espacio superior de 20 unidades
                     document.Add(graficoImage);
                 }
 
-                if (disciplina.Nombre == Enums.Disciplinas.Futbol.ToString()) 
+                if (disciplina.Nombre == Enums.Disciplinas.Futbol.ToString())
                 {
                     // Tabla de estadisticas
                     Table table = new Table(new float[] { 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
@@ -676,26 +679,25 @@ namespace ApiNet8.Services
                     }
                     document.Add(table);
 
-                    //Generar el gráfico de estadísticas
+                    // Uso de la imagen convertida en tu PDF
                     byte[] graficoBytes = GenerarGraficoEstadisticasFutbol(tablaEstadisticas);
                     ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
                     Image graficoImage = new Image(graficoImageData);
-
                     // Ajustar tamaño del gráfico y añadir separación del contenido anterior
                     graficoImage.ScaleToFit(400, 300);
-                    graficoImage.SetMarginTop(20); // Espacio superior de 20 unidades
+                    graficoImage.SetMarginTop(40); // Espacio superior de 20 unidades
                     document.Add(graficoImage);
                 }
 
-                    // Cerrar el documento
-                    document.Close();
+                // Cerrar el documento
+                document.Close();
 
                 // Retornar el PDF generado como un byte[]
                 return memoryStream.ToArray();
             }
         }
 
-        public byte[] ReporteEstadisticaDiscUsuLeccionPeriodo(DateTime periodoInicio, DateTime periodoFin, int idDisciplina, int idLeccion,int idUsuario)
+        public byte[] ReporteEstadisticaDiscUsuLeccionPeriodo(DateTime periodoInicio, DateTime periodoFin, int idDisciplina, int idLeccion, int idUsuario)
         {
             // Crear el PDF en memoria
             using (var memoryStream = new MemoryStream())
@@ -763,7 +765,7 @@ namespace ApiNet8.Services
 
                 // puesto jugador
                 List<string> posicionesJugador = _equipoServices.GetPuestosJugador(idUsuario);
-                string puestos = string.Join(", ", posicionesJugador);                
+                string puestos = string.Join(", ", posicionesJugador);
 
                 // voley
                 if (disciplina.Nombre == Enums.Disciplinas.Voleyball.ToString())
@@ -845,14 +847,13 @@ namespace ApiNet8.Services
                     }
                     document.Add(table);
 
-                    // Generar el gráfico de estadísticas
+                    // Uso de la imagen convertida en tu PDF
                     byte[] graficoBytes = GenerarGraficoEstadisticasVoley(tablaEstadisticas);
                     ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
                     Image graficoImage = new Image(graficoImageData);
-
                     // Ajustar tamaño del gráfico y añadir separación del contenido anterior
                     graficoImage.ScaleToFit(400, 300);
-                    graficoImage.SetMarginTop(20); // Espacio superior de 20 unidades
+                    graficoImage.SetMarginTop(40); // Espacio superior de 20 unidades
                     document.Add(graficoImage);
                 }
 
@@ -982,14 +983,13 @@ namespace ApiNet8.Services
                     }
                     document.Add(table);
 
-                    //Generar el gráfico de estadísticas
-                    byte[] graficoBytes = GenerarGraficoEstadisticasFutbol(tablaEstadisticas);
+                    // Uso de la imagen convertida en tu PDF
+                    byte[] graficoBytes = GenerarGraficoEstadisticasVoley(tablaEstadisticas);
                     ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
                     Image graficoImage = new Image(graficoImageData);
-
                     // Ajustar tamaño del gráfico y añadir separación del contenido anterior
                     graficoImage.ScaleToFit(400, 300);
-                    graficoImage.SetMarginTop(20); // Espacio superior de 20 unidades
+                    graficoImage.SetMarginTop(40); // Espacio superior de 20 unidades
                     document.Add(graficoImage);
                 }
 
@@ -1048,14 +1048,21 @@ namespace ApiNet8.Services
             plotModel.LegendPlacement = LegendPlacement.Outside;
             plotModel.LegendOrientation = LegendOrientation.Horizontal;
 
-            // Renderizar el gráfico en memoria
-            using (var stream = new MemoryStream())
+            // Renderizar el gráfico en memoria como SVG
+            byte[] svgBytes;
+            using (var svgStream = new MemoryStream())
             {
-                var pngExporter = new PngExporter { Width = 600, Height = 300 };
-                pngExporter.Export(plotModel, stream);
-                return stream.ToArray();
+                var svgExporter = new SvgExporter { Width = 800, Height = 600 };
+                svgExporter.Export(plotModel, svgStream);
+                svgBytes = svgStream.ToArray();
             }
+            // Convertir SVG a PNG
+            byte[] pngBytes = ConvertSvgToPng(svgBytes, 800, 600);
+            return pngBytes;
         }
+
+
+
 
         private byte[] GenerarGraficoEstadisticasFutbol(List<ReporteEstadisticaDTO> tabla)
         {
@@ -1147,16 +1154,44 @@ namespace ApiNet8.Services
             plotModel.LegendPlacement = LegendPlacement.Outside;
             plotModel.LegendOrientation = LegendOrientation.Horizontal;
 
-
-            // Renderizar el gráfico en memoria
-            using (var stream = new MemoryStream())
+            // Renderizar el gráfico en memoria como SVG
+            byte[] svgBytes;
+            using (var svgStream = new MemoryStream())
             {
-                var pngExporter = new PngExporter { Width = 800, Height = 600 };
-                pngExporter.Export(plotModel, stream);
-                return stream.ToArray();
+                var svgExporter = new SvgExporter { Width = 800, Height = 600 };
+                svgExporter.Export(plotModel, svgStream);
+                svgBytes = svgStream.ToArray();
             }
-        }       
+            // Convertir SVG a PNG
+            byte[] pngBytes = ConvertSvgToPng(svgBytes, 800, 600);
+            return pngBytes;
+        }
 
+        private byte[] ConvertSvgToPng(byte[] svgBytes, int width, int height)
+        {
+            using (var svg = new SKSvg())
+            {
+                using (var stream = new MemoryStream(svgBytes))
+                {
+                    svg.Load(stream);
+                }
+
+                using (var bitmap = new SKBitmap(width, height))
+                {
+                    using (var canvas = new SKCanvas(bitmap))
+                    {
+                        canvas.Clear(SKColors.White);
+                        canvas.DrawPicture(svg.Picture);
+                    }
+
+                    using (var image = SKImage.FromBitmap(bitmap))
+                    using (var data = image.Encode(SKEncodedImageFormat.Png, 100))
+                    {
+                        return data.ToArray();
+                    }
+                }
+            }
+        }
 
 
 

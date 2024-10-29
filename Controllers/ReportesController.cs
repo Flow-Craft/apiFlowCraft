@@ -62,7 +62,7 @@ namespace ApiNet8.Controllers
 
         #endregion
         #region estadisticas
-        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult ReporteEstadisticasByDiscUsuPeriodo([FromQuery] EstadisticasReporteDTO reporte)
         {
