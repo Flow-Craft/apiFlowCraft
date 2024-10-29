@@ -999,7 +999,7 @@ namespace ApiNet8.Services
             }
         }
 
-        public byte[] ReporteEstadisticaDiscEquipoPeriodo(DateTime periodoInicio, DateTime periodoFin, int idDisciplina, int idEquipo)
+        public byte[] ReporteEstadisticaDiscEquipoPeriodo(DateTime periodoInicio, DateTime periodoFin, int idDisciplina, int idUsuario)
         {
             // Crear el PDF en memoria
             using (var memoryStream = new MemoryStream())
