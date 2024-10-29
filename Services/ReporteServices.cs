@@ -16,11 +16,9 @@ using ApiNet8.Models.Partidos;
 using ApiNet8.Utils;
 using OxyPlot.Axes;
 using OxyPlot.Series;
-//using OxyPlot.WindowsForms;
 using OxyPlot;
 using SkiaSharp;
 using Svg.Skia;
-using System.Data.SqlTypes;
 
 
 namespace ApiNet8.Services
