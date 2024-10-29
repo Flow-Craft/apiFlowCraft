@@ -1020,7 +1020,7 @@ namespace ApiNet8.Services
                 document.Add(logo);
 
                 // Título
-                Paragraph title = new Paragraph("Estadísticas por disciplina, usuario y periodo")
+                Paragraph title = new Paragraph("Estadísticas por disciplina, equipo y periodo")
                     .SetTextAlignment(TextAlignment.CENTER)
                     .SetFontSize(18);
                 document.Add(title);

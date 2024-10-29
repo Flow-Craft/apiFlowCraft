@@ -83,6 +83,18 @@ namespace ApiNet8.Controllers
             // Retornar el PDF como archivo descargable
             return File(pdfReporte, "application/pdf", "ReporteEstadisticass_Disciplina_Usuario_Periodo.pdf");
         }
+
+        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult ReporteEstadisticasByDiscEquipoPeriodo([FromQuery] EstadisticasReporteDTO reporte)
+        {
+            // Llamar al servicio para crear el reporte
+            byte[] pdfReporte = _reporteServices.ReporteEstadisticaDiscEquipoPeriodo(reporte.PeriodoInicio, reporte.PeriodoFin, reporte.IdDisciplina, reporte.IdEquipo);
+
+            // Retornar el PDF como archivo descargable
+            return File(pdfReporte, "application/pdf", "ReporteEstadisticass_Disciplina_Equipo_Periodo.pdf");
+        }
+
         #endregion
 
     }
