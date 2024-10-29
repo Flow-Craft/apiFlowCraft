@@ -204,15 +204,6 @@ namespace ApiNet8.Services
 
                 evento.Disciplina = d;
 
-                //foreach (var idDisc in eventoDTO?.IdsDisciplinas)
-                //{
-                //    Disciplina? d = _disciplinasYLeccionesServices.GetDisciplinaById(idDisc);
-                //    if (d != null)
-                //    {
-                //        evento.Disciplinas.Add(d);
-                //    }
-                //}
-
                 // asignar categoria
                 evento.Categoria = _categoriaServices.GetCategoriaById(eventoDTO.IdCategoria);
 

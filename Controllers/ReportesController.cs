@@ -61,6 +61,7 @@ namespace ApiNet8.Controllers
         }
 
         #endregion
+
         #region estadisticas
         //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
@@ -84,7 +85,7 @@ namespace ApiNet8.Controllers
             return File(pdfReporte, "application/pdf", "ReporteEstadisticass_Disciplina_Usuario_Periodo.pdf");
         }
 
-        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult ReporteEstadisticasByDiscEquipoPeriodo([FromQuery] EstadisticasReporteDTO reporte)
         {
@@ -93,6 +94,20 @@ namespace ApiNet8.Controllers
 
             // Retornar el PDF como archivo descargable
             return File(pdfReporte, "application/pdf", "ReporteEstadisticass_Disciplina_Equipo_Periodo.pdf");
+        }
+
+        #endregion
+
+        #region Reservas
+        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult ReporteReservasByUsuarioPeriodo([FromQuery] EstadisticasReporteDTO reporte)
+        {
+            // Llamar al servicio para crear el reporte
+            byte[] pdfReporte = _reporteServices.ReporteReservaUsuarioPeriodo(reporte.PeriodoInicio, reporte.PeriodoFin,reporte.IdUsuario);
+
+            // Retornar el PDF como archivo descargable
+            return File(pdfReporte, "application/pdf", "ReporteReservass_Usuario_Periodo.pdf");
         }
 
         #endregion

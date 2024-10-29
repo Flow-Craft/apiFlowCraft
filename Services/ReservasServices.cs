@@ -213,6 +213,18 @@ namespace ApiNet8.Services
             return reservasDelEvento;
         }
 
+        public List<Reserva> GetReservasByUsuarioPeriodo(int idUsuario, DateTime periodoInicio, DateTime periodoFin)
+        {
+            // Obtener las reservas asociadas a la instalación del evento
+            List<Reserva> reservas = _db.Reserva
+                .Include(i=>i.Instalacion)
+                .Include(u=>u.Usuario)
+                .Where(u=>u.Usuario.Id == idUsuario && u.HoraInicio <= periodoFin && u.HoraInicio >= periodoInicio && u.HoraFin >= periodoInicio && u.HoraFin <= periodoFin && u.FechaBaja == null)
+                .ToList();
+
+            return reservas;
+        }
+
         public bool VerificarInstalacionDisponible(DateTime fechaInicio, DateTime fechaFin, Instalacion instalacion, Evento evento)
         {
             evento.Instalacion = instalacion;
