@@ -130,6 +130,7 @@ namespace ApiNet8.Services
                 leccion.Descripcion = leccionDTO?.Descripcion ?? leccion.Descripcion;
                 leccion.Horarios = leccionDTO?.Horarios ?? leccion.Horarios;
                 leccion.Lugar = leccionDTO?.Lugar ?? leccion.Lugar;
+                leccion.idProfesor = leccionDTO?.idProfesor ?? leccion.idProfesor;
                 
                 if (leccionDTO?.Nombre != null)
                 {
