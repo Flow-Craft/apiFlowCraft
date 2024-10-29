@@ -999,7 +999,7 @@ namespace ApiNet8.Services
             }
         }
 
-        public byte[] ReporteEstadisticaDiscEquipoPeriodo(DateTime periodoInicio, DateTime periodoFin, int idDisciplina, int idUsuario)
+        public byte[] ReporteEstadisticaDiscEquipoPeriodo(DateTime periodoInicio, DateTime periodoFin, int idDisciplina, int idEquipo)
         {
             // Crear el PDF en memoria
             using (var memoryStream = new MemoryStream())
@@ -1043,20 +1043,27 @@ namespace ApiNet8.Services
                 document.Add(new Paragraph($"Disciplina: {disciplina.Nombre}")
                    .SetFontSize(12));
 
-                // Datos del usuario
-                Usuario? usuario = _usuarioServices.GetUsuarioById(idUsuario);
-                if (usuario == null)
+                // Datos del equipo
+                EquipoResponseDTO equipo = _equipoServices.GetEquipoById(idEquipo);
+                if (equipo == null)
                 {
-                    throw new Exception("No existe el usuario");
+                    throw new Exception("No existe el equipo ingresado");
                 }
-                document.Add(new Paragraph($"Nombre y apellido Usuario: {usuario.Nombre} {usuario.Apellido}")
-                    .SetFontSize(12));
-                document.Add(new Paragraph($"Fecha de nacimiento: {usuario.FechaNacimiento}")
-                    .SetFontSize(12));
 
-                // puesto jugador
-                List<string> posicionesJugador = _equipoServices.GetPuestosJugador(idUsuario);
-                string puestos = string.Join(", ", posicionesJugador);
+                document.Add(new Paragraph($"Categoria: {equipo.Categoria.Nombre}")
+                 .SetFontSize(12));
+
+                document.Add(new Paragraph($"Nombre de equipo: {equipo.Nombre}")
+                 .SetFontSize(12));
+
+                document.Add(new Paragraph($"Lista de jugadores:")
+                 .SetFontSize(12));
+
+                foreach (var item in equipo.Jugadores)
+                {
+                    document.Add(new Paragraph($"{item.NumCamiseta} - {item.Nombre} {item.Apellido} ")
+                    .SetFontSize(12));
+                }
 
                 // voley
                 if (disciplina.Nombre == Enums.Disciplinas.Voleyball.ToString())
@@ -1077,13 +1084,12 @@ namespace ApiNet8.Services
                     // traer estadisticas por usuario en rango fechas de la disciplina
                     EstadisticaDTO estadisticasDTO = new EstadisticaDTO
                     {
-                        Leccion = false,
                         IdDisciplina = idDisciplina,
                         FechaDesde = periodoInicio,
                         FechaHasta = periodoFin,
-                        DNIUsuario = usuario.Dni
+                        IdEquipo = idEquipo
                     };
-                    List<Estadisticas> estadisticas = _partidoServices.GetEstadisticasByDiscUsuPer(estadisticasDTO);
+                    List<Estadisticas> estadisticas = _partidoServices.GetEstadisticasByEquipo(estadisticasDTO);
                     List<ReporteEstadisticaDTO> tablaEstadisticas = new List<ReporteEstadisticaDTO>();
 
                     // Obtener las estadísticas agrupadas por el nombre del tipo de acción
@@ -1153,7 +1159,7 @@ namespace ApiNet8.Services
                     Table table = new Table(new float[] { 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
                     table.SetWidth(UnitValue.CreatePercentValue(100));
 
-                    table.AddHeaderCell(new Cell().Add(new Paragraph("Partido")).SetBorderBottom(new SolidBorder(1)));
+                    table.AddHeaderCell(new Cell().Add(new Paragraph("Nro Jugador")).SetBorderBottom(new SolidBorder(1)));
                     table.AddHeaderCell(new Cell().Add(new Paragraph("Pases correctos")).SetBorderBottom(new SolidBorder(1)));
                     table.AddHeaderCell(new Cell().Add(new Paragraph("Goles")).SetBorderBottom(new SolidBorder(1)));
                     table.AddHeaderCell(new Cell().Add(new Paragraph("Remates afuera")).SetBorderBottom(new SolidBorder(1)));
@@ -1168,18 +1174,17 @@ namespace ApiNet8.Services
                     // traer estadisticas por usuario en rango fechas de la disciplina
                     EstadisticaDTO estadisticasDTO = new EstadisticaDTO
                     {
-                        Leccion = false,
                         IdDisciplina = idDisciplina,
                         FechaDesde = periodoInicio,
                         FechaHasta = periodoFin,
-                        DNIUsuario = usuario.Dni
+                        IdEquipo = idEquipo
                     };
-                    List<Estadisticas> estadisticas = _partidoServices.GetEstadisticasByDiscUsuPer(estadisticasDTO);
+                    List<Estadisticas> estadisticas = _partidoServices.GetEstadisticasByEquipo(estadisticasDTO);
                     List<ReporteEstadisticaDTO> tablaEstadisticas = new List<ReporteEstadisticaDTO>();
 
-                    // Obtener las estadísticas agrupadas por partido
+                    // Obtener las estadísticas agrupadas por jugador
                     var estadisticasAgrupadas = estadisticas
-                        .GroupBy(e => e.Partido?.Titulo)
+                        .GroupBy(e => e.NroJugador)
                         .Where(grupo => grupo.Key != null); // Ignorar acciones sin tipo
 
                     int totalPasesCorrectos = 0;
@@ -1195,7 +1200,7 @@ namespace ApiNet8.Services
 
                     foreach (var grupo in estadisticasAgrupadas)
                     {
-                        var partido = grupo.Key;
+                        var jugador = grupo.Key;
 
                         int pasesCorrectos = grupo.Where(e => e?.TipoAccionPartido?.Id == 6).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 6).FirstOrDefault()!.PuntajeTipoAccion : 0;
                         int goles = grupo.Where(e => e?.TipoAccionPartido?.Id == 1).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 1).FirstOrDefault()!.PuntajeTipoAccion : 0;
@@ -1223,7 +1228,7 @@ namespace ApiNet8.Services
                         // Crear un nuevo ReporteEstadisticaDTO y asignar valores
                         ReporteEstadisticaDTO reporte = new ReporteEstadisticaDTO
                         {
-                            Partido = partido,
+                            Partido = jugador.ToString(),
                             PasesCorrectos = pasesCorrectos,
                             Goles = goles,
                             RematesAPuerta = rematesAPuerta,
