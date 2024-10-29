@@ -99,7 +99,7 @@ namespace ApiNet8.Controllers
         #endregion
 
         #region Reservas
-        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult ReporteReservasByUsuarioPeriodo([FromQuery] EstadisticasReporteDTO reporte)
         {
@@ -108,6 +108,28 @@ namespace ApiNet8.Controllers
 
             // Retornar el PDF como archivo descargable
             return File(pdfReporte, "application/pdf", "ReporteReservass_Usuario_Periodo.pdf");
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult ReporteReservasByInstalacionPeriodo([FromQuery] EstadisticasReporteDTO reporte)
+        {
+            // Llamar al servicio para crear el reporte
+            byte[] pdfReporte = _reporteServices.ReporteReservaInstalacionPeriodo(reporte.PeriodoInicio, reporte.PeriodoFin, reporte.IdInstalacion);
+
+            // Retornar el PDF como archivo descargable
+            return File(pdfReporte, "application/pdf", "ReporteReservass_Instalacion_Periodo.pdf");
+        }
+
+        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult ReporteReservasByPeriodo([FromQuery] EstadisticasReporteDTO reporte)
+        {
+            // Llamar al servicio para crear el reporte
+            byte[] pdfReporte = _reporteServices.ReporteReservaPeriodo(reporte.PeriodoInicio, reporte.PeriodoFin);
+
+            // Retornar el PDF como archivo descargable
+            return File(pdfReporte, "application/pdf", "ReporteReservass_Periodo.pdf");
         }
 
         #endregion

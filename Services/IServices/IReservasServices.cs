@@ -12,5 +12,7 @@ namespace ApiNet8.Services.IServices
         void CrearReserva(ReservaDTO reservaDTO);
         public List<Reserva> GetReservasByEvento(Evento evento);
         List<Reserva> GetReservasByUsuarioPeriodo(int idUsuario, DateTime periodoInicio, DateTime periodoFin);
+        List<Reserva> GetReservasByInstalacionPeriodo(int idInstalacion, DateTime periodoInicio, DateTime periodoFin);
+        List<Reserva> GetReservasByPeriodo(DateTime periodoInicio, DateTime periodoFin);
     }
 }

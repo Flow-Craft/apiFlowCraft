@@ -1390,6 +1390,181 @@ namespace ApiNet8.Services
             }
         }
 
+        public byte[] ReporteReservaInstalacionPeriodo(DateTime periodoInicio, DateTime periodoFin, int idInstalacion)
+        {
+            // Crear el PDF en memoria
+            using (var memoryStream = new MemoryStream())
+            {
+                PdfWriter writer = new PdfWriter(memoryStream);
+                PdfDocument pdf = new PdfDocument(writer);
+                Document document = new Document(pdf);
+
+                // Obtén el directorio raíz de la aplicación
+                var rootPath = Directory.GetCurrentDirectory();
+
+                // Construye la ruta a la carpeta "Images" dentro del proyecto
+                var imagePath = Path.Combine(rootPath, "Images", "LogoReporte.jpeg");
+
+                // Agregar logo
+                Image logo = new Image(ImageDataFactory.Create(imagePath));
+                logo.ScaleToFit(50, 50); // Cambia el tamaño a 50x50 puntos
+                document.Add(logo);
+
+                // Título
+                Paragraph title = new Paragraph("Reservas por instalacion y periodo")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(18);
+                document.Add(title);
+
+                // Fecha de generación y periodo
+                DateTime fechaGeneracion = DateTime.Now;
+                document.Add(new Paragraph($"Fecha de generación: {fechaGeneracion}")
+                    .SetTextAlignment(TextAlignment.RIGHT)
+                    .SetFontSize(12));
+                document.Add(new Paragraph($"Periodo: {periodoInicio.ToShortDateString()} a {periodoFin.ToShortDateString()}")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(12));
+
+                // instalacion
+                Instalacion instalacion = _instalacionServices.GetInstalacionById(idInstalacion);
+                if (instalacion == null)
+                {
+                    throw new Exception("No existe la instalacion");
+                }
+                document.Add(new Paragraph($"Instalacion: {instalacion.Nombre}")
+                    .SetFontSize(12));
+
+                // Tabla de reservas
+                Table table = new Table(new float[] { 4, 4, 4, 4, 4});
+                table.SetWidth(UnitValue.CreatePercentValue(100));
+
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Fecha reserva")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Hora inicio")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Hora fin")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Socio")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Recaudacion")).SetBorderBottom(new SolidBorder(1)));
+
+                // traer reservas por usuario en rango fechas
+                List<Reserva> reservasUsuario = _reservasServices.GetReservasByInstalacionPeriodo(idInstalacion, periodoInicio, periodoFin);
+
+                double recaudacionTotal = 0;
+
+                foreach (var reserva in reservasUsuario)
+                {
+                    // Calcular la diferencia en horas entre HoraInicio y HoraFin
+                    double horasReservadas = (reserva.HoraFin - reserva.HoraInicio).TotalHours;
+
+                    // Suponiendo que tienes una variable precioPorHora que representa el costo por hora
+                    double precioTotal = horasReservadas * reserva.Instalacion.Precio;
+
+                    recaudacionTotal += precioTotal;
+
+                    table.AddCell(new Cell().Add(new Paragraph(reserva.HoraInicio.ToString("dd/MM/yy"))).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph(reserva.HoraInicio.ToString("HH:mm"))).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph(reserva.HoraFin.ToString("HH:mm"))).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph($"{reserva.Usuario.Nombre}  {reserva.Usuario.Apellido}")));
+                    table.AddCell(new Cell().Add(new Paragraph($"{precioTotal:C}")).SetBorderBottom(new SolidBorder(1)));
+                }
+
+                document.Add(table);
+
+                // Recaudacion total
+                document.Add(new Paragraph($"Recaudacion total: {recaudacionTotal}")
+                    .SetFontSize(12));
+
+                // Cerrar el documento
+                document.Close();
+
+                // Retornar el PDF generado como un byte[]
+                return memoryStream.ToArray();
+            }
+        }
+
+        public byte[] ReporteReservaPeriodo(DateTime periodoInicio, DateTime periodoFin)
+        {
+            // Crear el PDF en memoria
+            using (var memoryStream = new MemoryStream())
+            {
+                PdfWriter writer = new PdfWriter(memoryStream);
+                PdfDocument pdf = new PdfDocument(writer);
+                Document document = new Document(pdf);
+
+                // Obtén el directorio raíz de la aplicación
+                var rootPath = Directory.GetCurrentDirectory();
+
+                // Construye la ruta a la carpeta "Images" dentro del proyecto
+                var imagePath = Path.Combine(rootPath, "Images", "LogoReporte.jpeg");
+
+                // Agregar logo
+                Image logo = new Image(ImageDataFactory.Create(imagePath));
+                logo.ScaleToFit(50, 50); // Cambia el tamaño a 50x50 puntos
+                document.Add(logo);
+
+                // Título
+                Paragraph title = new Paragraph("Reservas por periodo")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(18);
+                document.Add(title);
+
+                // Fecha de generación y periodo
+                DateTime fechaGeneracion = DateTime.Now;
+                document.Add(new Paragraph($"Fecha de generación: {fechaGeneracion}")
+                    .SetTextAlignment(TextAlignment.RIGHT)
+                    .SetFontSize(12));
+                document.Add(new Paragraph($"Periodo: {periodoInicio.ToShortDateString()} a {periodoFin.ToShortDateString()}")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(12));
+                
+                // Tabla de reservas
+                Table table = new Table(new float[] { 4, 4, 4, 4, 4, 4, 4 });
+                table.SetWidth(UnitValue.CreatePercentValue(100));
+
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Instalacion")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Fecha reserva")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Hora inicio")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Hora fin")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("DNI")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Socio")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Recaudacion")).SetBorderBottom(new SolidBorder(1)));
+
+                // traer reservas por usuario en rango fechas
+                List<Reserva> reservasUsuario = _reservasServices.GetReservasByPeriodo(periodoInicio, periodoFin);
+
+                double recaudacionTotal = 0;
+
+                foreach (var reserva in reservasUsuario)
+                {
+                    // Calcular la diferencia en horas entre HoraInicio y HoraFin
+                    double horasReservadas = (reserva.HoraFin - reserva.HoraInicio).TotalHours;
+
+                    // Suponiendo que tienes una variable precioPorHora que representa el costo por hora
+                    double precioTotal = horasReservadas * reserva.Instalacion.Precio;
+
+                    recaudacionTotal += precioTotal;
+
+                    table.AddCell(new Cell().Add(new Paragraph(reserva.Instalacion.Nombre)).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph(reserva.HoraInicio.ToString("dd/MM/yy"))).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph(reserva.HoraInicio.ToString("HH:mm"))).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph(reserva.HoraFin.ToString("HH:mm"))).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph($"{reserva.Usuario.Dni}")));
+                    table.AddCell(new Cell().Add(new Paragraph($"{reserva.Usuario.Nombre}  {reserva.Usuario.Apellido}")));
+                    table.AddCell(new Cell().Add(new Paragraph($"{precioTotal:C}")).SetBorderBottom(new SolidBorder(1)));
+                }
+
+                document.Add(table);
+
+                // Recaudacion total
+                document.Add(new Paragraph($"Recaudacion total: {recaudacionTotal}")
+                    .SetFontSize(12));
+
+                // Cerrar el documento
+                document.Close();
+
+                // Retornar el PDF generado como un byte[]
+                return memoryStream.ToArray();
+            }
+        }
+
         private byte[] GenerarGraficoEstadisticasVoley(List<ReporteEstadisticaDTO> tabla)
         {
             // Crear el modelo de gráfico

@@ -8,5 +8,6 @@
         public DateTime PeriodoFin {  get; set; }
         public int IdLeccion {  get; set; }
         public int IdEquipo {  get; set; }
+        public int IdInstalacion { get; set; }
     }
 }

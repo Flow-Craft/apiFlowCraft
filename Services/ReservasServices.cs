@@ -7,7 +7,6 @@ using ApiNet8.Services.IServices;
 using ApiNet8.Utils;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using XAct.Events;
 using ApiNet8.Models.Usuarios;
 using ApiNet8.Models.Partidos;
 
@@ -215,11 +214,35 @@ namespace ApiNet8.Services
 
         public List<Reserva> GetReservasByUsuarioPeriodo(int idUsuario, DateTime periodoInicio, DateTime periodoFin)
         {
-            // Obtener las reservas asociadas a la instalación del evento
+            // Obtener las reservas asociadas al usuario
             List<Reserva> reservas = _db.Reserva
                 .Include(i=>i.Instalacion)
                 .Include(u=>u.Usuario)
                 .Where(u=>u.Usuario.Id == idUsuario && u.HoraInicio <= periodoFin && u.HoraInicio >= periodoInicio && u.HoraFin >= periodoInicio && u.HoraFin <= periodoFin && u.FechaBaja == null)
+                .ToList();
+
+            return reservas;
+        }
+
+        public List<Reserva> GetReservasByInstalacionPeriodo(int idInstalacion, DateTime periodoInicio, DateTime periodoFin)
+        {
+            // Obtener las reservas asociadas a la instalación
+            List<Reserva> reservas = _db.Reserva
+                .Include(i => i.Instalacion)
+                .Include(u => u.Usuario)
+                .Where(u => u.Instalacion.Id == idInstalacion && u.HoraInicio <= periodoFin && u.HoraInicio >= periodoInicio && u.HoraFin >= periodoInicio && u.HoraFin <= periodoFin && u.FechaBaja == null)
+                .ToList();
+
+            return reservas;
+        }
+
+        public List<Reserva> GetReservasByPeriodo(DateTime periodoInicio, DateTime periodoFin)
+        {
+            // Obtener las reservas en periodo
+            List<Reserva> reservas = _db.Reserva
+                .Include(i => i.Instalacion)
+                .Include(u => u.Usuario)
+                .Where(u => u.HoraInicio <= periodoFin && u.HoraInicio >= periodoInicio && u.HoraFin >= periodoInicio && u.HoraFin <= periodoFin && u.FechaBaja == null)
                 .ToList();
 
             return reservas;
