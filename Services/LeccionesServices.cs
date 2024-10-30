@@ -294,25 +294,39 @@ namespace ApiNet8.Services
             return inscripciones;
         }
 
-        public List<InscripcionUsuario> GetInscripcionesByUsuario(int id)
+        public List<InscripcionUsuario> GetInscripcionesByUsuario()
         {
+            var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+            if (currentUser == null)
+            {
+                throw new Exception("Current user es null");
+            }
+
             List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.
                 Include(e => e.Leccion).
                 ThenInclude(e => e.LeccionHistoriales).
                 ThenInclude(e => e.LeccionEstado).
                 Include(u => u.Usuario).
-                Where(u => u.Usuario.Id == id).ToList();
+                Where(u => u.Usuario.Id == currentUser.Id).ToList();
             return inscripciones;
         }
 
-        public List<InscripcionUsuario> GetInscripcionesByUsuarioActivas(int id)
+        public List<InscripcionUsuario> GetInscripcionesByUsuarioActivas()
         {
+            var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+            if (currentUser == null)
+            {
+                throw new Exception("Current user es null");
+            }
+
             List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.
                 Include(e => e.Leccion).
                 ThenInclude(e => e.LeccionHistoriales).
                 ThenInclude(e => e.LeccionEstado).
                 Include(u => u.Usuario).
-                Where(u => u.Usuario.Id == id && u.FechaBaja == null).ToList();
+                Where(u => u.Usuario.Id == currentUser.Id && u.FechaBaja == null).ToList();
             return inscripciones;
         }
 

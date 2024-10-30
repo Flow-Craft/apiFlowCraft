@@ -759,7 +759,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetInscripcionesByUsuario(int id)
+        public IActionResult GetInscripcionesByUsuario()
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
 
@@ -767,7 +767,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-                List<InscripcionUsuario> inscripcionUsuarios = _leccionesServices.GetInscripcionesByUsuario(id);
+                List<InscripcionUsuario> inscripcionUsuarios = _leccionesServices.GetInscripcionesByUsuario();
                 return Ok(inscripcionUsuarios);
             }
             catch (Exception e)
@@ -785,7 +785,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetInscripcionesByUsuarioActivas(int id)
+        public IActionResult GetInscripcionesByUsuarioActivas()
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
 
@@ -793,7 +793,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-                List<InscripcionUsuario> inscripcionUsuarios = _leccionesServices.GetInscripcionesByUsuarioActivas(id);
+                List<InscripcionUsuario> inscripcionUsuarios = _leccionesServices.GetInscripcionesByUsuarioActivas();
                 return Ok(inscripcionUsuarios);
             }
             catch (Exception e)
