@@ -97,10 +97,12 @@ namespace ApiNet8.Services
             }
         }
 
-        public List<Leccion> GetLeccionesAsignadas(int id)
+        public List<Leccion> GetLeccionesAsignadas()
         {
             try
             {
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
                 List<Leccion> lecciones = _db.Leccion
                 .Include(d => d.Disciplina)
                 .Include(c => c.Categoria)
@@ -109,7 +111,7 @@ namespace ApiNet8.Services
                 .Where(l => l.LeccionHistoriales.Any(h =>
                     h.FechaFin == null &&
                     (h.LeccionEstado.NombreEstado != Enums.LeccionEstado.Eliminada.ToString()))
-                    && l.idProfesor==id)
+                    && l.idProfesor==currentUser.Id)
                 .ToList();
 
                 return lecciones;
