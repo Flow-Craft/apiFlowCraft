@@ -363,10 +363,12 @@ namespace ApiNet8.Services
                     throw new Exception("El usuario ya esta inscripto para esta lección.");
                 }
 
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
                 // verificar estado del usuario y perfil
                 Usuario? usuario = _db.Usuario
                         .Include(u => u.UsuarioHistoriales).ThenInclude(a => a.UsuarioEstado)
-                        .Where(u => u.Id == inscripcion.IdUsuario)
+                        .Where(u => u.Id == currentUser.Id)
                         .FirstOrDefault();
 
                 if (usuario == null)
@@ -392,7 +394,7 @@ namespace ApiNet8.Services
                     throw new Exception("No es posible inscribirse a esta categoria");
                 }
 
-                List<PerfilUsuario> perfilesUsuario = _db.PerfilUsuario.Include(u => u.Usuario).Include(p => p.Perfil).Where(pu => pu.Usuario.Id == inscripcion.IdUsuario).ToList();
+                List<PerfilUsuario> perfilesUsuario = _db.PerfilUsuario.Include(u => u.Usuario).Include(p => p.Perfil).Where(pu => pu.Usuario.Id == currentUser.Id).ToList();
                 bool tienePerfilSocio = perfilesUsuario.Any(pu => pu.Perfil.NombrePerfil == Enums.Perfiles.Socio.ToString());
 
                 if (!tienePerfilSocio)
@@ -400,7 +402,7 @@ namespace ApiNet8.Services
                     throw new Exception("No puede inscribirse porque no tiene perfil de socio");
                 }
 
-                InscripcionUsuario? inscripcionLeccion = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(f => f.Leccion.Id == inscripcion.IdLeccion && f.Usuario.Id == inscripcion.IdUsuario).FirstOrDefault();
+                InscripcionUsuario? inscripcionLeccion = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(f => f.Leccion.Id == inscripcion.IdLeccion && f.Usuario.Id == currentUser.Id).FirstOrDefault();
                 if (inscripcionLeccion == null)
                 {
                     inscripcionLeccion = new InscripcionUsuario
@@ -435,8 +437,10 @@ namespace ApiNet8.Services
         {
             try
             {
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
                 // busco la inscripcion y la doy de baja
-                InscripcionUsuario? inscripcionLeccion = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(f => f.Leccion.Id==inscripcion.IdLeccion && f.Usuario.Id==inscripcion.IdUsuario && f.FechaBaja==null).FirstOrDefault();
+                InscripcionUsuario? inscripcionLeccion = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(f => f.Leccion.Id==inscripcion.IdLeccion && f.Usuario.Id== currentUser.Id && f.FechaBaja==null).FirstOrDefault();
 
                 inscripcionLeccion.FechaBaja = DateTime.Now;
 

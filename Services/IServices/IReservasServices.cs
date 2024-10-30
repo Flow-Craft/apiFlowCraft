@@ -9,7 +9,12 @@ namespace ApiNet8.Services.IServices
         public bool VerificarInstalacionDisponible(DateTime fechaInicio, DateTime fechaFin, Instalacion instalacion, Evento evento);
         List<Reserva> GetReservasByInstalacion(Instalacion instalacion);
         List<Reserva> GetReservas();
+        List<Reserva> GetReservasVigentes();
         void CrearReserva(ReservaDTO reservaDTO);
+        void ActualizarReserva(ReservaDTO reservaDTO);
+        void EliminarReserva(int id);
+        Reserva GetReservaById(int id);
+        List<Reserva> GetReservasByUsuario(int id);
         public List<Reserva> GetReservasByEvento(Evento evento);
         List<Reserva> GetReservasByUsuarioPeriodo(int idUsuario, DateTime periodoInicio, DateTime periodoFin);
         List<Reserva> GetReservasByInstalacionPeriodo(int idInstalacion, DateTime periodoInicio, DateTime periodoFin);
