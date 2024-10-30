@@ -572,7 +572,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetLeccionesAsignadas(int id)
+        public IActionResult GetLeccionesAsignadas()
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
 
@@ -580,7 +580,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-                List<Leccion> lecciones = _leccionesServices.GetLeccionesAsignadas(id);
+                List<Leccion> lecciones = _leccionesServices.GetLeccionesAsignadas();
                 return Ok(lecciones);
             }
             catch (Exception e)
