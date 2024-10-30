@@ -20,5 +20,6 @@ namespace ApiNet8.Services.IServices
         void DesinscribirseALeccion(InscripcionLeccionDTO inscripcion);
         void IniciarLeccion(AsistenciaLeccionDTO asistencias);
         void FinalizarLeccion(int id);
+        List<LeccionResponseDTO> GetLeccionesCompletas();
     }
 }

@@ -34,6 +34,40 @@ namespace ApiNet8.Services
             return lecciones;
         }
 
+        public List<LeccionResponseDTO> GetLeccionesCompletas()
+        {
+            List<Leccion> lecciones = _db.Leccion.Include(d => d.Disciplina).Include(c => c.Categoria).Include(h=>h.LeccionHistoriales).ThenInclude(le=>le.LeccionEstado).ToList();
+            List<LeccionResponseDTO> response = new List<LeccionResponseDTO>();
+
+            foreach (var item in lecciones)
+            {
+                LeccionResponseDTO le = new LeccionResponseDTO
+                {
+                    Id = item.Id,
+                    CantMaxima = item.CantMaxima,
+                    Descripcion = item.Descripcion,
+                    Dias = item.Dias,
+                    Nombre = item.Nombre,
+                    Horarios = item.Horarios,
+                    Lugar = item.Lugar,
+                    idProfesor = item.idProfesor,
+                    Disciplina = item.Disciplina,
+                    Categoria = item.Categoria,
+                    Activa = false
+                };
+
+                LeccionHistorial? ultimoHistorial = item.LeccionHistoriales.Where(l => l.FechaFin == null).OrderByDescending(f => f.FechaInicio).FirstOrDefault();
+                if (ultimoHistorial != null && (ultimoHistorial.LeccionEstado.NombreEstado == Enums.LeccionEstado.Vigente.ToString() || ultimoHistorial.LeccionEstado.NombreEstado == Enums.LeccionEstado.ClaseIniciada.ToString()))
+                {
+                    le.Activa = true;
+                }
+
+                response.Add(le);
+            }
+
+            return response;
+        }
+
         public List<Leccion> GetLeccionesActivas()
         {
             List<Leccion> lecciones = _db.Leccion
