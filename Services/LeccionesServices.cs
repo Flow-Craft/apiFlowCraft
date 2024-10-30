@@ -10,6 +10,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Xml;
 using ApiNet8.Models.Eventos;
 using ApiNet8.Models.Partidos;
+using ApiNet8.Models.Reservas;
+using XAct;
 
 namespace ApiNet8.Services
 {
@@ -94,6 +96,30 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
+        public List<Leccion> GetLeccionesAsignadas(int id)
+        {
+            try
+            {
+                List<Leccion> lecciones = _db.Leccion
+                .Include(d => d.Disciplina)
+                .Include(c => c.Categoria)
+                .Include(lh => lh.LeccionHistoriales)
+                .ThenInclude(le => le.LeccionEstado)
+                .Where(l => l.LeccionHistoriales.Any(h =>
+                    h.FechaFin == null &&
+                    (h.LeccionEstado.NombreEstado != Enums.LeccionEstado.Eliminada.ToString()))
+                    && l.idProfesor==id)
+                .ToList();
+
+                return lecciones;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
 
         public bool ExisteLeccion(string nombre)
         {
