@@ -598,7 +598,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetLeccionById(LeccionDTO leccionDTO)
+        public IActionResult GetLeccionById([FromQuery] LeccionDTO leccionDTO)
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
 
