@@ -30,60 +30,44 @@ namespace ApiNet8.Services
             _usuarioServices= usuarioServices;
         }
 
-        //public void ActualizarInstalacion(InstalacionDTO instalacionDTO)
-        //{
-        //    try
-        //    {
-        //        Instalacion inst;
-        //        var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+        public void ActualizarReserva(ReservaDTO reservaDTO)
+        {
+            try
+            {
+                Reserva reserva = GetReservaById((int)reservaDTO.Id);
 
-        //        using (var transaction = _db.Database.BeginTransaction())
-        //        {
+                if (reservaDTO.HoraInicio==null){reservaDTO.HoraInicio = reserva.HoraInicio;}
+                if (reservaDTO.HoraFin == null) { reservaDTO.HoraFin = reserva.HoraFin; }
+                if (reservaDTO.InstalacionId == null) { reservaDTO.InstalacionId = reserva.Instalacion.Id; }
 
-        //            inst = GetInstalacionById((int)instalacionDTO.Id);
+                if (VerificarInstalacionDisponibleReserva(reservaDTO))
+                {
+                    var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+                    
+                    using (var transaction = _db.Database.BeginTransaction())
+                    {
+                        reserva.FechaModificacion = DateTime.Now;
+                        reserva.HoraInicio = (DateTime)reservaDTO.HoraInicio;
+                        reserva.HoraFin = (DateTime)reservaDTO.HoraFin;
+                        reserva.UsuarioEditor = currentUser.Id;
+                        reserva.Instalacion = _instalacionServices.GetInstalacionById((int)reservaDTO.InstalacionId);
+                        if (reservaDTO.UsuarioId != null) { reserva.Usuario = _usuarioServices.GetUsuarioById((int)reservaDTO.UsuarioId); }
 
-        //            inst.Nombre = instalacionDTO.Nombre ?? inst.Nombre;
-        //            inst.Ubicacion = instalacionDTO.Ubicacion ?? inst.Ubicacion;
-        //            inst.Precio = instalacionDTO.Precio ?? inst.Precio;
-        //            inst.Condiciones = instalacionDTO.Condiciones ?? inst.Condiciones;
-        //            inst.HoraInicio = instalacionDTO.HoraInicio ?? inst.HoraInicio;
-        //            inst.HoraCierre = instalacionDTO.HoraCierre ?? inst.HoraCierre;
-
-        //            // obtengo ultimo historial y lo doy de baja
-        //            InstalacionHistorial? ultimoHistorial = inst.instalacionHistoriales.Where(ih => ih.FechaFin == null).FirstOrDefault();
-
-        //            if (ultimoHistorial != null)
-        //            {
-        //                ultimoHistorial.FechaFin = DateTime.Now;
-        //                _db.InstalacionHistorial.Update(ultimoHistorial);
-        //            }
-        //            else
-        //            {
-        //                inst.instalacionHistoriales = new List<InstalacionHistorial>();
-        //            }
-
-        //            // creo nuevo historial y lo asigno
-        //            InstalacionHistorial nuevoHistorial = new InstalacionHistorial
-        //            {
-        //                FechaInicio = DateTime.Now,
-        //                DetalleCambioEstado = "Se actualiza instalacion",
-        //                UsuarioEditor = currentUser?.Id,
-        //                InstalacionEstado = _instalacionEstadoServices.GetInstalacionEstadoById(instalacionDTO.EstadoId) // asigno estado ACTIVO
-        //            };
-
-        //            inst.instalacionHistoriales.Add(nuevoHistorial);
-
-        //            _db.InstalacionHistorial.Add(nuevoHistorial);
-        //            _db.Instalacion.Update(inst);
-        //            _db.SaveChanges();
-        //            transaction.Commit();
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        throw new Exception(e.Message, e);
-        //    }
-        //}
+                        _db.Reserva.Update(reserva);
+                        _db.SaveChanges();
+                        transaction.Commit();
+                    }
+                }
+                else
+                {
+                    throw new Exception("No se puede editar la reserva ya que la instalacion se encuentra reservado para ese dia y horario o la instalacion se encuentra cerrada");
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
 
         public void CrearReserva(ReservaDTO reservaDTO)
         {
@@ -109,11 +93,11 @@ namespace ApiNet8.Services
                         {
                             FechaReserva = DateTime.Now,
                             FechaCreacion = DateTime.Now,
-                            HoraInicio = reservaDTO.HoraInicio,
-                            HoraFin = reservaDTO.HoraFin,
+                            HoraInicio = (DateTime)reservaDTO.HoraInicio,
+                            HoraFin = (DateTime)reservaDTO.HoraFin,
                             UsuarioEditor = currentUser.Id,
                             Usuario = usu,
-                            Instalacion = _instalacionServices.GetInstalacionById(reservaDTO.InstalacionId)
+                            Instalacion = _instalacionServices.GetInstalacionById((int)reservaDTO.InstalacionId)
                         };
 
                         _db.Reserva.Add(reserva);
@@ -123,7 +107,7 @@ namespace ApiNet8.Services
                 }
                 else
                 {
-                    throw new Exception("No se puede crear la reserva ya que la instalacion se encuentra reservado para ese dia y horario");
+                    throw new Exception("No se puede crear la reserva ya que la instalacion se encuentra reservado para ese dia y horario o la instalacion se encuentra cerrada");
                 }
             }
             catch (Exception ex)
@@ -132,61 +116,75 @@ namespace ApiNet8.Services
             }
         }
 
-        //public void EliminarInstalacion(int id)
-        //{
-        //    try
-        //    {
-        //        Instalacion instalacionAEliminar = GetInstalacionById(id);
+        public void EliminarReserva(int id)
+        {
+            try
+            {
+                Reserva reserva = GetReservaById(id);
 
-        //        if (instalacionAEliminar == null)
-        //        {
-        //            throw new Exception("No se encontró la instalación.");
-        //        }
+                if (reserva == null)
+                {
+                    throw new Exception("No se encontró la reserva.");
+                }
 
-        //        var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
-        //        using (var transaction = _db.Database.BeginTransaction())
-        //        {
-        //            // obtengo ultimo historial y lo doy de baja
-        //            InstalacionHistorial? ultimoHistorial = instalacionAEliminar.instalacionHistoriales.Where(ih => ih.FechaFin == null).FirstOrDefault();
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    reserva.FechaBaja=DateTime.Now;
+                    reserva.UsuarioEditor = currentUser.Id;
+                    _db.Reserva.Update(reserva);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
 
-        //            if (ultimoHistorial != null)
-        //            {
-        //                ultimoHistorial.FechaFin = DateTime.Now;
-        //                _db.InstalacionHistorial.Update(ultimoHistorial);
-        //            }
-        //            else
-        //            {
-        //                instalacionAEliminar.instalacionHistoriales = new List<InstalacionHistorial>();
-        //            }
+        public Reserva GetReservaById(int id)
+        {
+            try
+            {
+                Reserva reserva = _db.Reserva.Include(a=>a.Instalacion).Include(a => a.Usuario).Where(u => u.Id == id).FirstOrDefault();
 
-        //            InstalacionHistorial nuevoHistorial = new InstalacionHistorial
-        //            {
-        //                DetalleCambioEstado = "Se elimina instalacion",
-        //                FechaInicio = DateTime.Now,
-        //                UsuarioEditor = currentUser?.Id,
-        //                InstalacionEstado = _instalacionEstadoServices.GetInstalacionEstadoById(2) // asigno estado DESACTIVADO
-        //            };
+                return reserva;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
 
-        //            instalacionAEliminar.instalacionHistoriales.Add(nuevoHistorial);
+        public List<Reserva> GetReservasByUsuario(int id)
+        {
+            try
+            {
+                List<Reserva> reservas = _db.Reserva.Include(a => a.Instalacion).Include(a => a.Usuario).Where(u => u.Usuario.Id == id && u.FechaBaja==null).ToList();
 
-        //            _db.InstalacionHistorial.Add(nuevoHistorial);
-        //            _db.Instalacion.Update(instalacionAEliminar);
-        //            _db.SaveChanges();
-        //            transaction.Commit();
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        throw new Exception(e.Message, e);
-        //    }
-        //}
+                return reservas;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
 
         public List<Reserva> GetReservas()
         {
             List<Reserva> reservas = _db.Reserva.Include(i=>i.Instalacion).Include(u=>u.Usuario).ToList();
             return reservas;
         }
+
+        public List<Reserva> GetReservasVigentes()
+        {
+            List<Reserva> reservas = _db.Reserva.Include(i => i.Instalacion).Include(u => u.Usuario).Where(a=> a.FechaBaja==null).ToList();
+            return reservas;
+        }
+
+
 
         public List<Reserva> GetReservasByInstalacion(Instalacion instalacion) 
         {
@@ -240,12 +238,14 @@ namespace ApiNet8.Services
 
         public bool VerificarInstalacionDisponibleReserva(ReservaDTO reservaDTO)
         {
+            Instalacion instalacion = _instalacionServices.GetInstalacionById((int)reservaDTO.InstalacionId);
 
             // Obtener reservas de la instalación
-            List<Reserva> reservasInstalacion = GetReservasByInstalacion(_instalacionServices.GetInstalacionById(reservaDTO.InstalacionId));
+            List<Reserva> reservasInstalacion = GetReservasByInstalacion(instalacion);
 
             // Verificar si hay alguna reserva que se solape con el rango [fechaInicio, fechaFin]
             bool hayConflicto = reservasInstalacion.Any(r =>
+                r.Id != reservaDTO.Id &&
                 // Verificar solapamiento de horarios
                 ((reservaDTO.HoraInicio > r.HoraInicio && reservaDTO.HoraInicio < r.HoraFin) ||
                 (reservaDTO.HoraFin > r.HoraInicio && reservaDTO.HoraFin < r.HoraFin) ||
@@ -254,6 +254,14 @@ namespace ApiNet8.Services
                 && r.FechaBaja == null
             );
 
+            if (
+                ((TimeOnly.FromDateTime((DateTime)reservaDTO.HoraInicio) < instalacion.HoraInicio && TimeOnly.FromDateTime((DateTime)reservaDTO.HoraInicio) > instalacion.HoraCierre) ||
+                (TimeOnly.FromDateTime((DateTime)reservaDTO.HoraFin) < instalacion.HoraInicio && TimeOnly.FromDateTime((DateTime)reservaDTO.HoraFin) > instalacion.HoraCierre) ||
+                (instalacion.HoraInicio >= TimeOnly.FromDateTime((DateTime)reservaDTO.HoraInicio) && instalacion.HoraCierre <= TimeOnly.FromDateTime((DateTime)reservaDTO.HoraFin)))
+                )
+            {
+                hayConflicto = true;
+            }
             // Si hay conflicto, la instalación no está disponible
             return !hayConflicto;
         }
