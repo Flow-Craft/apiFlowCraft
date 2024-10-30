@@ -7,6 +7,7 @@ namespace ApiNet8.Services.IServices
     {
         List<Leccion> GetLecciones();
         Leccion GetLeccionById(int Id);
+        List<Leccion> GetLeccionesAsignadas(int id);
         void CrearLeccion(LeccionDTO leccionDTO);
         void ActualizarLeccion(LeccionDTO leccionDTO);
         void EliminarLeccion(LeccionDTO leccionDTO);
