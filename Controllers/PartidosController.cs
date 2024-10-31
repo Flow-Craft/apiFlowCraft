@@ -1020,9 +1020,7 @@ namespace ApiNet8.Controllers
 
         [HttpPost]
         public IActionResult CrearAsistencia()
-        {
-           
-
+        {    
             try
             {
                 _partidoServices.Asistencia();

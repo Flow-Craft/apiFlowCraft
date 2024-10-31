@@ -196,7 +196,7 @@ namespace ApiNet8.Services
                     AsistioAlumno = false,
                     ClaseCompleta = false,
                     FechaCreacion = DateTime.Now,
-                    Leccion = _leccionesServices.GetLeccionById(1),
+                    Leccion = _leccionesServices.GetLeccionById(2),
                     Usuario = _usuarioServices.GetUsuarioById(13)
                 };
 

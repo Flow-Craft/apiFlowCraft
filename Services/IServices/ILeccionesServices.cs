@@ -1,5 +1,6 @@
 ﻿using ApiNet8.Models.DTO;
 using ApiNet8.Models.Lecciones;
+using ApiNet8.Models.Partidos;
 
 namespace ApiNet8.Services.IServices
 {
@@ -22,5 +23,7 @@ namespace ApiNet8.Services.IServices
         void IniciarLeccion(AsistenciaLeccionDTO asistencias);
         void FinalizarLeccion(int id);
         List<LeccionResponseDTO> GetLeccionesCompletas();
+        List<AsistenciaLeccion> GetAsistenciaLeccionById(int idLeccion);
+        List<Estadisticas> GetEstadisticasByLeccionUsuario(int idLeccion, int idUsuario);
     }
 }

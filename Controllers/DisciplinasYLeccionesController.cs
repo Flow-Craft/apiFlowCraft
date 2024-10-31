@@ -3,10 +3,9 @@ using ApiNet8.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using ApiNet8.Services.IServices;
-using ApiNet8.Services;
 using ApiNet8.Filters.ActionFilters;
 using ApiNet8.Models.Lecciones;
-using ApiNet8.Models.Usuarios;
+using ApiNet8.Models.Partidos;
 
 namespace ApiNet8.Controllers
 {
@@ -931,6 +930,56 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al finalizar lección",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetAsistencias([FromQuery] int idLeccion)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<AsistenciaLeccion> asistencias = _leccionesServices.GetAsistenciaLeccionById(idLeccion);
+                return Ok(asistencias);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener asistencias lección",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetEstadisticasByLeccionUsuario([FromQuery] int idLeccion, int idUsuario)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<Estadisticas> estadisticas = _leccionesServices.GetEstadisticasByLeccionUsuario(idLeccion, idUsuario);
+                return Ok(estadisticas);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener estadisticas de usuario por lección",
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);

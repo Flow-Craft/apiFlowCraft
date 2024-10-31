@@ -461,6 +461,56 @@ namespace ApiNet8.Services
             }
         }
 
+        public List<AsistenciaLeccion> GetAsistenciaLeccionById(int idLeccion)
+        {
+            // obtengo las asistenciasLeccion del dia
+            DateTime fechaActual = DateTime.Today;
+            List<AsistenciaLeccion> asistenciaLecciones = _db.AsistenciaLeccion
+                .Include(u => u.Usuario)
+                .Include(l=>l.Leccion)
+                .Where(a => a.Leccion.Id == idLeccion && a.FechaCreacion.Date == fechaActual)
+                .ToList();
+
+            if (asistenciaLecciones.Count == 0)
+            {
+                // si no encuentro asistenciasLeccion en el dia busco la fecha mas cercana donde existan
+                DateTime? ultimaFecha = _db.AsistenciaLeccion
+                    .Where(a => a.Leccion.Id == idLeccion)
+                    .OrderBy(a => Math.Abs((a.FechaCreacion - fechaActual).TotalDays))
+                    .Select(a => a.FechaCreacion.Date)
+                    .FirstOrDefault();
+
+                // si existen asistencias en una fecha cercana obtengo todas las de ese dia
+                if (ultimaFecha != null)
+                {
+                    asistenciaLecciones = _db.AsistenciaLeccion
+                        .Include(u => u.Usuario)
+                        .Where(a => a.Leccion.Id == idLeccion && a.FechaCreacion.Date == ultimaFecha.Value)
+                        .ToList();
+                }
+            }
+
+            return asistenciaLecciones;
+        }
+
+        public List<Estadisticas> GetEstadisticasByLeccionUsuario(int idLeccion, int idUsuario)
+        {
+            List<Estadisticas> estadisticas = new List<Estadisticas> ();
+
+            // obtener la ultima asistencia leccion del usuario para esa leccion
+            AsistenciaLeccion? asistenciaLeccion = _db.AsistenciaLeccion.Where(u => u.Usuario.Id == idUsuario && u.Leccion.Id == idLeccion && u.FechaBaja == null).OrderByDescending(f=>f.FechaCreacion).FirstOrDefault();
+
+            if (asistenciaLeccion != null)
+            {
+                // obtener las estadisticas de esa asistencia
+                estadisticas = _db.Estadisticas
+                    .Where(a => a.AsistenciaLeccionId == asistenciaLeccion.Id)
+                    .ToList();
+            }
+           
+            return estadisticas;            
+        } 
+
         public void DesinscribirseALeccion(InscripcionLeccionDTO inscripcion)//listo
         {
             try
