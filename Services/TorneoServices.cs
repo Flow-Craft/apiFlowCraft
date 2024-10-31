@@ -151,18 +151,9 @@ namespace ApiNet8.Services
                         fechaInicio = fechaInicio.AddHours(2);
                     }
 
-                    // Relacionar fases
-                    // si existe una fase anterior la asigno en llave
-                    //if (faseAnterior.Any())
-                    //{
-                    //    partidoFase.Llave = new List<PartidoFase>();
-                    //    partidoFase.Llave.Add(fases.Where(f => f.FasePartido == faseActual - 1).FirstOrDefault());
-                    //}
-
                     fases.Add(partidoFase);
 
-                    // Preparar la siguiente fase
-                    //faseAnterior = new List<PartidoFase> { partidoFase };
+                    // Preparar la siguiente fase                    
                     partidosPorFase /= 2;
                     faseActual++;
                 }
@@ -293,7 +284,7 @@ namespace ApiNet8.Services
                 {
                     _db.Torneo.Add(torneo);
                     _db.PartidoFase.AddRange(fases);
-                    _db.SaveChanges();
+                    _db.SaveChanges();                   
                     transaction.Commit();
                 }
             }
