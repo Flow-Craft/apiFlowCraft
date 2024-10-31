@@ -380,7 +380,7 @@ namespace ApiNet8.Services
                 if (eventoDTO.Titulo != null)
                 {
                     bool existe = _db.Evento.Include(a => a.HistorialEventoList).Any(le => (le.Titulo == eventoDTO.Titulo && le.Id != eventoDTO.Id) && le.HistorialEventoList.Any(h => h.FechaFin == null &&
-                    (h.EstadoEvento.NombreEstado != ApiNet8.Utils.Enums.EstadoEvento.Cancelado.ToString() || h.EstadoEvento.NombreEstado == ApiNet8.Utils.Enums.EstadoEvento.Finalizado.ToString())));
+                    (h.EstadoEvento.NombreEstado != ApiNet8.Utils.Enums.EstadoEvento.Cancelado.ToString() && h.EstadoEvento.NombreEstado == ApiNet8.Utils.Enums.EstadoEvento.Finalizado.ToString())));
 
                     if (existe)
                     {
@@ -407,22 +407,6 @@ namespace ApiNet8.Services
                     evento.Disciplina = d;
                 }
                
-
-                //// asignar disciplinas
-                //if (eventoDTO.IdsDisciplinas != null)
-                //{
-                //    evento.Disciplinas =  new List<Disciplina>();
-
-                //    foreach (var idDisc in eventoDTO.IdsDisciplinas)
-                //    {
-                //        Disciplina? d = _disciplinasYLeccionesServices.GetDisciplinaById(idDisc);
-                //        if (d != null)
-                //        {
-                //            evento.Disciplinas.Add(d);
-                //        }
-                //    }
-                //}
-
                 // asignar categoria
                 if (eventoDTO.IdCategoria > 0)
                 {
@@ -443,7 +427,7 @@ namespace ApiNet8.Services
 
                     // verificar que no este reservada
                     DateTime fechaInicioReserva = eventoDTO.FechaInicio != null ? (DateTime)eventoDTO.FechaInicio : (DateTime)evento.FechaInicio;
-                    DateTime fechaFinReserva = eventoDTO.FechaFinEvento != null ? (DateTime)eventoDTO.FechaFinEvento : (DateTime)evento.FechaInicio;
+                    DateTime fechaFinReserva = eventoDTO.FechaFinEvento != null ? (DateTime)eventoDTO.FechaFinEvento : (DateTime)evento.FechaFinEvento;
 
                     bool instalacionDisponible = _reservasServices.VerificarInstalacionDisponible(fechaInicioReserva, fechaFinReserva, instalacion, evento);
 

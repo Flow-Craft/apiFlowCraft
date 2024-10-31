@@ -205,7 +205,7 @@ namespace ApiNet8.Controllers
                 RespuestaAPI respuestaAPI = new RespuestaAPI
                 {
                     status = HttpStatusCode.InternalServerError,
-                    title = "Error al eliminar estado de torneo",
+                    title = "Error al crear torneo",
                     errors = new List<string>{
                                 e.Message,
                                 "Exception: " + e.ToString()
