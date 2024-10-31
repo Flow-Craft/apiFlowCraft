@@ -57,6 +57,7 @@ builder.Services.AddTransient<IReservasServices, ReservasServices>();
 builder.Services.AddTransient<IEquipoServices, EquipoServices>();
 builder.Services.AddTransient<IPartidoServices, PartidoServices>();
 builder.Services.AddTransient<IReporteServices, ReporteServices>();
+builder.Services.AddTransient<ITorneoServices, TorneoServices>();
 builder.Services.AddTransient<ValidateJwtAndRefreshFilter>();
 
 // Cargar configuración de SMTP desde el archivo de configuración

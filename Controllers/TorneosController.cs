@@ -18,10 +18,12 @@ namespace ApiNet8.Controllers
         private const string JWT = "JWT";
 
         private readonly ITorneoEstadoServices _torneoEstadoServices;
+        private readonly ITorneoServices _torneoServices;
 
-        public TorneosController(ITorneoEstadoServices torneoEstadoServices)
+        public TorneosController(ITorneoEstadoServices torneoEstadoServices, ITorneoServices torneoServices)
         {
             _torneoEstadoServices = torneoEstadoServices;
+            _torneoServices = torneoServices;
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
@@ -180,6 +182,34 @@ namespace ApiNet8.Controllers
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al eliminar estado de torneo",
                     errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult AltaTorneo(TorneoDTO torneoDTO)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _torneoServices.CrearTorneo(torneoDTO);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al eliminar estado de torneo",
+                    errors = new List<string>{
+                                e.Message,
+                                "Exception: " + e.ToString()
+                            }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }

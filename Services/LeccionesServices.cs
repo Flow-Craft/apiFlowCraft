@@ -510,6 +510,7 @@ namespace ApiNet8.Services
             {
                 // obtener las estadisticas de esa asistencia
                 estadisticas = _db.Estadisticas
+                    .Include(t=>t.TipoAccionPartido)
                     .Where(a => a.AsistenciaLeccionId == asistenciaLeccion.Id)
                     .ToList();
             }

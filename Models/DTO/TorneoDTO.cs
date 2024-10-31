@@ -12,10 +12,10 @@ namespace ApiNet8.Models.DTO
         public int IdCategoria { get; set; }
         public int IdInstalacion { get; set; }
         public int CantEquipos { get; set; }
-        public byte[] Banner { get; set; }
+        public byte[]? Banner { get; set; }
         public string? Condiciones { get; set; }
         public DateTime FechaInicio { get; set; }
-        public List<int> IdEquipos { get; set; }
+        public List<int>? IdEquipos { get; set; }
 
     }
 }
