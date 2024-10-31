@@ -703,6 +703,7 @@ namespace ApiNet8.Controllers
 
         }
 
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult AsignacionPartido([FromQuery] AsignacionDTO asignacion)
         {
@@ -729,7 +730,7 @@ namespace ApiNet8.Controllers
         }
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
-       [HttpGet("{Id}")]
+        [HttpGet]
         public IActionResult GetEstadisticaById([FromQuery] int Id)
 
         {

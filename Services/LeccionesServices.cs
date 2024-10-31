@@ -21,13 +21,15 @@ namespace ApiNet8.Services
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILeccionEstadoServices _leccionEstadoServices;
+        private readonly IEmailService _emailService;
 
-        public LeccionesServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, ILeccionEstadoServices leccionEstadoServices)
+        public LeccionesServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, ILeccionEstadoServices leccionEstadoServices, IEmailService emailService)
         {
             this._db = db;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _leccionEstadoServices = leccionEstadoServices;
+            _emailService = emailService;
         }
 
         public List<Leccion> GetLecciones()
@@ -454,8 +456,12 @@ namespace ApiNet8.Services
                     _db.SaveChanges();
                     transaction.Commit();
                 }
+
+                // envio mail al usuario con el codigo
+                //_emailService.SendEmail(usuario.Email, usuario.Nombre + usuario.Apellido, "Inscripcion a lección", "Se inscribió exitosamente a : " + leccion.Nombre + ", " + leccion.Categoria.Nombre);
+
             }
-             catch (Exception e)
+            catch (Exception e)
             {
                 throw new Exception(e.Message);
             }
