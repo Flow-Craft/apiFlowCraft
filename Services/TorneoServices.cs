@@ -64,7 +64,11 @@ namespace ApiNet8.Services
 
         public Torneo? GetTorneoById(int idTorneo)
         {
-            Torneo? torneo = _db.Torneo.Include(d=>d.Disciplina).Include(c=>c.Categoria).Include(h=>h.TorneoHistoriales).ThenInclude(e=>e.TorneoEstado).Where(i=>i.Id==idTorneo).FirstOrDefault();
+            Torneo? torneo = _db.Torneo
+                .Include(d=>d.Disciplina)
+                .Include(c=>c.Categoria)
+                .Include(h=>h.TorneoHistoriales).ThenInclude(e=>e.TorneoEstado)
+                .Where(i=>i.Id==idTorneo).FirstOrDefault();
             return torneo != null ? torneo : null;
         }
 
@@ -362,11 +366,24 @@ namespace ApiNet8.Services
                 // cambia fecha o instalacion
 
                 // obtengo un partido del torneo para ver cual es la instalacion
-                PartidoFase? partidos = _db.PartidoFase.Include(p => p.Partidos).Where(t => t.Torneo.Id == torneo.Id).FirstOrDefault();
+                PartidoFase? partidos = _db.PartidoFase.Include(p => p.Partidos).ThenInclude(i=>i.Instalacion).Where(t => t.Torneo.Id == torneo.Id).FirstOrDefault();
                 int idInstalacion = partidos != null ? partidos.Partidos.FirstOrDefault()!.Instalacion.Id : 0;
 
+                // obtengo todos los partidos del torneo
                 List<Partido> partidosTorneo = new List<Partido>();
                 List<PartidoFase> partidosFases = new List<PartidoFase>();
+                partidosFases = _db.PartidoFase
+                   .Include(p => p.Partidos).ThenInclude(e => e.Local).ThenInclude(e => e.Equipo)
+                   .Include(p => p.Partidos).ThenInclude(e => e.Visitante).ThenInclude(e => e.Equipo)
+                   .Include(p => p.Partidos).ThenInclude(e => e.Usuarios)
+                   .OrderBy(f=>f.FechaCreacion)
+                   .Where(t => t.Torneo.Id == torneo.Id).ToList();
+
+                // Recorrer cada fase y agregar sus partidos a la lista partidosTorneo
+                foreach (var fase in partidosFases)
+                {
+                    partidosTorneo.AddRange(fase.Partidos);
+                }
 
                 if ((torneoDTO.IdInstalacion > 0 && idInstalacion != torneoDTO.IdInstalacion) || (torneoDTO.FechaInicio != DateTime.MinValue && torneoDTO.FechaInicio != torneo.FechaInicio))
                 {
@@ -375,17 +392,10 @@ namespace ApiNet8.Services
 
                     // buscar todos los partidos y cancelarles la reserva y hacer una nueva
 
-                    // obtengo todos los partidos del torneo
-                     partidosFases = _db.PartidoFase
-                        .Include(p => p.Partidos).ThenInclude(e => e.Local).ThenInclude(e => e.Equipo)
-                        .Include(p => p.Partidos).ThenInclude(e => e.Visitante).ThenInclude(e => e.Equipo)
-                        .Where(t=>t.Torneo.Id == torneo.Id).ToList();
-
                     // recorro cada fase y cada partido
                     int faseActual = 1;
                     foreach (var item in partidosFases)
                     {
-                        partidosTorneo.AddRange(item.Partidos.ToList());
                         DateTime fechaInicio = torneoDTO.FechaInicio != DateTime.MinValue ? torneoDTO.FechaInicio.AddDays((faseActual - 1) * 7) : torneo.FechaInicio.AddDays((faseActual -1)*7);
 
                         foreach (var part in item.Partidos)
