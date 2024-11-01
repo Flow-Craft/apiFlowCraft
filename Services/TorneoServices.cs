@@ -11,6 +11,7 @@ using ApiNet8.Models.Usuarios;
 using ApiNet8.Services.IServices;
 using ApiNet8.Utils;
 using AutoMapper;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
 using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
@@ -83,6 +84,128 @@ namespace ApiNet8.Services
 
             return torneos;
         }
+
+        public TorneoResponseDTO? GetTorneoByIdCompleto(int idTorneo)
+        {
+            Torneo torneo = GetTorneoById(idTorneo);
+
+            if (torneo == null)
+            {
+                throw new Exception("No existe el torneo");
+            }
+
+            TorneoResponseDTO response = new TorneoResponseDTO();
+
+               response.Id = torneo.Id;
+               response.Nombre = torneo.Nombre;
+               response.Descripcion = torneo.Descripcion;
+               response.CantEquipos = torneo.CantEquipos;
+               response.Banner = torneo.Banner;
+               response.Condiciones = torneo.Condiciones;
+               response.FechaInicio = torneo.FechaInicio;
+               response.Disciplina = torneo.Disciplina;
+               response.Categoria = torneo.Categoria;
+
+            TorneoHistorial? historial = torneo.TorneoHistoriales.Where(f => f.FechaFin == null).FirstOrDefault();
+            if (historial != null)
+            {
+                response.TorneoEstado = historial.TorneoEstado.NombreEstado;
+            }
+
+            // obtengo todos los partidos del torneo
+            response.Partidos = new List<Partido>();
+            List<PartidoFase> partidosFases = new List<PartidoFase>();
+            partidosFases = _db.PartidoFase
+               .Include(p => p.Partidos).ThenInclude(e => e.Local).ThenInclude(e => e.Equipo).ThenInclude(c => c.Categoria)
+               .Include(p => p.Partidos).ThenInclude(e => e.Visitante).ThenInclude(e => e.Equipo).ThenInclude(c => c.Categoria)
+               .Include(p => p.Partidos).ThenInclude(e => e.Usuarios)
+               .OrderBy(f => f.FechaCreacion)
+               .Where(t => t.Torneo.Id == torneo.Id).ToList();
+
+            // Recorrer cada fase y agregar sus partidos a la lista
+            foreach (var fase in partidosFases)
+            {
+                response.Partidos.AddRange(fase.Partidos);
+            }
+
+            // Obtener todos los equipos inscritos del torneo
+            response.Equipos = new List<Equipo>();
+            foreach (var partido in response.Partidos)
+            {
+                if (partido.Local != null && partido.Local.Equipo != null)
+                {
+                    response.Equipos.Add(partido.Local.Equipo);
+                }
+                if (partido.Visitante != null && partido.Visitante.Equipo != null)
+                {
+                    response.Equipos.Add(partido.Visitante.Equipo);
+                }
+            }
+
+            return response;
+        }
+
+        public List<TorneoResponseDTO> GetTorneosCompleto()
+        {
+            List<Torneo> torneos = GetTorneos();
+            List<TorneoResponseDTO> response = new List<TorneoResponseDTO>();
+
+            foreach (var item in torneos)
+            {
+                TorneoResponseDTO torneoResponseDTO = new TorneoResponseDTO();
+                torneoResponseDTO.Id = item.Id;
+                torneoResponseDTO.Nombre = item.Nombre;
+                torneoResponseDTO.Descripcion = item.Descripcion;
+                torneoResponseDTO.CantEquipos = item.CantEquipos;
+                torneoResponseDTO.Banner = item.Banner;
+                torneoResponseDTO.Condiciones = item.Condiciones;
+                torneoResponseDTO.FechaInicio = item.FechaInicio;
+                torneoResponseDTO.Disciplina = item.Disciplina;
+                torneoResponseDTO.Categoria = item.Categoria;
+
+                TorneoHistorial? historial = item.TorneoHistoriales.Where(f=>f.FechaFin == null).FirstOrDefault();
+                if (historial != null)
+                {
+                    torneoResponseDTO.TorneoEstado = historial.TorneoEstado.NombreEstado;
+                }
+
+                // obtengo todos los partidos del torneo
+                torneoResponseDTO.Partidos = new List<Partido>();
+                List<PartidoFase> partidosFases = new List<PartidoFase>();
+                partidosFases = _db.PartidoFase
+                   .Include(p => p.Partidos).ThenInclude(e => e.Local).ThenInclude(e => e.Equipo).ThenInclude(c=>c.Categoria)
+                   .Include(p => p.Partidos).ThenInclude(e => e.Visitante).ThenInclude(e => e.Equipo).ThenInclude(c => c.Categoria)
+                   .Include(p => p.Partidos).ThenInclude(e => e.Usuarios)
+                   .OrderBy(f => f.FechaCreacion)
+                   .Where(t => t.Torneo.Id == item.Id).ToList();
+
+                // Recorrer cada fase y agregar sus partidos a la lista
+                foreach (var fase in partidosFases)
+                {
+                    torneoResponseDTO.Partidos.AddRange(fase.Partidos);
+                }
+
+                // Obtener todos los equipos inscritos del torneo
+                torneoResponseDTO.Equipos = new List<Equipo>();
+                foreach (var partido in torneoResponseDTO.Partidos)
+                {
+                    if (partido.Local != null && partido.Local.Equipo != null)
+                    {
+                        torneoResponseDTO.Equipos.Add(partido.Local.Equipo);
+                    }
+                    if (partido.Visitante != null && partido.Visitante.Equipo != null)
+                    {
+                        torneoResponseDTO.Equipos.Add(partido.Visitante.Equipo);
+                    }
+                }
+
+                response.Add(torneoResponseDTO);
+            }
+
+            return response;
+        }
+
+        //get torneos by usuario usando el jwt
 
         public void CrearTorneo(TorneoDTO torneoDTO)
         {
