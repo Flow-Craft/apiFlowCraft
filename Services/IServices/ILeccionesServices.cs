@@ -21,5 +21,7 @@ namespace ApiNet8.Services.IServices
         void DesinscribirseALeccion(InscripcionLeccionDTO inscripcion);
         void IniciarLeccion(AsistenciaLeccionDTO asistencias);
         void FinalizarLeccion(int id);
+        List<ReporteLeccionDTO> GetAsistenciasByUsuarioAndPeriodo(int idUsuario, DateTime periodoInicio, DateTime periodoFin);
+        List<ReporteLeccionDTO> GetAsistenciasByDisciplinaCategoriaAndPeriodo(int idDisciplina, int idCategoria, DateTime periodoInicio, DateTime periodoFin);
     }
 }

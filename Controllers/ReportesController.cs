@@ -1,4 +1,5 @@
 ﻿using ApiNet8.Models.DTO;
+using ApiNet8.Models.Lecciones;
 using ApiNet8.Services.IServices;
 using Microsoft.AspNetCore.Mvc;
 
@@ -85,5 +86,28 @@ namespace ApiNet8.Controllers
         }
         #endregion
 
+        #region Lecciones
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult ReporteLeccionUsuarioPeriodo([FromQuery] ReporteLeccionDTO reporte)
+        {
+            // Llamar al servicio para crear el reporte
+            byte[] pdfReporte = _reporteServices.ReporteLeccionUsuarioPeriodo((DateTime)reporte.periodoInicio, (DateTime)reporte.periodoFin, (int)reporte.idUsuario);
+
+            // Retornar el PDF como archivo descargable
+            return File(pdfReporte, "application/pdf", "ReporteLeccion_Usuario_Periodo.pdf");
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult ReporteLeccionDisciplinaCategoriaPeriodo([FromQuery] ReporteLeccionDTO reporte)
+        {
+            // Llamar al servicio para crear el reporte
+            byte[] pdfReporte = _reporteServices.ReporteLeccionDisciplinaCategoriaPeriodo((DateTime) reporte.periodoInicio, (DateTime) reporte.periodoFin, (int) reporte.idDisciplina, (int) reporte.idCategoria);
+
+            // Retornar el PDF como archivo descargable
+            return File(pdfReporte, "application/pdf", "ReporteLeccion_Disciplina_Categoria_Periodo.pdf");
+        }
+        #endregion
     }
 }

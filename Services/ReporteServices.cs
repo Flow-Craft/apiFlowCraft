@@ -35,9 +35,10 @@ namespace ApiNet8.Services
         private readonly IPartidoServices _partidoServices;
         private readonly ITipoAccionPartidoServices _tipoAccionPartidoServices;
         private readonly ILeccionesServices _leccionesServices;
+        private readonly ICategoriaServices _categoriaServices;
 
 
-        public ReporteServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IEventoServices eventoServices, IUsuarioServices usuarioServices, ITipoEventoServices tipoEventoServices, IInstalacionServices instalacionServices, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, IEquipoServices equipoServices, IPartidoServices partidoServices, ITipoAccionPartidoServices tipoAccionPartidoServices, ILeccionesServices leccionesServices)
+        public ReporteServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IEventoServices eventoServices, IUsuarioServices usuarioServices, ITipoEventoServices tipoEventoServices, IInstalacionServices instalacionServices, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, IEquipoServices equipoServices, IPartidoServices partidoServices, ITipoAccionPartidoServices tipoAccionPartidoServices, ILeccionesServices leccionesServices, ICategoriaServices categoriaServices)
         {
             this._db = db;
             _mapper = mapper;
@@ -51,6 +52,7 @@ namespace ApiNet8.Services
             _partidoServices = partidoServices;
             _tipoAccionPartidoServices = tipoAccionPartidoServices;
             _leccionesServices = leccionesServices;
+            _categoriaServices = categoriaServices;
         }
 
         public byte[] ReporteEventoUsuarioPeriodo(DateTime periodoInicio, DateTime periodoFin, int idUsuario)
@@ -1155,10 +1157,191 @@ namespace ApiNet8.Services
                 pngExporter.Export(plotModel, stream);
                 return stream.ToArray();
             }
-        }       
+        }
 
+        public byte[] ReporteLeccionUsuarioPeriodo(DateTime periodoInicio, DateTime periodoFin, int idUsuario)
+        {
+            // Crear el PDF en memoria
+            using (var memoryStream = new MemoryStream())
+            {
+                PdfWriter writer = new PdfWriter(memoryStream);
+                PdfDocument pdf = new PdfDocument(writer);
+                Document document = new Document(pdf);
 
+                // Obtén el directorio raíz de la aplicación
+                var rootPath = Directory.GetCurrentDirectory();
 
+                // Construye la ruta a la carpeta "Images" dentro del proyecto
+                var imagePath = Path.Combine(rootPath, "Images", "LogoReporte.jpeg");
+
+                // Agregar logo
+                Image logo = new Image(ImageDataFactory.Create(imagePath));
+                logo.ScaleToFit(50, 50); // Cambia el tamaño a 50x50 puntos
+                document.Add(logo);
+
+                // Título
+                Paragraph title = new Paragraph("Asistencia a lección por usuario y periodo")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(18);
+                document.Add(title);
+
+                // Fecha de generación y periodo
+                DateTime fechaGeneracion = DateTime.Now;
+                document.Add(new Paragraph($"Fecha de generación: {fechaGeneracion}")
+                    .SetTextAlignment(TextAlignment.RIGHT)
+                    .SetFontSize(12));
+                document.Add(new Paragraph($"Periodo: {periodoInicio.ToShortDateString()} a {periodoFin.ToShortDateString()}")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(12));
+
+                // Datos del usuario
+                Usuario? usuario = _usuarioServices.GetUsuarioById(idUsuario);
+                if (usuario == null)
+                {
+                    throw new Exception("No existe el usuario");
+                }
+                document.Add(new Paragraph($"Nombre y apellido Usuario: {usuario.Nombre} {usuario.Apellido}")
+                    .SetFontSize(12));
+                document.Add(new Paragraph($"DNI Usuario: {usuario.Dni}")
+                    .SetFontSize(12));
+
+                // Tabla de eventos
+                Table table = new Table(new float[] { 4, 4, 4, 4, 4 });
+                table.SetWidth(UnitValue.CreatePercentValue(100));
+
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Disciplina")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Categoria")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Fecha")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Nombre de profesor")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Asistencia")).SetBorderBottom(new SolidBorder(1)));
+
+                // traer asistencias por usuario en rango fechas
+                List<ReporteLeccionDTO> asistenciasUsuario = _leccionesServices.GetAsistenciasByUsuarioAndPeriodo( idUsuario, periodoInicio, periodoFin);
+
+                foreach (var leccion in asistenciasUsuario)
+                {
+                    table.AddCell(new Cell().Add(new Paragraph(leccion.Disciplina)).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph(leccion.Categoria)).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph(leccion.FechaLeccion?.ToShortDateString() ?? string.Empty)).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph(leccion.NomProfesor)).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph(leccion.Asistencia)).SetBorderBottom(new SolidBorder(1)));
+                }
+
+                document.Add(table);
+
+                // Cantidad de lecciones
+                document.Add(new Paragraph($"Cantidad total de lecciones: {asistenciasUsuario.Count}")
+                    .SetFontSize(12));
+
+                // Cantidad de lecciones asistidas
+                document.Add(new Paragraph($"Cantidad total de asistencias: {asistenciasUsuario.Count(a => a.Asistencia == "Sí")}")
+                    .SetFontSize(12));
+
+                // Cerrar el documento
+                document.Close();
+
+                // Retornar el PDF generado como un byte[]
+                return memoryStream.ToArray();
+            }
+        }
+
+        public byte[] ReporteLeccionDisciplinaCategoriaPeriodo(DateTime periodoInicio, DateTime periodoFin, int idDisciplina, int idCategoria)
+        {
+            // Crear el PDF en memoria
+            using (var memoryStream = new MemoryStream())
+            {
+                PdfWriter writer = new PdfWriter(memoryStream);
+                PdfDocument pdf = new PdfDocument(writer);
+                Document document = new Document(pdf);
+
+                // Obtén el directorio raíz de la aplicación
+                var rootPath = Directory.GetCurrentDirectory();
+
+                // Construye la ruta a la carpeta "Images" dentro del proyecto
+                var imagePath = Path.Combine(rootPath, "Images", "LogoReporte.jpeg");
+
+                // Agregar logo
+                Image logo = new Image(ImageDataFactory.Create(imagePath));
+                logo.ScaleToFit(50, 50); // Cambia el tamaño a 50x50 puntos
+                document.Add(logo);
+
+                // Título
+                Paragraph title = new Paragraph("Asistencia a lección por disciplina, categoría y periodo")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(18);
+                document.Add(title);
+
+                // Fecha de generación y periodo
+                DateTime fechaGeneracion = DateTime.Now;
+                document.Add(new Paragraph($"Fecha de generación: {fechaGeneracion}")
+                    .SetTextAlignment(TextAlignment.RIGHT)
+                    .SetFontSize(12));
+                document.Add(new Paragraph($"Periodo: {periodoInicio.ToShortDateString()} a {periodoFin.ToShortDateString()}")
+                    .SetTextAlignment(TextAlignment.CENTER)
+                    .SetFontSize(12));
+
+                // Datos de la disciplina y categoria
+                Disciplina? disciplina = _disciplinasYLeccionesServices.GetDisciplinaById(idDisciplina);
+                if (disciplina == null)
+                {
+                    throw new Exception("No existe la disciplina");
+                }
+
+                Categoria? categoria = _categoriaServices.GetCategoriaById(idCategoria);
+                if (disciplina == null)
+                {
+                    throw new Exception("No existe la categoria");
+                }
+
+                document.Add(new Paragraph($"Disciplina: {disciplina.Nombre}")
+                    .SetFontSize(12));
+                document.Add(new Paragraph($"Categoria: {categoria.Nombre}")
+                    .SetFontSize(12));
+
+                // Tabla de eventos
+                Table table = new Table(new float[] { 4, 4, 4, 4, 4 });
+                table.SetWidth(UnitValue.CreatePercentValue(100));
+
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Fecha leccion")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("DNI Alumno")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Nombre de alumno")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Nombre de profesor")).SetBorderBottom(new SolidBorder(1)));
+                table.AddHeaderCell(new Cell().Add(new Paragraph("Asistencia")).SetBorderBottom(new SolidBorder(1)));
+
+                // traer asistencias por usuario en rango fechas
+                List<ReporteLeccionDTO> asistenciasUsuario = _leccionesServices.GetAsistenciasByDisciplinaCategoriaAndPeriodo( idDisciplina, idCategoria, periodoInicio, periodoFin);
+
+                foreach (var leccion in asistenciasUsuario)
+                {
+                    table.AddCell(new Cell().Add(new Paragraph(leccion.FechaLeccion?.ToShortDateString() ?? string.Empty)).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph(leccion.DniAlumno.ToString())).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph(leccion.NomAlumno)).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph(leccion.NomProfesor)).SetBorderBottom(new SolidBorder(1)));
+                    table.AddCell(new Cell().Add(new Paragraph(leccion.Asistencia)).SetBorderBottom(new SolidBorder(1)));
+                }
+
+                document.Add(table);
+
+                var fechasUnicas = asistenciasUsuario
+                .Select(a => a.FechaLeccion) // Selecciona solo la fecha de creación
+                .Distinct() // Obtiene las fechas únicas
+                .Count();
+
+                // Cantidad de lecciones
+                document.Add(new Paragraph($"Cantidad total de lecciones: {fechasUnicas}")
+                    .SetFontSize(12));
+
+                // Cantidad de lecciones asistidas
+                document.Add(new Paragraph($"Cantidad total de asistencias: {asistenciasUsuario.Count(a => a.Asistencia == "Sí")}")
+                    .SetFontSize(12));
+
+                // Cerrar el documento
+                document.Close();
+
+                // Retornar el PDF generado como un byte[]
+                return memoryStream.ToArray();
+            }
+        }
 
 
 

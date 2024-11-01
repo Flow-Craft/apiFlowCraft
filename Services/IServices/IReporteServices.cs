@@ -8,5 +8,7 @@
         byte[] ReporteEventoByEvento(int idEvento);
         byte[] ReporteEstadisticaDiscUsuPeriodo(DateTime periodoInicio, DateTime periodoFin, int idDisciplina, int idUsuario);
         byte[] ReporteEstadisticaDiscUsuLeccionPeriodo(DateTime periodoInicio, DateTime periodoFin, int idDisciplina, int idLeccion, int idUsuario);
+        byte[] ReporteLeccionUsuarioPeriodo(DateTime periodoInicio, DateTime periodoFin, int idUsuario);
+        byte[] ReporteLeccionDisciplinaCategoriaPeriodo(DateTime periodoInicio, DateTime periodoFin, int idDisciplina, int idCategoria);
     }
 }

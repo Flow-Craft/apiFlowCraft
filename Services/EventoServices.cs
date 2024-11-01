@@ -30,9 +30,10 @@ namespace ApiNet8.Services
         private readonly ITipoEventoServices _tipoEventoServices;
         private readonly IUsuarioServices _usuarioServices;
         private readonly IEquipoServices _equipoServices;
+        private readonly IEmailService _emailService;
         private readonly ILogger<EventoServices> _logger;
 
-        public EventoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ICategoriaServices categoriaServices, IInstalacionServices instalacionServices, IReservasServices reservasServices, IEventoEstadoService eventoEstadoService, ITipoEventoServices tipoEventoServices, IUsuarioServices usuarioServices, IEquipoServices equipoServices, ILogger<EventoServices> logger)
+        public EventoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ICategoriaServices categoriaServices, IInstalacionServices instalacionServices, IReservasServices reservasServices, IEventoEstadoService eventoEstadoService, ITipoEventoServices tipoEventoServices, IUsuarioServices usuarioServices, IEquipoServices equipoServices, ILogger<EventoServices> logger, IEmailService emailService)
         {
             this._db = db;
             _mapper = mapper;
@@ -46,6 +47,7 @@ namespace ApiNet8.Services
             _usuarioServices = usuarioServices;
             _equipoServices = equipoServices;
             _logger = logger;
+            _emailService = emailService;
         }
 
         public List<EventoResponseDTO> GetEventos()
@@ -865,6 +867,10 @@ namespace ApiNet8.Services
                     _db.SaveChanges();
                     transaction.Commit();
                 }
+
+                // envio mail al usuario 
+                _emailService.SendEmail(usuario.Email, usuario.Nombre + usuario.Apellido, "Inscripción a evento", "Se inscribió exitosamente a : " + evento.TipoEvento.NombreTipoEvento + ", " + evento.Descripcion + "\n" + "Fecha y horario de inicio: " + evento.FechaInicio + "\n" + "Lugar: "+ evento.Instalacion.Nombre);
+
             }
             catch (Exception e)
             {
@@ -957,6 +963,10 @@ namespace ApiNet8.Services
                     _db.SaveChanges();
                     transaction.Commit();
                 }
+
+                // envio mail al usuario 
+                _emailService.SendEmail(usuario.Email, usuario.Nombre + usuario.Apellido, "Inscripción a evento", "Se inscribió exitosamente a : " + evento.TipoEvento.NombreTipoEvento + ", " + evento.Descripcion + "\n" + "Fecha y horario de inicio: " + evento.FechaInicio + "\n" + "Lugar: " + evento.Instalacion.Nombre);
+
             }
             catch (Exception e)
             {
@@ -1000,6 +1010,15 @@ namespace ApiNet8.Services
                     _db.SaveChanges();
                     transaction.Commit();
                 }
+
+                Usuario? usuario = _db.Usuario
+                        .Include(u => u.UsuarioHistoriales).ThenInclude(a => a.UsuarioEstado)
+                        .Where(u => u.Id == inscripcion.IdUsuario)
+                        .FirstOrDefault();
+
+                // envio mail al usuario 
+                _emailService.SendEmail(usuario.Email, usuario.Nombre + usuario.Apellido, "Desinscripción a evento", "Se desinscribió exitosamente a : " + evento.TipoEvento.NombreTipoEvento + ", " + evento.Descripcion);
+
             }
             catch (Exception e)
             {
@@ -1052,6 +1071,15 @@ namespace ApiNet8.Services
                     _db.SaveChanges();
                     transaction.Commit();
                 }
+
+                Usuario? usuario = _db.Usuario
+                        .Include(u => u.UsuarioHistoriales).ThenInclude(a => a.UsuarioEstado)
+                        .Where(u => u.Id == currentUser.Id)
+                        .FirstOrDefault();
+
+                // envio mail al usuario 
+                _emailService.SendEmail(usuario.Email, usuario.Nombre + usuario.Apellido, "Desinscripción a evento", "Se desinscribió exitosamente a : " + evento.TipoEvento.NombreTipoEvento + ", " + evento.Descripcion);
+
             }
             catch (Exception e)
             {
