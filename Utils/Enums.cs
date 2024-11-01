@@ -84,7 +84,7 @@
             Finalizado = 2,
             EnCurso = 3,
             Cancelado = 4,
-            Completado
+            Completado = 5,
         }
 
     }

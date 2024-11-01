@@ -622,6 +622,132 @@ namespace ApiNet8.Services
             }
         }
 
+        public void EliminarTorneo(int idTorneo) 
+        {
+            try
+            {
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                Torneo? torneo = GetTorneoById(idTorneo);
+
+                if (torneo == null)
+                {
+                    throw new Exception($"No existe el torneo con id: {idTorneo}");
+                }
+
+                // Recorrer cada fase y agregar sus partidos a la lista partidosTorneo
+                List<Partido> partidosTorneo = new List<Partido>();
+                List<PartidoFase> partidosFases = new List<PartidoFase>();
+                partidosFases = _db.PartidoFase
+                   .Include(p => p.Partidos).ThenInclude(e => e.Local).ThenInclude(e => e.Equipo)
+                   .Include(p => p.Partidos).ThenInclude(e => e.Visitante).ThenInclude(e => e.Equipo)
+                   .Include(p => p.Partidos).ThenInclude(e => e.Usuarios)
+                   .Include(p => p.Partidos).ThenInclude(e => e.Instalacion)
+                   .Include(p => p.Partidos).ThenInclude(e => e.HistorialEventoList)!.ThenInclude(e=>e.EstadoEvento)
+                   .Include(p => p.Partidos).ThenInclude(e => e.TipoEvento)
+                   .OrderBy(f => f.FechaCreacion)
+                   .Where(t => t.Torneo.Id == torneo.Id).ToList();
+
+                foreach (var fase in partidosFases)
+                {
+                    partidosTorneo.AddRange(fase.Partidos);
+                }
+
+                int idInstalacion = partidosTorneo.FirstOrDefault() != null && partidosTorneo.FirstOrDefault()!.Instalacion != null ? partidosTorneo.FirstOrDefault()!.Instalacion.Id : 0;
+                Instalacion instalacion = _instalacionServices.GetInstalacionById(idInstalacion);
+
+                // recorrer cada partido
+                foreach (var partido in partidosTorneo)
+                {
+                    // obtener reserva y darla de baja si el evento no ha comenzado
+                    Reserva? reservaAnterior = _reservasServices.GetReservasByInstalacion(instalacion).Where(f => f.HoraInicio == partido.FechaInicio && f.HoraFin == partido.FechaFinEvento).OrderByDescending(f => f.FechaCreacion).FirstOrDefault();
+
+                    if (reservaAnterior != null && partido.FechaInicio > DateTime.Now)
+                    {
+                        reservaAnterior.FechaBaja = DateTime.Now;
+                        reservaAnterior.FechaModificacion = DateTime.Now;
+                        reservaAnterior.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
+                        _db.Reserva.Update(reservaAnterior);
+                    }
+
+                    // obtener ultimo historial de partido y darlo de baja
+                    HistorialEvento? ultimoHistorial = partido.HistorialEventoList?.Where(f => f.FechaFin == null).OrderByDescending(f => f.FechaInicio).FirstOrDefault();
+                    if (ultimoHistorial != null)
+                    {
+                        if (ultimoHistorial.EstadoEvento.NombreEstado == Enums.EstadoEvento.Cancelado.ToString())
+                        {
+                            throw new Exception("Este evento ya ha sido eliminado");
+                        }
+
+                        ultimoHistorial.FechaFin = DateTime.Now;
+                        _db.HistorialEvento.Update(ultimoHistorial);
+                    }
+
+                    // crear nuevo historial
+                    HistorialEvento nuevoHistorial = new HistorialEvento
+                    {
+                        FechaInicio = DateTime.Now,
+                        DetalleCambioEstado = "Se elimina evento tipo " + partido.TipoEvento.NombreTipoEvento,
+                        UsuarioEditor = currentUser != null ? currentUser.Id : 0,
+                        EstadoEvento = _eventoEstadoService.GetEventoEstadoById(2) // se asigna estado cancelado
+                    };
+                    partido.HistorialEventoList = partido.HistorialEventoList == null ? new List<HistorialEvento>() : partido.HistorialEventoList;
+                    partido.HistorialEventoList.Add(nuevoHistorial);
+
+                    // eliminar cada equipoPartido
+                    if (partido.Local != null)
+                    {
+                        EquipoPartido equipoPartido = partido.Local;
+                        equipoPartido.FechaBaja = DateTime.Now;
+                        equipoPartido.FechaModificacion = DateTime.Now;
+                        _db.EquipoPartido.Update(equipoPartido);
+                    }
+
+                    if (partido.Visitante != null)
+                    {
+                        EquipoPartido equipoPartido = partido.Visitante;
+                        equipoPartido.FechaBaja = DateTime.Now;
+                        equipoPartido.FechaModificacion = DateTime.Now;
+                        _db.EquipoPartido.Update(equipoPartido);
+                    }
+                }
+
+                // se da de baja el historial anterior
+                TorneoHistorial? ultimoHistorialTorneo = torneo.TorneoHistoriales.Where(f => f.FechaFin == null).FirstOrDefault();
+                if (ultimoHistorialTorneo != null)
+                {
+                    ultimoHistorialTorneo.FechaFin = DateTime.Now;
+                    _db.TorneoHistorial.Update(ultimoHistorialTorneo);
+                }
+
+                // crear nuevo historial y asignarlo al torneo
+                TorneoHistorial historialTorneo = new TorneoHistorial
+                {
+                    FechaInicio = DateTime.Now,
+                    DetalleCambioEstado = "Se elimina torneo",
+                    UsuarioEditor = currentUser != null ? currentUser.Id : 0,
+                    TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(3) // asigno estado cancelado
+                };
+                torneo.TorneoHistoriales = torneo.TorneoHistoriales == null ? new List<TorneoHistorial>() : torneo.TorneoHistoriales;
+                torneo.TorneoHistoriales.Add(historialTorneo);
+                _db.TorneoHistorial.Add(historialTorneo);
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.Torneo.Update(torneo);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+
+
+        }
 
 
 
