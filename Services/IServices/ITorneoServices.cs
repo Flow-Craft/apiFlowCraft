@@ -1,4 +1,5 @@
 ﻿using ApiNet8.Models.DTO;
+using ApiNet8.Models.Torneos;
 
 namespace ApiNet8.Services.IServices
 {
@@ -7,5 +8,9 @@ namespace ApiNet8.Services.IServices
         void CrearTorneo(TorneoDTO torneoDTO);
         void EditarTorneo(TorneoDTO torneoDTO);
         void EliminarTorneo(int idTorneo);
+        Torneo? GetTorneoById(int idTorneo);
+        List<Torneo> GetTorneos();
+        void InscribirseATorneo(int idTorneo, int idEquipo);
+        void DesinscribirseATorneo(int idTorneo, int idEquipo);
     }
 }

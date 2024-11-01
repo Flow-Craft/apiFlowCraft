@@ -13,6 +13,7 @@ using ApiNet8.Utils;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json;
+using static iText.StyledXmlParser.Jsoup.Select.Evaluator;
 
 namespace ApiNet8.Services
 {
@@ -70,6 +71,17 @@ namespace ApiNet8.Services
                 .Include(h=>h.TorneoHistoriales).ThenInclude(e=>e.TorneoEstado)
                 .Where(i=>i.Id==idTorneo).FirstOrDefault();
             return torneo != null ? torneo : null;
+        }
+
+        public List<Torneo> GetTorneos() 
+        {
+            List<Torneo> torneos = _db.Torneo
+                .Include(d => d.Disciplina)
+                .Include(c => c.Categoria)
+                .Include(h => h.TorneoHistoriales).ThenInclude(e => e.TorneoEstado)
+                .ToList();
+
+            return torneos;
         }
 
         public void CrearTorneo(TorneoDTO torneoDTO)
@@ -567,6 +579,31 @@ namespace ApiNet8.Services
                             break; // Detener el bucle una vez que se han asignado todos los equipos disponibles
                         }
                     }
+
+                    // verificar cantidad de equipos, si es igual a la cantmaxima setear estado completado
+                    int equiposAsignados = partidosFase1.Count(p => p.Local != null) + partidosFase1.Count(p => p.Visitante != null);
+                    if (equiposAsignados == torneo.CantEquipos)
+                    {
+                        // se da de baja el historial anterior
+                        TorneoHistorial? hiostorialAnterior = torneo.TorneoHistoriales.Where(f => f.FechaFin == null).FirstOrDefault();
+                        if (hiostorialAnterior != null)
+                        {
+                            hiostorialAnterior.FechaFin = DateTime.Now;
+                            _db.TorneoHistorial.Update(hiostorialAnterior);
+                        }
+
+                        // crear nuevo historial y asignarlo al torneo
+                        TorneoHistorial historialTorneoCompletado = new TorneoHistorial
+                        {
+                            FechaInicio = DateTime.Now,
+                            DetalleCambioEstado = "Se modifica torneo",
+                            UsuarioEditor = currentUser != null ? currentUser.Id : 0,
+                            TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(5) // asigno estado completado
+                        };
+                        torneo.TorneoHistoriales = torneo.TorneoHistoriales == null ? new List<TorneoHistorial>() : torneo.TorneoHistoriales;
+                        torneo.TorneoHistoriales.Add(historialTorneoCompletado);
+                        _db.TorneoHistorial.Add(historialTorneoCompletado);
+                    }
                 }
 
                 // Por cada partido editar evento, se hace aqui para recorrer y actualizar cada partido con _db
@@ -603,6 +640,8 @@ namespace ApiNet8.Services
 
                     _db.Partido.Update(item);
                 }
+
+                
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
@@ -749,7 +788,195 @@ namespace ApiNet8.Services
 
         }
 
+        public bool TorneoCompleto(int id, int cantEquipos)
+        {
+            List<PartidoFase> partidosFases = new List<PartidoFase>();
+            partidosFases = _db.PartidoFase
+               .Include(p => p.Partidos).ThenInclude(e => e.Local).ThenInclude(e => e.Equipo)
+               .Include(p => p.Partidos).ThenInclude(e => e.Visitante).ThenInclude(e => e.Equipo)
+               .Include(p => p.Partidos).ThenInclude(e => e.Usuarios)
+               .OrderBy(f => f.FechaCreacion)
+               .Where(t => t.Torneo.Id == id).ToList();
+            List<Partido> partidosFase1 = partidosFases.Where(f => f.FasePartido == 1).FirstOrDefault()!.Partidos.ToList();
 
+            int equiposAsignados = partidosFase1.Count(p => p.Local != null) + partidosFase1.Count(p => p.Visitante != null);
+
+            if (equiposAsignados == cantEquipos)
+            {
+               return true;
+            }
+            return false;
+        }
+
+        public void InscribirseATorneo(int idTorneo, int idEquipo)
+        {
+            try
+            {
+                // obtener torneo
+                Torneo? torneo = GetTorneoById(idTorneo);
+                if (torneo == null)
+                {
+                    throw new Exception("No existe el torneo seleccionado");
+                }
+
+                // verificar que estado de torneo sea abierto
+                TorneoHistorial ultimohistorial = torneo.TorneoHistoriales.Where(f => f.FechaFin == null).FirstOrDefault()!;
+                if (ultimohistorial.TorneoEstado.NombreEstado != Enums.EstadoTorneo.Abierto.ToString())
+                {
+                    throw new Exception("Estan cerradas las inscripciones al torneo");
+                }
+
+                // verificar que no este lleno    
+                if (TorneoCompleto(idTorneo, torneo.CantEquipos))
+                {
+                    throw new Exception("El torneo esta completo");
+                }               
+
+                // busco el equipo
+                Equipo equipo = _equipoServices.GetEquipoEventoById(idEquipo);
+
+                // busco partido de fase 1 libre y asigno el equipo
+                List<PartidoFase> partidosFases = new List<PartidoFase>();
+                partidosFases = _db.PartidoFase
+                   .Include(p => p.Partidos).ThenInclude(e => e.Local).ThenInclude(e => e.Equipo)
+                   .Include(p => p.Partidos).ThenInclude(e => e.Visitante).ThenInclude(e => e.Equipo)
+                   .Include(p => p.Partidos).ThenInclude(e => e.Usuarios)
+                   .OrderBy(f => f.FechaCreacion)
+                   .Where(t => t.Torneo.Id == idTorneo).ToList();
+                List<Partido> partidosFase1 = partidosFases.Where(f => f.FasePartido == 1).FirstOrDefault()!.Partidos.ToList();
+
+                //verificar si ya esta inscripto
+                Partido? partidoConEquipo = partidosFase1.FirstOrDefault(p =>
+                    (p.Local != null && p.Local.Equipo.Id == idEquipo) ||
+                    (p.Visitante != null && p.Visitante.Equipo.Id == idEquipo)
+                );
+
+                if (partidoConEquipo != null)
+                {
+                    throw new Exception("El equipo ya esta inscripto al torneo");
+                }
+
+                // Obtener el primer partido con Local o Visitante igual a null
+                Partido? partidoLibre = partidosFase1.FirstOrDefault(p => p.Local == null || p.Visitante == null);
+
+                if (partidoLibre != null)
+                {
+                    if (partidoLibre.Local == null)
+                    {
+                        EquipoPartido local = new EquipoPartido
+                        {
+                            FechaCreacion = DateTime.Now,
+                            Equipo = equipo,
+                            JugadoresEnBanca = new List<string>(),
+                            JugadoresEnCancha = new List<string>()
+                        };
+                        partidoLibre.Local = local;
+                        _db.EquipoPartido.Add(local);
+                    }
+                    else if (partidoLibre.Visitante == null)
+                    {
+                        EquipoPartido visitante = new EquipoPartido
+                        {
+                            FechaCreacion = DateTime.Now,
+                            Equipo = equipo,
+                            JugadoresEnBanca = new List<string>(),
+                            JugadoresEnCancha = new List<string>()
+                        };
+                        partidoLibre.Visitante = visitante;
+                        _db.EquipoPartido.Add(visitante);
+                    }
+
+                    _db.Partido.Update(partidoLibre);
+                }
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
+        public void DesinscribirseATorneo(int idTorneo, int idEquipo)
+        {
+            try
+            {
+                // obtener torneo
+                Torneo? torneo = GetTorneoById(idTorneo);
+                if (torneo == null)
+                {
+                    throw new Exception("No existe el torneo seleccionado");
+                }
+
+                // verificar que estado de torneo sea abierto
+                TorneoHistorial ultimohistorial = torneo.TorneoHistoriales.Where(f => f.FechaFin == null).FirstOrDefault()!;
+                if (ultimohistorial.TorneoEstado.NombreEstado != Enums.EstadoTorneo.Abierto.ToString())
+                {
+                    throw new Exception("Estan cerradas las inscripciones al torneo");
+                }               
+
+                // busco el equipo
+                Equipo equipo = _equipoServices.GetEquipoEventoById(idEquipo);
+
+                // busco partidos de fase 1
+                List<PartidoFase> partidosFases = new List<PartidoFase>();
+                partidosFases = _db.PartidoFase
+                   .Include(p => p.Partidos).ThenInclude(e => e.Local).ThenInclude(e => e.Equipo)
+                   .Include(p => p.Partidos).ThenInclude(e => e.Visitante).ThenInclude(e => e.Equipo)
+                   .Include(p => p.Partidos).ThenInclude(e => e.Usuarios)
+                   .OrderBy(f => f.FechaCreacion)
+                   .Where(t => t.Torneo.Id == idTorneo).ToList();
+                List<Partido> partidosFase1 = partidosFases.Where(f => f.FasePartido == 1).FirstOrDefault()!.Partidos.ToList();
+
+                // Obtener el partido de fase 1 donde este inscripto el equipo
+                Partido? partidoConEquipo = partidosFase1.FirstOrDefault(p =>
+                    (p.Local != null && p.Local.Equipo.Id == idEquipo) ||
+                    (p.Visitante != null && p.Visitante.Equipo.Id == idEquipo)
+                );
+
+                if (partidoConEquipo == null)
+                {
+                    throw new Exception("El equipo no esta inscripto al torneo");
+                }
+
+                if (partidoConEquipo.Local != null && partidoConEquipo.Local.Equipo.Id == idEquipo)
+                {
+                    EquipoPartido equipoPartido = partidoConEquipo.Local;
+                    equipoPartido.FechaModificacion = DateTime.Now;
+                    equipoPartido.FechaBaja = DateTime.Now;
+
+                    partidoConEquipo.Local = null;
+
+                    _db.EquipoPartido.Update(equipoPartido);
+                }
+
+                if (partidoConEquipo.Visitante != null && partidoConEquipo.Visitante.Equipo.Id == idEquipo)
+                {
+                    EquipoPartido equipoPartido = partidoConEquipo.Visitante;
+                    equipoPartido.FechaModificacion = DateTime.Now;
+                    equipoPartido.FechaBaja = DateTime.Now;
+
+                    partidoConEquipo.Visitante = null;
+
+                    _db.EquipoPartido.Update(equipoPartido);
+                }
+
+                using (var transaction = _db.Database.BeginTransaction())
+                {
+                    _db.Partido.Update(partidoConEquipo);
+                    _db.SaveChanges();
+                    transaction.Commit();
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
 
 
 

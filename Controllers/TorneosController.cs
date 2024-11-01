@@ -243,9 +243,37 @@ namespace ApiNet8.Controllers
             }
         }
 
-        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
         public IActionResult EliminarTorneo([FromQuery] int idTorneo)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _torneoServices.EliminarTorneo(idTorneo);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al eliminar torneo",
+                    errors = new List<string>{
+                                e.Message,
+                                "Exception: " + e.ToString()
+                            }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult InscribirseATorneo([FromQuery] int idTorneo, int idEquipo)
         {
             //// seteo jwt en header de respuesta
             //var TOKEN = HttpContext.Items[JWT].ToString();
@@ -253,7 +281,35 @@ namespace ApiNet8.Controllers
 
             try
             {
-                _torneoServices.EliminarTorneo(idTorneo);
+                _torneoServices.InscribirseATorneo(idTorneo, idEquipo);
+                return Ok();
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al eliminar torneo",
+                    errors = new List<string>{
+                                e.Message,
+                                "Exception: " + e.ToString()
+                            }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpPost]
+        public IActionResult DesinscribirseATorneo([FromQuery] int idTorneo, int idEquipo)
+        {
+            //// seteo jwt en header de respuesta
+            //var TOKEN = HttpContext.Items[JWT].ToString();
+            //Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                _torneoServices.DesinscribirseATorneo(idTorneo, idEquipo);
                 return Ok();
             }
             catch (Exception e)
