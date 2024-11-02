@@ -877,7 +877,6 @@ namespace ApiNet8.Services
                                         _db.Partido.Update(item);
                                         break;
                                     }
-
                                 }
                             }                           
                         }

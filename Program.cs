@@ -72,7 +72,7 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(10);
     options.Cookie.HttpOnly = true; // Asegurar que las cookies solo se accedan vía backend
     options.Cookie.SameSite = SameSiteMode.None; // Permitir compartir cookies entre dominios
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Asegurar el uso de HTTPS
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None; // Asegurar el uso de HTTPS
 });
 
 builder.Services.AddHttpContextAccessor();

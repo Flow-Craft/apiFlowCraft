@@ -176,6 +176,7 @@ namespace ApiNet8.Services
                    .Include(p => p.Partidos).ThenInclude(e => e.Local).ThenInclude(e => e.Equipo).ThenInclude(c=>c.Categoria)
                    .Include(p => p.Partidos).ThenInclude(e => e.Visitante).ThenInclude(e => e.Equipo).ThenInclude(c => c.Categoria)
                    .Include(p => p.Partidos).ThenInclude(e => e.Usuarios)
+                   .Include(p => p.Partidos).ThenInclude(e => e.Instalacion)
                    .OrderBy(f => f.FechaCreacion)
                    .Where(t => t.Torneo.Id == item.Id).ToList();
 
@@ -199,13 +200,43 @@ namespace ApiNet8.Services
                     }
                 }
 
+                torneoResponseDTO.Instalacion = torneoResponseDTO.Partidos.FirstOrDefault()!.Instalacion;
+
                 response.Add(torneoResponseDTO);
+
             }
 
             return response;
         }
 
-        //get torneos by usuario usando el jwt
+        public List<TorneoResponseDTO> GetTorneosByUsuario()
+        {
+            try
+            {
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                if (currentUser == null)
+                {
+                    throw new Exception("CurrentUser es null");
+                }
+
+                // obtener los equipos a los que pertenece el usuario
+                List<Equipo> equiposUsuario = _equipoServices.GetEquiposByUsuario(currentUser.Id);
+
+                // buscar los torneos donde esten los equipos del usuario
+                List<TorneoResponseDTO> torneos = GetTorneosCompleto();
+                torneos = torneos.Where(t => t.Equipos.Any(e => equiposUsuario.Any(eu => eu.Id == e.Id))).ToList();
+
+                return torneos;
+            }
+            catch (Exception e)
+            {
+
+                throw new Exception(e.Message,e);
+            }
+            
+        }
 
         public void CrearTorneo(TorneoDTO torneoDTO)
         {
@@ -591,21 +622,13 @@ namespace ApiNet8.Services
                 TorneoHistorial? ultimoHistorial = torneo.TorneoHistoriales.Where(f => f.FechaFin == null).FirstOrDefault();
                 if (ultimoHistorial != null)
                 {
+                    if (ultimoHistorial.TorneoEstado.NombreEstado != Enums.EstadoTorneo.Abierto.ToString())
+                    {
+                        throw new Exception("Solo pueden editarse torneos en estado Abierto");
+                    }
                     ultimoHistorial.FechaFin = DateTime.Now;
                     _db.TorneoHistorial.Update(ultimoHistorial);
-                }
-
-                // crear nuevo historial y asignarlo al torneo
-                TorneoHistorial historialTorneo = new TorneoHistorial
-                {
-                    FechaInicio = DateTime.Now,
-                    DetalleCambioEstado = "Se modifica torneo",
-                    UsuarioEditor = currentUser != null ? currentUser.Id : 0,
-                    TorneoEstado = ultimoHistorial != null ? ultimoHistorial.TorneoEstado : _torneoEstadoServices.GetTorneoEstadoById(1) // asigno que ya tenia
-                };
-                torneo.TorneoHistoriales = torneo.TorneoHistoriales == null ? new List<TorneoHistorial>() : torneo.TorneoHistoriales;
-                torneo.TorneoHistoriales.Add(historialTorneo);                
-                _db.TorneoHistorial.Add(historialTorneo);
+                }                             
                 
                 // Asignar equipos a los partidos de la primera fase
                 if (torneoDTO.IdEquipos != null && torneoDTO.IdEquipos.Count > 0)
@@ -705,17 +728,10 @@ namespace ApiNet8.Services
 
                     // verificar cantidad de equipos, si es igual a la cantmaxima setear estado completado
                     int equiposAsignados = partidosFase1.Count(p => p.Local != null) + partidosFase1.Count(p => p.Visitante != null);
-                    if (equiposAsignados == torneo.CantEquipos)
-                    {
-                        // se da de baja el historial anterior
-                        TorneoHistorial? hiostorialAnterior = torneo.TorneoHistoriales.Where(f => f.FechaFin == null).FirstOrDefault();
-                        if (hiostorialAnterior != null)
-                        {
-                            hiostorialAnterior.FechaFin = DateTime.Now;
-                            _db.TorneoHistorial.Update(hiostorialAnterior);
-                        }
 
-                        // crear nuevo historial y asignarlo al torneo
+                    if (equiposAsignados == torneo.CantEquipos)
+                    {                       
+                        // crear historial completado y asignarlo al torneo
                         TorneoHistorial historialTorneoCompletado = new TorneoHistorial
                         {
                             FechaInicio = DateTime.Now,
@@ -726,6 +742,20 @@ namespace ApiNet8.Services
                         torneo.TorneoHistoriales = torneo.TorneoHistoriales == null ? new List<TorneoHistorial>() : torneo.TorneoHistoriales;
                         torneo.TorneoHistoriales.Add(historialTorneoCompletado);
                         _db.TorneoHistorial.Add(historialTorneoCompletado);
+                    }
+                    else
+                    {
+                        // crear nuevo historial y asignarlo al torneo
+                        TorneoHistorial historialTorneo = new TorneoHistorial
+                        {
+                            FechaInicio = DateTime.Now,
+                            DetalleCambioEstado = "Se modifica torneo",
+                            UsuarioEditor = currentUser != null ? currentUser.Id : 0,
+                            TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(1) // asigno estado abierto ya que solo pueden editarse torneos que no han completado las inscripciones
+                        };
+                        torneo.TorneoHistoriales = torneo.TorneoHistoriales == null ? new List<TorneoHistorial>() : torneo.TorneoHistoriales;
+                        torneo.TorneoHistoriales.Add(historialTorneo);
+                        _db.TorneoHistorial.Add(historialTorneo);
                     }
                 }
 

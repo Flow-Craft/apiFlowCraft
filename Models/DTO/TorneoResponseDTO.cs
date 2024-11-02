@@ -1,5 +1,6 @@
 ﻿using ApiNet8.Models.Lecciones;
 using ApiNet8.Models.Partidos;
+using ApiNet8.Models.Reservas;
 using ApiNet8.Models.Torneos;
 
 namespace ApiNet8.Models.DTO
@@ -18,5 +19,6 @@ namespace ApiNet8.Models.DTO
         public string TorneoEstado { get; set; }
         public List<Partido> Partidos { get; set; }
         public List<Equipo> Equipos { get; set; }
+        public Instalacion Instalacion { get; set; }
     }
 }

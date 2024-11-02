@@ -14,5 +14,6 @@ namespace ApiNet8.Services.IServices
         void DesinscribirseATorneo(int idTorneo, int idEquipo);
         List<TorneoResponseDTO> GetTorneosCompleto();
         TorneoResponseDTO? GetTorneoByIdCompleto(int idTorneo);
+        List<TorneoResponseDTO> GetTorneosByUsuario();
     }
 }

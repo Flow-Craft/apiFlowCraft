@@ -860,6 +860,33 @@ namespace ApiNet8.Controllers
 
         }
 
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetEquiposByUsuarioDiscCat([FromQuery] int idDisciplina, int idCategoria)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                CurrentUser currentUser = GetCurrentUser();
+                List<Equipo> equipos = _equipoServices.GetEquiposByUsuarioDiscCat(currentUser.Id, idDisciplina, idCategoria);
+                return Ok(equipos);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener equipos",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]

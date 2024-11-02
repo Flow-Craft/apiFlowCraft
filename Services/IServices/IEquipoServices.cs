@@ -16,5 +16,7 @@ namespace ApiNet8.Services.IServices
         List<EquipoResponseDTO> GetEquiposByCategoriaAndDisciplinaActivos(int IdCategoria, int IdDisciplina);
         Equipo GetEquipoEventoById(int id);
         List<string> GetPuestosJugador(int idUsuario);
+        List<Equipo> GetEquiposByUsuario(int idUsuario);
+        List<Equipo> GetEquiposByUsuarioDiscCat(int idUsuario, int idDisciplina, int idCategoria);
     }
 }
