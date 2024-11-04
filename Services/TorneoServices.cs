@@ -488,6 +488,13 @@ namespace ApiNet8.Services
 
                 // obtener el torneo a editar
                 Torneo? torneo = GetTorneoById(torneoDTO.Id);
+                if (torneo == null) 
+                {
+                    throw new Exception("No existe el torneo seleccionado.");
+                }
+                torneo.Banner = torneoDTO.Banner ?? torneo.Banner;
+                torneo.Condiciones = torneoDTO.Condiciones ?? torneo.Condiciones;
+                torneo.Descripcion = torneoDTO.Descripcion ?? torneo.Descripcion;                
 
                 if (torneo == null) 
                 {
@@ -504,8 +511,12 @@ namespace ApiNet8.Services
                     {
                         throw new Exception("Ya existe un torneo con ese nombre.");
                     }
+                    else
+                    {
+                        torneo.Nombre = torneoDTO.Nombre;
+                    }
                 }
-
+                
                 // Asignar disciplinas
                 if (torneoDTO.IdDisciplina > 0)
                 {
@@ -553,6 +564,11 @@ namespace ApiNet8.Services
 
                 if ((torneoDTO.IdInstalacion > 0 && idInstalacion != torneoDTO.IdInstalacion) || (torneoDTO.FechaInicio != DateTime.MinValue && torneoDTO.FechaInicio != torneo.FechaInicio))
                 {
+                    if (torneoDTO.FechaInicio != DateTime.MinValue && torneoDTO.FechaInicio != torneo.FechaInicio)
+                    {
+                        torneo.FechaInicio = torneoDTO.FechaInicio;
+                    }
+
                     // buscar instalacion
                     Instalacion instalacion = torneoDTO.IdInstalacion > 0 ? _instalacionServices.GetInstalacionById(torneoDTO.IdInstalacion) : _instalacionServices.GetInstalacionById(idInstalacion);
 
