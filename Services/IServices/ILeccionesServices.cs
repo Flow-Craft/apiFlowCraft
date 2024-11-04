@@ -25,5 +25,7 @@ namespace ApiNet8.Services.IServices
         List<LeccionResponseDTO> GetLeccionesCompletas();
         List<AsistenciaLeccion> GetAsistenciaLeccionById(int idLeccion);
         List<Estadisticas> GetEstadisticasByLeccionUsuario(int idLeccion, int idUsuario);
+        List<ReporteLeccionDTO> GetAsistenciasByUsuarioAndPeriodo(int idUsuario, DateTime periodoInicio, DateTime periodoFin);
+        List<ReporteLeccionDTO> GetAsistenciasByDisciplinaCategoriaAndPeriodo(int idDisciplina, int idCategoria, DateTime periodoInicio, DateTime periodoFin);
     }
 }

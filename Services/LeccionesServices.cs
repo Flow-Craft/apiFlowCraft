@@ -22,14 +22,16 @@ namespace ApiNet8.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILeccionEstadoServices _leccionEstadoServices;
         private readonly IEmailService _emailService;
+        private readonly IUsuarioServices _usuarioServices;
 
-        public LeccionesServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, ILeccionEstadoServices leccionEstadoServices, IEmailService emailService)
+        public LeccionesServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, ILeccionEstadoServices leccionEstadoServices, IEmailService emailService, IUsuarioServices usuarioServices)
         {
             this._db = db;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _leccionEstadoServices = leccionEstadoServices;
             _emailService = emailService;
+            _usuarioServices = usuarioServices;
         }
 
         public List<Leccion> GetLecciones()
@@ -117,6 +119,114 @@ namespace ApiNet8.Services
                 .ToList();
 
                 return lecciones;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
+        public List<ReporteLeccionDTO> GetAsistenciasByUsuarioAndPeriodo(int idUsuario, DateTime periodoInicio, DateTime periodoFin)
+        {
+            try
+            {
+                List<AsistenciaLeccion> leccionesDadas = _db.AsistenciaLeccion
+                .Include(d => d.Leccion)
+                .ThenInclude(c => c.Categoria)
+                .Include(d => d.Leccion)
+                .ThenInclude(c => c.Disciplina)
+                .Where(l => l.FechaCreacion >= periodoInicio && l.FechaCreacion <= periodoFin && l.FechaBaja==null)
+                .GroupBy(l => l.FechaCreacion)
+                .Select(g => g.First())
+                .ToList();
+
+                List<AsistenciaLeccion> leccionesAsistidas = _db.AsistenciaLeccion
+                .Where(l => l.FechaCreacion >= periodoInicio && l.FechaCreacion <= periodoFin && l.Usuario.Id==idUsuario && l.FechaBaja==null)
+                .ToList();
+
+                List<ReporteLeccionDTO> lecciones = new List<ReporteLeccionDTO>();
+
+                foreach (var leccion in leccionesDadas)
+                {
+                    var asistio = leccionesAsistidas.Any(a => a.FechaCreacion == leccion.FechaCreacion);
+
+                    Usuario prof = _usuarioServices.GetUsuarioById(leccion.Leccion.idProfesor);
+
+                    lecciones.Add(new ReporteLeccionDTO
+                    {
+                        Disciplina = leccion.Leccion.Disciplina.Nombre,
+                        Categoria = leccion.Leccion.Categoria.Nombre,
+                        FechaLeccion = leccion.FechaCreacion,
+                        NomProfesor = prof.Apellido + ", " + prof.Nombre,
+                        Asistencia = asistio ? "Sí" : "No"
+                    });
+                }
+
+                List<ReporteLeccionDTO> asistenciasOrdenadas = lecciones
+                .OrderBy(a => a.Disciplina)
+                .ThenBy(a => a.Categoria)
+                .ThenBy(a => a.FechaLeccion)
+                .ToList();
+
+                return asistenciasOrdenadas;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
+        public List<ReporteLeccionDTO> GetAsistenciasByDisciplinaCategoriaAndPeriodo(int idDisciplina, int idCategoria, DateTime periodoInicio, DateTime periodoFin)
+        {
+            try
+            {
+                List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario
+                .Include(d => d.Leccion)
+                .ThenInclude(c => c.Categoria)
+                .Include(d => d.Leccion)
+                .ThenInclude(c => c.Disciplina)
+                .Include(d => d.Usuario)
+                .Where(l => l.Leccion.Disciplina.Id == idDisciplina && l.Leccion.Categoria.Id <= idCategoria && l.FechaBaja == null)
+                .ToList();
+
+                List<AsistenciaLeccion> leccionesDadas = _db.AsistenciaLeccion
+                .Include(d => d.Leccion)
+                .ThenInclude(c => c.Categoria)
+                .Include(d => d.Leccion)
+                .ThenInclude(c => c.Disciplina)
+                .Where(l => l.FechaCreacion >= periodoInicio && l.FechaCreacion <= periodoFin && l.Leccion.Disciplina.Id == idDisciplina && l.Leccion.Categoria.Id <= idCategoria && l.FechaBaja == null)
+                .GroupBy(l => l.FechaCreacion)
+                .Select(g => g.First())
+                .ToList();
+
+
+                List<ReporteLeccionDTO> lecciones = new List<ReporteLeccionDTO>();
+
+                foreach (var leccion in leccionesDadas)
+                {
+                    foreach (var insc in inscripciones)
+                    {
+                        var asistio = _db.AsistenciaLeccion.Where(a=> a.Usuario.Id==insc.Usuario.Id && a.Leccion.Disciplina.Id == insc.Leccion.Disciplina.Id && a.Leccion.Categoria.Id== insc.Leccion.Categoria.Id && a.FechaBaja==null)
+                        .Any(a => a.FechaCreacion == leccion.FechaCreacion);
+
+                        Usuario prof = _usuarioServices.GetUsuarioById(leccion.Leccion.idProfesor);
+
+                        lecciones.Add(new ReporteLeccionDTO
+                        {
+                            FechaLeccion = leccion.FechaCreacion,
+                            DniAlumno = insc.Usuario.Dni,
+                            NomAlumno = insc.Usuario.Apellido + ", " + insc.Usuario.Nombre,
+                            NomProfesor = prof.Apellido + ", " + prof.Nombre,
+                            Asistencia = asistio ? "Sí" : "No"
+                        });
+                    }
+                }
+
+                List<ReporteLeccionDTO> asistenciasOrdenadas = lecciones
+                .OrderBy(a => a.FechaLeccion)
+                .ToList();
+
+                return asistenciasOrdenadas;
             }
             catch (Exception e)
             {
@@ -381,7 +491,7 @@ namespace ApiNet8.Services
                 }
 
                 // verificar estado leccion
-                if (leccion?.LeccionHistoriales?.Where(f => f.FechaFin == null)?.OrderByDescending(f => f.FechaInicio)?.FirstOrDefault()?.LeccionEstado.NombreEstado != Enums.LeccionEstado.Vigente.ToString())
+                if (leccion?.LeccionHistoriales?.Where(f => f.FechaFin == null)?.OrderByDescending(f => f.FechaInicio)?.FirstOrDefault()?.LeccionEstado.NombreEstado == Enums.LeccionEstado.Eliminada.ToString())
                 {
                     throw new Exception("Las inscripciones a la lección estan cerradas: la lección ya no esta vigente.");
                 }
@@ -457,8 +567,8 @@ namespace ApiNet8.Services
                     transaction.Commit();
                 }
 
-                // envio mail al usuario con el codigo
-                //_emailService.SendEmail(usuario.Email, usuario.Nombre + usuario.Apellido, "Inscripcion a lección", "Se inscribió exitosamente a : " + leccion.Nombre + ", " + leccion.Categoria.Nombre);
+                // envio mail al usuario 
+                _emailService.SendEmail(usuario.Email, usuario.Nombre + usuario.Apellido, "Inscripcion a lección", "Se inscribió exitosamente a : " + leccion.Nombre + ", " + leccion.Categoria.Nombre);
 
             }
             catch (Exception e)
@@ -535,6 +645,16 @@ namespace ApiNet8.Services
                     _db.SaveChanges();
                     transaction.Commit();
                 }
+
+                Leccion leccion = GetLeccionById(inscripcion.IdLeccion);
+                Usuario? usuario = _db.Usuario
+                        .Include(u => u.UsuarioHistoriales).ThenInclude(a => a.UsuarioEstado)
+                        .Where(u => u.Id == currentUser.Id)
+                        .FirstOrDefault();
+
+                // envio mail al usuario 
+                _emailService.SendEmail(usuario.Email, usuario.Nombre + usuario.Apellido, "Desinscripción a lección", "Se desinscribió exitosamente a : " + leccion.Nombre + ", " + leccion.Categoria.Nombre);
+
             }
             catch (Exception e)
             {

@@ -12,5 +12,7 @@
         byte[] ReporteReservaUsuarioPeriodo(DateTime periodoInicio, DateTime periodoFin, int idUsuario);
         byte[] ReporteReservaInstalacionPeriodo(DateTime periodoInicio, DateTime periodoFin, int idInstalacion);
         byte[] ReporteReservaPeriodo(DateTime periodoInicio, DateTime periodoFin);
+        byte[] ReporteLeccionUsuarioPeriodo(DateTime periodoInicio, DateTime periodoFin, int idUsuario);
+        byte[] ReporteLeccionDisciplinaCategoriaPeriodo(DateTime periodoInicio, DateTime periodoFin, int idDisciplina, int idCategoria);
     }
 }
