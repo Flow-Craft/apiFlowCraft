@@ -311,6 +311,87 @@ namespace ApiNet8.Services
             }
         }
 
+        public List<Estadisticas> GetEstadisticasByUsuarioLogin()
+        {
+            try
+            {
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                if (currentUser == null)
+                {
+                    throw new Exception("CurrentUser es null");
+                }
+
+                List<Estadisticas> est = new List<Estadisticas>();
+               
+                    List<int> asist = _db.AsistenciaLeccion.Where(a =>
+                    a.Usuario.Id == currentUser.Id &&                    
+                    a.FechaBaja == null).
+                    Select(a => a.Id).ToList();
+
+                    foreach (var item in asist)
+                    {
+                        est.Add(_db.Estadisticas.
+                        Include(p => p.TipoAccionPartido).
+                        Where(a => a.AsistenciaLeccionId == item).ToList());
+                    }                
+                
+                    List<int> estadisticasIds = _db.Estadisticas.
+                    Where(a => a.Equipo != null &&                   
+                    a.Equipo.EquipoUsuarios.Any(u => u.Usuario.Id == currentUser.Id) &&
+                    a.FechaBaja == null).
+                    Select(a => a.Id).ToList();
+
+                    foreach (var item in estadisticasIds)
+                    {
+                        est.Add(GetEstadisticaById(item));
+                    }
+                
+                return est;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
+        public List<Estadisticas> GetEstadisticasByUsuarioId(int dniUsuario)
+        {
+            try
+            {
+                List<Estadisticas> est = new List<Estadisticas>();
+                
+                    List<int> asist = _db.AsistenciaLeccion.Where(a =>
+                    a.Usuario.Dni == dniUsuario &&                    
+                    a.FechaBaja == null).
+                    Select(a => a.Id).ToList();
+
+                    foreach (var item in asist)
+                    {
+                        est.Add(_db.Estadisticas.
+                        Include(p => p.TipoAccionPartido).
+                        Where(a => a.AsistenciaLeccionId == item).ToList());
+                    }
+              
+                    List<int> estadisticasIds = _db.Estadisticas.
+                    Where(a => a.Equipo != null &&                    
+                    a.Equipo.EquipoUsuarios.Any(u => u.Usuario.Dni == dniUsuario) &&
+                    a.FechaBaja == null).
+                    Select(a => a.Id).ToList();
+
+                    foreach (var item in estadisticasIds)
+                    {
+                        est.Add(GetEstadisticaById(item));
+                    }
+                
+                return est;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
         public List<Estadisticas> GetEstadisticasByEquipo(EstadisticaDTO estadisticaDTO)//listo
         {
             try
