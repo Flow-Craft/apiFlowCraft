@@ -228,7 +228,14 @@ namespace ApiNet8.Services
                 List<TorneoResponseDTO> torneos = GetTorneosCompleto();
                 torneos = torneos.Where(t => t.Equipos.Any(e => equiposUsuario.Any(eu => eu.Id == e.Id))).ToList();
 
-                return torneos;
+                foreach (var torneo in torneos)
+                {
+                    var equipoInscripto = torneo.Equipos.FirstOrDefault(e => equiposUsuario.Any(eu => eu.Id == e.Id)); 
+                    if (equipoInscripto != null) 
+                    { torneo.idEquipoInscriptoUsuario = equipoInscripto.Id; }
+                }
+
+                 return torneos;
             }
             catch (Exception e)
             {

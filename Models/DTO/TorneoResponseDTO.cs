@@ -20,5 +20,6 @@ namespace ApiNet8.Models.DTO
         public List<Partido> Partidos { get; set; }
         public List<Equipo> Equipos { get; set; }
         public Instalacion Instalacion { get; set; }
+        public int? idEquipoInscriptoUsuario { get; set; }
     }
 }
