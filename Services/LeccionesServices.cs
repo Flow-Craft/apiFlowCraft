@@ -40,6 +40,40 @@ namespace ApiNet8.Services
             return lecciones;
         }
 
+        public List<LeccionResponseDTO> GetLeccionesCompletas()
+        {
+            List<Leccion> lecciones = _db.Leccion.Include(d => d.Disciplina).Include(c => c.Categoria).Include(h=>h.LeccionHistoriales).ThenInclude(le=>le.LeccionEstado).ToList();
+            List<LeccionResponseDTO> response = new List<LeccionResponseDTO>();
+
+            foreach (var item in lecciones)
+            {
+                LeccionResponseDTO le = new LeccionResponseDTO
+                {
+                    Id = item.Id,
+                    CantMaxima = item.CantMaxima,
+                    Descripcion = item.Descripcion,
+                    Dias = item.Dias,
+                    Nombre = item.Nombre,
+                    Horarios = item.Horarios,
+                    Lugar = item.Lugar,
+                    idProfesor = item.idProfesor,
+                    Disciplina = item.Disciplina,
+                    Categoria = item.Categoria,
+                    Activa = false
+                };
+
+                LeccionHistorial? ultimoHistorial = item.LeccionHistoriales.Where(l => l.FechaFin == null).OrderByDescending(f => f.FechaInicio).FirstOrDefault();
+                if (ultimoHistorial != null && (ultimoHistorial.LeccionEstado.NombreEstado == Enums.LeccionEstado.Vigente.ToString() || ultimoHistorial.LeccionEstado.NombreEstado == Enums.LeccionEstado.ClaseIniciada.ToString()))
+                {
+                    le.Activa = true;
+                }
+
+                response.Add(le);
+            }
+
+            return response;
+        }
+
         public List<Leccion> GetLeccionesActivas()
         {
             List<Leccion> lecciones = _db.Leccion
@@ -270,6 +304,7 @@ namespace ApiNet8.Services
                 leccion.Descripcion = leccionDTO?.Descripcion ?? leccion.Descripcion;
                 leccion.Horarios = leccionDTO?.Horarios ?? leccion.Horarios;
                 leccion.Lugar = leccionDTO?.Lugar ?? leccion.Lugar;
+                leccion.idProfesor = leccionDTO?.idProfesor ?? leccion.idProfesor;
                 
                 if (leccionDTO?.Nombre != null)
                 {
@@ -399,25 +434,39 @@ namespace ApiNet8.Services
             return inscripciones;
         }
 
-        public List<InscripcionUsuario> GetInscripcionesByUsuario(int id)
+        public List<InscripcionUsuario> GetInscripcionesByUsuario()
         {
+            var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+            if (currentUser == null)
+            {
+                throw new Exception("Current user es null");
+            }
+
             List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.
                 Include(e => e.Leccion).
                 ThenInclude(e => e.LeccionHistoriales).
                 ThenInclude(e => e.LeccionEstado).
                 Include(u => u.Usuario).
-                Where(u => u.Usuario.Id == id).ToList();
+                Where(u => u.Usuario.Id == currentUser.Id).ToList();
             return inscripciones;
         }
 
-        public List<InscripcionUsuario> GetInscripcionesByUsuarioActivas(int id)
+        public List<InscripcionUsuario> GetInscripcionesByUsuarioActivas()
         {
+            var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+            if (currentUser == null)
+            {
+                throw new Exception("Current user es null");
+            }
+
             List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.
                 Include(e => e.Leccion).
                 ThenInclude(e => e.LeccionHistoriales).
                 ThenInclude(e => e.LeccionEstado).
                 Include(u => u.Usuario).
-                Where(u => u.Usuario.Id == id && u.FechaBaja == null).ToList();
+                Where(u => u.Usuario.Id == currentUser.Id && u.FechaBaja == null).ToList();
             return inscripciones;
         }
 
@@ -527,6 +576,57 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message);
             }
         }
+
+        public List<AsistenciaLeccion> GetAsistenciaLeccionById(int idLeccion)
+        {
+            // obtengo las asistenciasLeccion del dia
+            DateTime fechaActual = DateTime.Today;
+            List<AsistenciaLeccion> asistenciaLecciones = _db.AsistenciaLeccion
+                .Include(u => u.Usuario)
+                .Include(l=>l.Leccion)
+                .Where(a => a.Leccion.Id == idLeccion && a.FechaCreacion.Date == fechaActual)
+                .ToList();
+
+            if (asistenciaLecciones.Count == 0)
+            {
+                // si no encuentro asistenciasLeccion en el dia busco la fecha mas cercana donde existan
+                DateTime? ultimaFecha = _db.AsistenciaLeccion
+                    .Where(a => a.Leccion.Id == idLeccion)
+                    .OrderBy(a => Math.Abs((a.FechaCreacion - fechaActual).TotalDays))
+                    .Select(a => a.FechaCreacion.Date)
+                    .FirstOrDefault();
+
+                // si existen asistencias en una fecha cercana obtengo todas las de ese dia
+                if (ultimaFecha != null)
+                {
+                    asistenciaLecciones = _db.AsistenciaLeccion
+                        .Include(u => u.Usuario)
+                        .Where(a => a.Leccion.Id == idLeccion && a.FechaCreacion.Date == ultimaFecha.Value)
+                        .ToList();
+                }
+            }
+
+            return asistenciaLecciones;
+        }
+
+        public List<Estadisticas> GetEstadisticasByLeccionUsuario(int idLeccion, int idUsuario)
+        {
+            List<Estadisticas> estadisticas = new List<Estadisticas> ();
+
+            // obtener la ultima asistencia leccion del usuario para esa leccion
+            AsistenciaLeccion? asistenciaLeccion = _db.AsistenciaLeccion.Where(u => u.Usuario.Id == idUsuario && u.Leccion.Id == idLeccion && u.FechaBaja == null).OrderByDescending(f=>f.FechaCreacion).FirstOrDefault();
+
+            if (asistenciaLeccion != null)
+            {
+                // obtener las estadisticas de esa asistencia
+                estadisticas = _db.Estadisticas
+                    .Include(t=>t.TipoAccionPartido)
+                    .Where(a => a.AsistenciaLeccionId == asistenciaLeccion.Id)
+                    .ToList();
+            }
+           
+            return estadisticas;            
+        } 
 
         public void DesinscribirseALeccion(InscripcionLeccionDTO inscripcion)//listo
         {

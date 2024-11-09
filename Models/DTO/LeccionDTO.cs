@@ -11,5 +11,6 @@
         public string? Lugar { get; set; }
         public int IdDisciplina { get; set; }
         public int IdCategoria { get; set; }
+        public int idProfesor {  get; set; }
     }
 }

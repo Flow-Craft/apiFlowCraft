@@ -703,6 +703,59 @@ namespace ApiNet8.Controllers
 
         }
 
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetEstadisticasByUsuarioLogin()
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<Estadisticas> estadisticas = _partidoServices.GetEstadisticasByUsuarioLogin();
+                return Ok(estadisticas);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al buscar estadisticas del usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetEstadisticasByUsuario([FromQuery] int dniUsuario)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<Estadisticas> estadisticas = _partidoServices.GetEstadisticasByUsuarioId(dniUsuario);
+                return Ok(estadisticas);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al buscar estadisticas del usuario",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult AsignacionPartido([FromQuery] AsignacionDTO asignacion)
@@ -845,6 +898,33 @@ namespace ApiNet8.Controllers
             try
             {
                 List<EquipoResponseDTO> equipos = _equipoServices.GetEquipos();
+                return Ok(equipos);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener equipos",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetEquiposByUsuarioDiscCat([FromQuery] int idDisciplina, int idCategoria)
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                CurrentUser currentUser = GetCurrentUser();
+                List<Equipo> equipos = _equipoServices.GetEquiposByUsuarioDiscCat(currentUser.Id, idDisciplina, idCategoria);
                 return Ok(equipos);
             }
             catch (Exception e)
@@ -1021,9 +1101,7 @@ namespace ApiNet8.Controllers
 
         [HttpPost]
         public IActionResult CrearAsistencia()
-        {
-           
-
+        {    
             try
             {
                 _partidoServices.Asistencia();

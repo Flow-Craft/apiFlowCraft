@@ -3,10 +3,9 @@ using ApiNet8.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Net;
 using ApiNet8.Services.IServices;
-using ApiNet8.Services;
 using ApiNet8.Filters.ActionFilters;
 using ApiNet8.Models.Lecciones;
-using ApiNet8.Models.Usuarios;
+using ApiNet8.Models.Partidos;
 
 namespace ApiNet8.Controllers
 {
@@ -546,6 +545,32 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
+        public IActionResult GetLeccionesCompletas()
+        {
+            var TOKEN = HttpContext.Items[JWT].ToString();
+
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<LeccionResponseDTO> lecciones = _leccionesServices.GetLeccionesCompletas();
+                return Ok(lecciones);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener lecciones",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
         public IActionResult GetLeccionesActivas()
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
@@ -759,7 +784,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetInscripcionesByUsuario(int id)
+        public IActionResult GetInscripcionesByUsuario()
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
 
@@ -767,7 +792,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-                List<InscripcionUsuario> inscripcionUsuarios = _leccionesServices.GetInscripcionesByUsuario(id);
+                List<InscripcionUsuario> inscripcionUsuarios = _leccionesServices.GetInscripcionesByUsuario();
                 return Ok(inscripcionUsuarios);
             }
             catch (Exception e)
@@ -785,7 +810,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetInscripcionesByUsuarioActivas(int id)
+        public IActionResult GetInscripcionesByUsuarioActivas()
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
 
@@ -793,7 +818,7 @@ namespace ApiNet8.Controllers
 
             try
             {
-                List<InscripcionUsuario> inscripcionUsuarios = _leccionesServices.GetInscripcionesByUsuarioActivas(id);
+                List<InscripcionUsuario> inscripcionUsuarios = _leccionesServices.GetInscripcionesByUsuarioActivas();
                 return Ok(inscripcionUsuarios);
             }
             catch (Exception e)
@@ -905,6 +930,56 @@ namespace ApiNet8.Controllers
                 {
                     status = HttpStatusCode.InternalServerError,
                     title = "Error al finalizar lección",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetAsistencias([FromQuery] int idLeccion)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<AsistenciaLeccion> asistencias = _leccionesServices.GetAsistenciaLeccionById(idLeccion);
+                return Ok(asistencias);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener asistencias lección",
+                    errors = new List<string> { e.Message }
+                };
+                return StatusCode((int)respuestaAPI.status, respuestaAPI);
+            }
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult GetEstadisticasByLeccionUsuario([FromQuery] int idLeccion, int idUsuario)
+        {
+            // seteo jwt en header de respuesta
+            var TOKEN = HttpContext.Items[JWT].ToString();
+            Response.Headers.Append(JWT, TOKEN);
+
+            try
+            {
+                List<Estadisticas> estadisticas = _leccionesServices.GetEstadisticasByLeccionUsuario(idLeccion, idUsuario);
+                return Ok(estadisticas);
+            }
+            catch (Exception e)
+            {
+                RespuestaAPI respuestaAPI = new RespuestaAPI
+                {
+                    status = HttpStatusCode.InternalServerError,
+                    title = "Error al obtener estadisticas de usuario por lección",
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);

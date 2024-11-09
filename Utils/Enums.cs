@@ -76,7 +76,16 @@
         {
             Futbol = 1,
             Voleyball = 2,           
-        }       
+        }
+
+        public enum EstadoTorneo
+        {
+            Abierto = 1,
+            Finalizado = 2,
+            EnCurso = 3,
+            Cancelado = 4,
+            Completado = 5,
+        }
 
     }
 }

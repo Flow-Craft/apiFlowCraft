@@ -177,7 +177,7 @@ namespace ApiNet8.Services
             Evento? evento = _db.Evento                
                 .Include(he => he.HistorialEventoList).ThenInclude(ee => ee.EstadoEvento)
                 .Where(e => e.Titulo.Equals(nombre) && e.HistorialEventoList.Any(f => f.FechaFin == null
-                && (f.EstadoEvento.NombreEstado != Enums.EstadoEvento.Cancelado.ToString() || f.EstadoEvento.NombreEstado != Enums.EstadoEvento.Finalizado.ToString()))).FirstOrDefault();
+                && (f.EstadoEvento.NombreEstado != Enums.EstadoEvento.Cancelado.ToString() && f.EstadoEvento.NombreEstado != Enums.EstadoEvento.Finalizado.ToString()))).FirstOrDefault();
 
             return evento != null ? true : false;
 
@@ -205,15 +205,6 @@ namespace ApiNet8.Services
                 }
 
                 evento.Disciplina = d;
-
-                //foreach (var idDisc in eventoDTO?.IdsDisciplinas)
-                //{
-                //    Disciplina? d = _disciplinasYLeccionesServices.GetDisciplinaById(idDisc);
-                //    if (d != null)
-                //    {
-                //        evento.Disciplinas.Add(d);
-                //    }
-                //}
 
                 // asignar categoria
                 evento.Categoria = _categoriaServices.GetCategoriaById(eventoDTO.IdCategoria);
@@ -263,34 +254,37 @@ namespace ApiNet8.Services
 
                 // verifico si el tipo es partido
                 if (evento.TipoEvento.NombreTipoEvento == Enums.TipoEvento.Partido.ToString())
-                {
-                    //if (eventoDTO.IdsDisciplinas.Count > 1)
-                    //{
-                    //    throw new Exception("Si el tipo de evento es partido debe seleccionar solo una disciplina");
-                    //}
-
+                {                 
                     // crear equipoPartido
                     Equipo equipoLocal = _equipoServices.GetEquipoEventoById(eventoDTO.EquipoLocal);
                     Equipo equipoVisitante = _equipoServices.GetEquipoEventoById(eventoDTO.EquipoVisitante);
 
-                    EquipoPartido local = new EquipoPartido
-                    {
-                        FechaCreacion = DateTime.Now,
-                        Equipo = equipoLocal,
-                        JugadoresEnBanca = new List<string>(),
-                        JugadoresEnCancha = new List<string>()
-                    };
+                    EquipoPartido local = null;
+                    EquipoPartido visitante = null;
 
-                    EquipoPartido visitante = new EquipoPartido
+                    if (equipoLocal !=null)
                     {
-                        FechaCreacion = DateTime.Now,
-                        Equipo = equipoVisitante,
-                        JugadoresEnBanca = new List<string>(),
-                        JugadoresEnCancha = new List<string>()
-                    };
+                        local = new EquipoPartido
+                        {
+                            FechaCreacion = DateTime.Now,
+                            Equipo = equipoLocal,
+                            JugadoresEnBanca = new List<string>(),
+                            JugadoresEnCancha = new List<string>()
+                        };
+                        _db.EquipoPartido.Add(local);
+                    }
 
-                    _db.EquipoPartido.Add(local);
-                    _db.EquipoPartido.Add(visitante);
+                    if (equipoVisitante != null)
+                    {
+                        visitante = new EquipoPartido
+                        {
+                            FechaCreacion = DateTime.Now,
+                            Equipo = equipoVisitante,
+                            JugadoresEnBanca = new List<string>(),
+                            JugadoresEnCancha = new List<string>()
+                        };
+                        _db.EquipoPartido.Add(visitante);
+                    }
 
                     // crear instancia de partido
                     Partido partido = new Partido
@@ -388,7 +382,7 @@ namespace ApiNet8.Services
                 if (eventoDTO.Titulo != null)
                 {
                     bool existe = _db.Evento.Include(a => a.HistorialEventoList).Any(le => (le.Titulo == eventoDTO.Titulo && le.Id != eventoDTO.Id) && le.HistorialEventoList.Any(h => h.FechaFin == null &&
-                    (h.EstadoEvento.NombreEstado != ApiNet8.Utils.Enums.EstadoEvento.Cancelado.ToString() || h.EstadoEvento.NombreEstado == ApiNet8.Utils.Enums.EstadoEvento.Finalizado.ToString())));
+                    (h.EstadoEvento.NombreEstado != ApiNet8.Utils.Enums.EstadoEvento.Cancelado.ToString() && h.EstadoEvento.NombreEstado == ApiNet8.Utils.Enums.EstadoEvento.Finalizado.ToString())));
 
                     if (existe)
                     {
@@ -415,22 +409,6 @@ namespace ApiNet8.Services
                     evento.Disciplina = d;
                 }
                
-
-                //// asignar disciplinas
-                //if (eventoDTO.IdsDisciplinas != null)
-                //{
-                //    evento.Disciplinas =  new List<Disciplina>();
-
-                //    foreach (var idDisc in eventoDTO.IdsDisciplinas)
-                //    {
-                //        Disciplina? d = _disciplinasYLeccionesServices.GetDisciplinaById(idDisc);
-                //        if (d != null)
-                //        {
-                //            evento.Disciplinas.Add(d);
-                //        }
-                //    }
-                //}
-
                 // asignar categoria
                 if (eventoDTO.IdCategoria > 0)
                 {
@@ -451,7 +429,7 @@ namespace ApiNet8.Services
 
                     // verificar que no este reservada
                     DateTime fechaInicioReserva = eventoDTO.FechaInicio != null ? (DateTime)eventoDTO.FechaInicio : (DateTime)evento.FechaInicio;
-                    DateTime fechaFinReserva = eventoDTO.FechaFinEvento != null ? (DateTime)eventoDTO.FechaFinEvento : (DateTime)evento.FechaInicio;
+                    DateTime fechaFinReserva = eventoDTO.FechaFinEvento != null ? (DateTime)eventoDTO.FechaFinEvento : (DateTime)evento.FechaFinEvento;
 
                     bool instalacionDisponible = _reservasServices.VerificarInstalacionDisponible(fechaInicioReserva, fechaFinReserva, instalacion, evento);
 

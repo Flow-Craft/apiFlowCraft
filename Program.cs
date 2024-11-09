@@ -57,6 +57,7 @@ builder.Services.AddTransient<IReservasServices, ReservasServices>();
 builder.Services.AddTransient<IEquipoServices, EquipoServices>();
 builder.Services.AddTransient<IPartidoServices, PartidoServices>();
 builder.Services.AddTransient<IReporteServices, ReporteServices>();
+builder.Services.AddTransient<ITorneoServices, TorneoServices>();
 builder.Services.AddTransient<ValidateJwtAndRefreshFilter>();
 
 // Cargar configuración de SMTP desde el archivo de configuración
@@ -71,7 +72,7 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(10);
     options.Cookie.HttpOnly = true; // Asegurar que las cookies solo se accedan vía backend
     options.Cookie.SameSite = SameSiteMode.None; // Permitir compartir cookies entre dominios
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Asegurar el uso de HTTPS
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Always para usar con front, para debuggear usar none
 });
 
 builder.Services.AddHttpContextAccessor();

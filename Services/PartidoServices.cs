@@ -16,6 +16,7 @@ using XAct;
 using ApiNet8.Migrations;
 using Estadisticas = ApiNet8.Models.Partidos.Estadisticas;
 using TipoAccionPartido = ApiNet8.Models.Partidos.TipoAccionPartido;
+using ApiNet8.Models.Torneos;
 
 namespace ApiNet8.Services
 {
@@ -30,8 +31,9 @@ namespace ApiNet8.Services
         private readonly IEventoEstadoService _eventoEstadoServices;
         private readonly ITipoAccionPartidoServices _tipoAccionPartidoServices;
         private readonly ILeccionesServices _leccionesServices;
+        private readonly ITorneoServices _torneoServices;
 
-        public PartidoServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor, IUsuarioServices usuarioServices, IEventoEstadoService eventoEstadoServices, ITipoAccionPartidoServices tipoAccionPartidoServices, IEventoServices eventoServices, ILeccionesServices leccionesServices)
+        public PartidoServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor, IUsuarioServices usuarioServices, IEventoEstadoService eventoEstadoServices, ITipoAccionPartidoServices tipoAccionPartidoServices, IEventoServices eventoServices, ILeccionesServices leccionesServices, ITorneoServices torneoServices)
         {
             this._db = db;
             this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
@@ -42,6 +44,7 @@ namespace ApiNet8.Services
             _tipoAccionPartidoServices = tipoAccionPartidoServices;
             _eventoServices = eventoServices;
             _leccionesServices = leccionesServices;
+            _torneoServices = torneoServices;
         }
 
         public void ActualizarEstadistica(EstadisticaDTO estadisticaDTO)//listo
@@ -196,7 +199,7 @@ namespace ApiNet8.Services
                     AsistioAlumno = false,
                     ClaseCompleta = false,
                     FechaCreacion = DateTime.Now,
-                    Leccion = _leccionesServices.GetLeccionById(1),
+                    Leccion = _leccionesServices.GetLeccionById(2),
                     Usuario = _usuarioServices.GetUsuarioById(13)
                 };
 
@@ -300,6 +303,87 @@ namespace ApiNet8.Services
                         est.Add(GetEstadisticaById(item));
                     }
                 }
+                return est;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
+        public List<Estadisticas> GetEstadisticasByUsuarioLogin()
+        {
+            try
+            {
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
+                if (currentUser == null)
+                {
+                    throw new Exception("CurrentUser es null");
+                }
+
+                List<Estadisticas> est = new List<Estadisticas>();
+               
+                    List<int> asist = _db.AsistenciaLeccion.Where(a =>
+                    a.Usuario.Id == currentUser.Id &&                    
+                    a.FechaBaja == null).
+                    Select(a => a.Id).ToList();
+
+                    foreach (var item in asist)
+                    {
+                        est.Add(_db.Estadisticas.
+                        Include(p => p.TipoAccionPartido).
+                        Where(a => a.AsistenciaLeccionId == item).ToList());
+                    }                
+                
+                    List<int> estadisticasIds = _db.Estadisticas.
+                    Where(a => a.Equipo != null &&                   
+                    a.Equipo.EquipoUsuarios.Any(u => u.Usuario.Id == currentUser.Id) &&
+                    a.FechaBaja == null).
+                    Select(a => a.Id).ToList();
+
+                    foreach (var item in estadisticasIds)
+                    {
+                        est.Add(GetEstadisticaById(item));
+                    }
+                
+                return est;
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message, e);
+            }
+        }
+
+        public List<Estadisticas> GetEstadisticasByUsuarioId(int dniUsuario)
+        {
+            try
+            {
+                List<Estadisticas> est = new List<Estadisticas>();
+                
+                    List<int> asist = _db.AsistenciaLeccion.Where(a =>
+                    a.Usuario.Dni == dniUsuario &&                    
+                    a.FechaBaja == null).
+                    Select(a => a.Id).ToList();
+
+                    foreach (var item in asist)
+                    {
+                        est.Add(_db.Estadisticas.
+                        Include(p => p.TipoAccionPartido).
+                        Where(a => a.AsistenciaLeccionId == item).ToList());
+                    }
+              
+                    List<int> estadisticasIds = _db.Estadisticas.
+                    Where(a => a.Equipo != null &&                    
+                    a.Equipo.EquipoUsuarios.Any(u => u.Usuario.Dni == dniUsuario) &&
+                    a.FechaBaja == null).
+                    Select(a => a.Id).ToList();
+
+                    foreach (var item in estadisticasIds)
+                    {
+                        est.Add(GetEstadisticaById(item));
+                    }
+                
                 return est;
             }
             catch (Exception e)
@@ -763,7 +847,7 @@ namespace ApiNet8.Services
 
                     //Cambio estado
                     HistorialEvento? ultimoHistorial = part.HistorialEventoList.Where(ih => ih.FechaFin == null).FirstOrDefault();
-                    if (ultimoHistorial.EstadoEvento.Id == 4)
+                    if (ultimoHistorial!= null && ultimoHistorial.EstadoEvento.Id == 4)
                     {
                         if (ultimoHistorial != null)
                         {
@@ -821,6 +905,63 @@ namespace ApiNet8.Services
 
                         part.FechaFin = DateTime.Now;
 
+                        // verificar si partido pertenece a un torneo
+                        if (EsDeTorneo(part.Titulo) && part.Ganador != null)
+                        {
+                            // Buscar el PartidoFase al que pertenece y el torneo
+                            PartidoFase partidoFase = _db.PartidoFase
+                                .Include(pf => pf.Partidos)
+                                .Include(t=>t.Torneo)
+                                .FirstOrDefault(pf => pf.Partidos.Any(p => p.Titulo == part.Titulo))!;
+
+                            int idTorneo = partidoFase.Torneo.Id;
+
+                            // buscar la proxima fase del torneo
+                            PartidoFase? partidoFase2 = _db.PartidoFase
+                                .Include(p=>p.Partidos).ThenInclude(a=>a.Local)
+                                .Include(p => p.Partidos).ThenInclude(a => a.Visitante)
+                                .Where(t => t.Torneo.Id == idTorneo && t.FasePartido == partidoFase.FasePartido + 1).FirstOrDefault();
+
+                            // verificar si el partido es la final
+                            if (partidoFase2 != null)
+                            {
+                                // buscar partido de fase siguiente libre y asignar el equipo ganador
+                                foreach (var item in partidoFase2.Partidos)
+                                {
+                                    if (item.Local == null)
+                                    {
+                                        EquipoPartido equipoPartido = new EquipoPartido
+                                        {
+                                            FechaCreacion = DateTime.Now,
+                                            Equipo = part.Ganador.Equipo,
+                                            JugadoresEnBanca = new List<string>(),
+                                            JugadoresEnCancha = new List<string>()
+                                        };
+                                        item.Local = equipoPartido;
+
+                                        _db.EquipoPartido.Add(equipoPartido);
+                                        _db.Partido.Update(item);
+                                        break;
+                                    }
+                                    if (item.Visitante == null)
+                                    {
+                                        EquipoPartido equipoPartido = new EquipoPartido
+                                        {
+                                            FechaCreacion = DateTime.Now,
+                                            Equipo = part.Ganador.Equipo,
+                                            JugadoresEnBanca = new List<string>(),
+                                            JugadoresEnCancha = new List<string>()
+                                        };
+                                        item.Visitante = equipoPartido;
+
+                                        _db.EquipoPartido.Add(equipoPartido);
+                                        _db.Partido.Update(item);
+                                        break;
+                                    }
+                                }
+                            }                           
+                        }
+
                         _db.HistorialEvento.Add(nuevoHistorial);
                         _db.Partido.Update(part);
                         _db.SaveChanges();
@@ -841,7 +982,13 @@ namespace ApiNet8.Services
             }
         }
 
-        public List<AccionPartido> GetAccionPartidoByPartido(int IdPartido)//listo
+        public bool EsDeTorneo(string partido)
+        {
+            return _db.PartidoFase
+                .Any(p => p.Partidos.Any(i => i.Titulo == partido));
+        }
+
+            public List<AccionPartido> GetAccionPartidoByPartido(int IdPartido)//listo
         {
             try
             {

@@ -16,7 +16,7 @@ namespace ApiNet8.Controllers
             _reporteServices = reporteServices;
         }
 
-#region Eventos
+        #region Eventos
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult ReporteEventoByUsuarioPeriodo([FromQuery] EventoReporteDTO reporte)
@@ -62,8 +62,9 @@ namespace ApiNet8.Controllers
         }
 
         #endregion
+
         #region estadisticas
-        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult ReporteEstadisticasByDiscUsuPeriodo([FromQuery] EstadisticasReporteDTO reporte)
         {
@@ -79,11 +80,59 @@ namespace ApiNet8.Controllers
         public IActionResult ReporteEstadisticasByDiscUsuLeccionPeriodo([FromQuery] EstadisticasReporteDTO reporte)
         {
             // Llamar al servicio para crear el reporte
-            byte[] pdfReporte = _reporteServices.ReporteEstadisticaDiscUsuLeccionPeriodo(reporte.PeriodoInicio, reporte.PeriodoFin, reporte.IdDisciplina, reporte.IdLeccion,reporte.IdUsuario);
+            byte[] pdfReporte = _reporteServices.ReporteEstadisticaDiscUsuLeccionPeriodo(reporte.PeriodoInicio, reporte.PeriodoFin, reporte.IdDisciplina, reporte.IdLeccion, reporte.IdUsuario);
 
             // Retornar el PDF como archivo descargable
             return File(pdfReporte, "application/pdf", "ReporteEstadisticass_Disciplina_Usuario_Periodo.pdf");
         }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult ReporteEstadisticasByDiscEquipoPeriodo([FromQuery] EstadisticasReporteDTO reporte)
+        {
+            // Llamar al servicio para crear el reporte
+            byte[] pdfReporte = _reporteServices.ReporteEstadisticaDiscEquipoPeriodo(reporte.PeriodoInicio, reporte.PeriodoFin, reporte.IdDisciplina, reporte.IdEquipo);
+
+            // Retornar el PDF como archivo descargable
+            return File(pdfReporte, "application/pdf", "ReporteEstadisticass_Disciplina_Equipo_Periodo.pdf");
+        }
+
+        #endregion
+
+        #region Reservas
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult ReporteReservasByUsuarioPeriodo([FromQuery] EstadisticasReporteDTO reporte)
+        {
+            // Llamar al servicio para crear el reporte
+            byte[] pdfReporte = _reporteServices.ReporteReservaUsuarioPeriodo(reporte.PeriodoInicio, reporte.PeriodoFin,reporte.IdUsuario);
+
+            // Retornar el PDF como archivo descargable
+            return File(pdfReporte, "application/pdf", "ReporteReservass_Usuario_Periodo.pdf");
+        }
+
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult ReporteReservasByInstalacionPeriodo([FromQuery] EstadisticasReporteDTO reporte)
+        {
+            // Llamar al servicio para crear el reporte
+            byte[] pdfReporte = _reporteServices.ReporteReservaInstalacionPeriodo(reporte.PeriodoInicio, reporte.PeriodoFin, reporte.IdInstalacion);
+
+            // Retornar el PDF como archivo descargable
+            return File(pdfReporte, "application/pdf", "ReporteReservass_Instalacion_Periodo.pdf");
+        }
+
+        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [HttpGet]
+        public IActionResult ReporteReservasByPeriodo([FromQuery] EstadisticasReporteDTO reporte)
+        {
+            // Llamar al servicio para crear el reporte
+            byte[] pdfReporte = _reporteServices.ReporteReservaPeriodo(reporte.PeriodoInicio, reporte.PeriodoFin);
+
+            // Retornar el PDF como archivo descargable
+            return File(pdfReporte, "application/pdf", "ReporteReservass_Periodo.pdf");
+        }
+
         #endregion
 
         #region Lecciones

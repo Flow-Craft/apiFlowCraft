@@ -37,6 +37,8 @@ namespace ApiNet8.Utils.Mappers
             CreateMap<Leccion, LeccionDTO>().ReverseMap();
             CreateMap<Evento, EventoDTO>().ReverseMap();
             CreateMap<Equipo, EquipoDTO>().ReverseMap();
+            CreateMap<Torneo, TorneoDTO>().ReverseMap();
+
         }
     }
 }

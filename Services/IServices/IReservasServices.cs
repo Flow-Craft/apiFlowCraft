@@ -16,5 +16,8 @@ namespace ApiNet8.Services.IServices
         Reserva GetReservaById(int id);
         List<Reserva> GetReservasByUsuario(int id);
         public List<Reserva> GetReservasByEvento(Evento evento);
+        List<Reserva> GetReservasByUsuarioPeriodo(int idUsuario, DateTime periodoInicio, DateTime periodoFin);
+        List<Reserva> GetReservasByInstalacionPeriodo(int idInstalacion, DateTime periodoInicio, DateTime periodoFin);
+        List<Reserva> GetReservasByPeriodo(DateTime periodoInicio, DateTime periodoFin);
     }
 }

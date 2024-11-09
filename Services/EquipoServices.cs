@@ -398,5 +398,19 @@ namespace ApiNet8.Services
 
             return result;
         }
+
+        public List<Equipo> GetEquiposByUsuario(int idUsuario) 
+        {
+            List<Equipo> equipos = _db.Equipo.Include(d => d.Disciplina).Include(c => c.Categoria).Include(eu => eu.EquipoUsuarios).ThenInclude(u => u.Usuario).Include(h => h.EquipoHistoriales).ThenInclude(e => e.EquipoEstado).ToList();
+            equipos = equipos.Where(e=>e.EquipoUsuarios.Any(u=>u.Usuario.Id == idUsuario)).ToList();
+            return equipos;
+        }
+
+        public List<Equipo> GetEquiposByUsuarioDiscCat(int idUsuario, int idDisciplina, int idCategoria)
+        {
+            List<Equipo> equipos = GetEquiposByUsuario(idUsuario);
+            equipos = equipos.Where(d=>d.Disciplina.Id == idDisciplina && d.Categoria.Id == idCategoria).ToList();
+            return equipos;
+        }
     }
 }
