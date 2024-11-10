@@ -2,6 +2,7 @@
 using ApiNet8.Models;
 using ApiNet8.Models.Club;
 using ApiNet8.Models.DTO;
+using ApiNet8.Models.Lecciones;
 using ApiNet8.Models.Reservas;
 using ApiNet8.Models.TYC;
 using ApiNet8.Models.Usuarios;
@@ -462,6 +463,9 @@ namespace ApiNet8.Services
                     _db.SaveChanges();
                     transaction.Commit();
                 }
+
+                // mandar mail al usuario de creacion de solicitud
+                _emailService.SendEmail(usuario.Email, usuario.Nombre + usuario.Apellido, "Solicitud creada", "Se creó su solicitud de asociación, debe contactarse al mail del club con el número de solicitud o dirigirse a las instalaciones para abonar la cuota de socio y completar su alta como Socio.");
             }
             catch (Exception e)
             {
@@ -1028,7 +1032,7 @@ namespace ApiNet8.Services
                     Perfil = perfilSocio,
                     Usuario = solicitud.Usuario
                 };
-
+                
                 _db.PerfilUsuario.Update(perfilAnterior);
                 _db.PerfilUsuario.Add(nuevoPerfil);
             }
@@ -1062,6 +1066,13 @@ namespace ApiNet8.Services
                 _db.SolicitudAsociacion.Update(solicitud);
                 _db.SaveChanges();
                 transaction.Commit();
+            }
+
+
+            if (solicitudDTO.Accion == SolicitudAsociacionEstado.Aprobada.ToString())
+            {
+                // mandar mail al usuario que se aprobo su solicitud
+                _emailService.SendEmail(solicitud.Usuario.Email, solicitud.Usuario.Nombre + solicitud.Usuario.Apellido, "Solicitud aprobada", "Se aprobó su solicitud de asociación, a partir de ahora su usuarios tiene perfil Socio y puede disfrutar de todos los eventos, torneos y lecciones del club.");
             }
 
         }
