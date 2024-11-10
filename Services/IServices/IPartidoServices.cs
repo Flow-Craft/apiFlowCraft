@@ -35,5 +35,6 @@ namespace ApiNet8.Services.IServices
         void Asistencia();
         List<Estadisticas> GetEstadisticasByUsuarioLogin();
         List<Estadisticas> GetEstadisticasByUsuarioId(int dniUsuario);
+        List<UsuarioDTO> GetArbitroPlanilleroPartido(int idPartido);
     }
 }

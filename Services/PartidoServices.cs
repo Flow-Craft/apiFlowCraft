@@ -1068,6 +1068,29 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
+        public List<UsuarioDTO> GetArbitroPlanilleroPartido(int idPartido)
+        {
+            Partido partido = GetPartidoById(idPartido);
+
+            // obtener perfil de cada usuario
+            List<int> idsUsuarios = partido.Usuarios?.Select(u => u.Id).ToList() ?? new List<int>();
+            List<UsuarioDTO> usuariosPerfil = new List<UsuarioDTO>();
+
+            foreach (var item in idsUsuarios)
+            {
+                UsuarioDTO? usuarioPerfil = _usuarioServices.GetPerfilUsuario(item);
+                if (usuarioPerfil != null)
+                {
+                    usuariosPerfil.Add(usuarioPerfil);
+                }
+            }
+
+            usuariosPerfil = usuariosPerfil.Where(a=> a.Perfil == Enums.Perfiles.Arbitro.ToString() || a.Perfil==Enums.Perfiles.Planillero.ToString()).ToList();
+
+            return usuariosPerfil;
+        }
+
         public AccionPartido GetAccionPartidoById(int Id)//listo
         {
             try
