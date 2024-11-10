@@ -539,6 +539,7 @@ namespace ApiNet8.Services
                     Usuario? arbitro = new Usuario();
                     Usuario? planillero = new Usuario();
 
+                    // obtengo arbitro y planilleros actuales si existen
                     if (arbitroDTO != null)
                     {
                         arbitro = _usuarioServices.GetUsuarioById(arbitroDTO.Id);
@@ -596,29 +597,46 @@ namespace ApiNet8.Services
                             partido.Usuarios.Add(usuario);
                         }
                     }
-                    if (arbitro != null)
-                    {
-                        partido.Usuarios.Add(arbitro);
-                    }
+                   
+                    //if (arbitro != null)
+                    //{
+                    //    partido.Usuarios.Add(arbitro);
+                    //}
 
-                    if (planillero != null)
-                    {
-                        partido.Usuarios.Add(planillero);
-                    }
+                    //if (planillero != null)
+                    //{
+                    //    partido.Usuarios.Add(planillero);
+                    //}
 
                     if (eventoDTO.Arbitro > 0)
                     {
+                        // quitar arbitro anterior
+                        if (arbitro != null)
+                        {
+                            partido.Usuarios.Remove(arbitro);
+                        }
+
                         // cambiar arbitro
                         Usuario? arbitroNuevo = _usuarioServices.GetUsuarioById(eventoDTO.Arbitro);
                         if (arbitro == null)
                         {
                             throw new Exception("No existe arbitro seleccionado");
                         }
-                        partido.Usuarios.Add(arbitroNuevo);
+                        else
+                        {
+                            partido.Usuarios.Add(arbitroNuevo);
+                        }
                     }
 
                     if (eventoDTO.Planillero > 0)
                     {
+
+                        // quitar planillero anterior
+                        if (planillero != null)
+                        {
+                            partido.Usuarios.Remove(planillero);
+                        }
+
                         // cambiar planillero
                         Usuario? planilleroNuevo = _usuarioServices.GetUsuarioById(eventoDTO.Planillero);
                         if (planillero == null)
