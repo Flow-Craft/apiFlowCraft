@@ -114,6 +114,13 @@ namespace ApiNet8.Services
             return usuarios;
         }
 
+        public UsuarioDTO? GetPerfilUsuario(int idUsuario)
+        {
+            List<UsuarioDTO> usuarios = GetUsuarios();
+            UsuarioDTO? usuario = usuarios.Where(a => a.Id == idUsuario).FirstOrDefault();
+            return usuario;
+        }
+
         public void CrearUsuario(UsuarioDTO usuario)
         {
             try

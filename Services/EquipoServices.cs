@@ -140,6 +140,25 @@ namespace ApiNet8.Services
                 // Obtener el usuario actual desde la sesión
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
+                if (currentUser == null)
+                {
+                    throw new Exception("CurrentUser es null");
+                }
+
+                // obtener perfil de usuario
+                UsuarioDTO? usuarioPerfil = _usuarioServices.GetPerfilUsuario(currentUser.Id);
+
+                // si el usuario es socio y no esta en el equipo no puede crearlo
+                if (usuarioPerfil != null && usuarioPerfil.Perfil == Enums.Perfiles.Socio.ToString())
+                {
+                    // Verificar si el usuario está en la lista de jugadores
+                    bool usuarioEnEquipo = equipoDTO.Jugadores != null && equipoDTO.Jugadores.Any(j => j.Dni == usuarioPerfil.Dni);
+                    if (!usuarioEnEquipo)
+                    {
+                        throw new Exception("El usuario no está en el equipo y no puede crearlo.");
+                    }
+                }
+
                 Equipo equipo = _mapper.Map<Equipo>(equipoDTO);
                 equipo.Local = equipoDTO.Local == null ? false : (bool)equipoDTO.Local;
                 equipo.FechaCreacion = DateTime.Now;

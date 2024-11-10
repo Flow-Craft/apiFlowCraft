@@ -35,5 +35,6 @@ namespace ApiNet8.Services.IServices
         void GestionarSolicitudSocio(SolicitudDTO solicitudDTO);
         void ReestablecerContrasenaVencimiento(ReestablecerContrasenaDTO reestablecerContrasenaDTO);
         List<UsuarioDTO> GetUsuarioByPerfil(string Perfil);
+        UsuarioDTO? GetPerfilUsuario(int idUsuario);       
     }
 }
