@@ -14,7 +14,7 @@ namespace ApiNet8.Controllers
 {
     [Route("api/[controller]/[action]")]
     [ApiController]
-    public class ReservasController : ControllerBase
+    public class ReservasController : CustomController
     {
         private const string JWT = "JWT";
         private const string CurrentUserJWT = "CurrentUserJWT";
@@ -382,14 +382,15 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult GetReservasByUsuario(int id)//LISTO
+        public IActionResult GetReservasByUsuario()//LISTO
         {
             var TOKEN = HttpContext.Items[JWT].ToString();
             Response.Headers.Append(JWT, TOKEN);
 
             try
             {
-                List<Reserva> reserva = _reservasServices.GetReservasByUsuario(id);// guardar en sesion la entidad enciontrada en el filtro
+                CurrentUser currentUser = GetCurrentUser();
+                List<Reserva> reserva = _reservasServices.GetReservasByUsuario(currentUser.Id);// guardar en sesion la entidad enciontrada en el filtro
                 return Ok(reserva);
             }
             catch (Exception e)
