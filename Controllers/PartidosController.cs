@@ -303,7 +303,6 @@ namespace ApiNet8.Controllers
 
             try
             {
-
                 _partidoServices.IniciarPartido(partidoDTO);
                 return Ok();
             }

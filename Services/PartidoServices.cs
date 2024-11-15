@@ -32,8 +32,9 @@ namespace ApiNet8.Services
         private readonly ITipoAccionPartidoServices _tipoAccionPartidoServices;
         private readonly ILeccionesServices _leccionesServices;
         private readonly ITorneoServices _torneoServices;
+        private readonly ITorneoEstadoServices _torneoEstadoServices;
 
-        public PartidoServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor, IUsuarioServices usuarioServices, IEventoEstadoService eventoEstadoServices, ITipoAccionPartidoServices tipoAccionPartidoServices, IEventoServices eventoServices, ILeccionesServices leccionesServices, ITorneoServices torneoServices)
+        public PartidoServices(ApplicationDbContext db, IConfiguration configuration, IMapper mapper, IHttpContextAccessor httpContextAccessor, IUsuarioServices usuarioServices, IEventoEstadoService eventoEstadoServices, ITipoAccionPartidoServices tipoAccionPartidoServices, IEventoServices eventoServices, ILeccionesServices leccionesServices, ITorneoServices torneoServices, ITorneoEstadoServices torneoEstadoServices)
         {
             this._db = db;
             this.secretToken = configuration.GetValue<string>("ApiSettings:secretToken") ?? "";
@@ -45,6 +46,7 @@ namespace ApiNet8.Services
             _eventoServices = eventoServices;
             _leccionesServices = leccionesServices;
             _torneoServices = torneoServices;
+            _torneoEstadoServices = torneoEstadoServices;
         }
 
         public void ActualizarEstadistica(EstadisticaDTO estadisticaDTO)//listo
@@ -1314,6 +1316,41 @@ namespace ApiNet8.Services
                     part.ResultadoLocal = 0;
                     part.ResultadoVisitante = 0;
                     part.HistorialEventoList.Add(nuevoHistorial);
+
+                    // verificar si partido pertenece a torneo
+                    bool perteneceATorneo = EsDeTorneo(part.Titulo);
+
+                    if (perteneceATorneo)
+                    {
+                        // obtener torneo al que pertenece y verificar estado de torneo
+                        PartidoFase partidoFase = _db.PartidoFase.Include(t=>t.Torneo).ThenInclude(h=>h.TorneoHistoriales).ThenInclude(e=>e.TorneoEstado).FirstOrDefault(p => p.Partidos.Any(i => i.Titulo == part.Titulo))!;
+                        Torneo torneoPartido = partidoFase.Torneo;
+
+                        string estadoTorneo = "";
+
+                        TorneoHistorial? ultimoHistorialTorneo = torneoPartido.TorneoHistoriales.Where(f => f.FechaFin == null).FirstOrDefault();
+                        if (ultimoHistorialTorneo != null)
+                        {
+                            estadoTorneo = ultimoHistorialTorneo.TorneoEstado.NombreEstado;
+
+                            // si el torneo no esta en curso lo inicio
+                            if (estadoTorneo != Enums.EstadoTorneo.EnCurso.ToString())
+                            {
+                                TorneoHistorial nuevoHistorialTorneo = new TorneoHistorial
+                                {
+                                    FechaInicio = DateTime.Now,
+                                    DetalleCambioEstado = "Se inicia torneo",
+                                    UsuarioEditor = currentUser?.Id,
+                                    TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(4) // asigno estado en curso
+                                };
+
+                                torneoPartido.TorneoHistoriales.Add(nuevoHistorialTorneo);
+                                _db.TorneoHistorial.Add(nuevoHistorialTorneo);
+                                _db.Torneo.Update(torneoPartido);
+                            }
+                        }                        
+                        
+                    }
 
                     _db.HistorialEvento.Add(nuevoHistorial);
                     _db.EquipoPartido.Update(part.Local);
