@@ -988,7 +988,7 @@ namespace ApiNet8.Services
                 .Any(p => p.Partidos.Any(i => i.Titulo == partido));
         }
 
-            public List<AccionPartido> GetAccionPartidoByPartido(int IdPartido)//listo
+        public List<AccionPartido> GetAccionPartidoByPartido(int IdPartido)//listo
         {
             try
             {

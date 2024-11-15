@@ -258,6 +258,26 @@ namespace ApiNet8.Services
                     throw new Exception("Ya existe un torneo con ese nombre.");
                 }
 
+                // obtener arbitro y planillero
+                if (torneoDTO.Arbitro < 1 || torneoDTO.Planillero <1)
+                {
+                    throw new Exception("Debe agregar un arbitro y un planillero.");
+                }
+
+                // arbitro  
+                Usuario? arbitro = _usuarioServices.GetUsuarioById(torneoDTO.Arbitro);
+                if (arbitro == null)
+                {
+                    throw new Exception("No existe arbitro selecccionado");
+                }
+
+                // agregar planillero
+                Usuario? planillero = _usuarioServices.GetUsuarioById(torneoDTO.Planillero);
+                if (planillero == null)
+                {
+                    throw new Exception("No existe planillero selecccionado");
+                }
+
                 // Asignar disciplinas
                 Disciplina? d = _disciplinasYLeccionesServices.GetDisciplinaById(torneoDTO.IdDisciplina);
                 if (d == null)
@@ -463,6 +483,10 @@ namespace ApiNet8.Services
                         }
                     }
 
+                    // agregar arbitro y planillero
+                    item.Usuarios.Add(arbitro);
+                    item.Usuarios.Add(planillero);
+
                     _db.Partido.Add(item);
 
                 }
@@ -523,7 +547,31 @@ namespace ApiNet8.Services
                         torneo.Nombre = torneoDTO.Nombre;
                     }
                 }
-                
+
+                // obtener arbitro y planillero               
+                Usuario? arbitro = null;
+                Usuario? planillero = null;
+
+                // arbitro  
+                if (torneoDTO.Arbitro > 0)
+                {
+                    arbitro = _usuarioServices.GetUsuarioById(torneoDTO.Arbitro);
+                    if (arbitro == null)
+                    {
+                        throw new Exception("No existe arbitro selecccionado");
+                    }
+                }
+
+                // planillero
+                if (torneoDTO.Planillero > 0)
+                {
+                    planillero = _usuarioServices.GetUsuarioById(torneoDTO.Planillero);
+                    if (planillero == null)
+                    {
+                        throw new Exception("No existe planillero selecccionado");
+                    }
+                }                
+
                 // Asignar disciplinas
                 if (torneoDTO.IdDisciplina > 0)
                 {
@@ -812,6 +860,17 @@ namespace ApiNet8.Services
                                 item.Usuarios.Add(usu);
                             }
                         }
+                    }
+
+                    // agregar arbitro y planillero
+                    if (arbitro!=null)
+                    {
+                        item.Usuarios.Add(arbitro);
+                    }
+
+                    if (planillero!=null)
+                    {
+                        item.Usuarios.Add(planillero);
                     }
 
                     _db.Partido.Update(item);

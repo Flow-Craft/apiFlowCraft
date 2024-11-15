@@ -16,6 +16,7 @@ namespace ApiNet8.Models.DTO
         public string? Condiciones { get; set; }
         public DateTime FechaInicio { get; set; }
         public List<int>? IdEquipos { get; set; }
-
+        public int Arbitro { get; set; }
+        public int Planillero { get; set; }
     }
 }

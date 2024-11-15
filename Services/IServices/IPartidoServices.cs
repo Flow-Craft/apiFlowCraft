@@ -19,6 +19,7 @@ namespace ApiNet8.Services.IServices
         AccionPartido GetAccionPartidoById(int Id);//
         void BajaAccionPartido(AccionPartidoDTO accion);//
         AsignacionDTO AsignacionPartido(AsignacionDTO asignacion);
+        bool EsDeTorneo(string partido);
 
         List<EquipoUsuario> GetEquipoLocal(int partidoId);//
         List<EquipoUsuario> GetEquipoVisitante(int partidoId);//
