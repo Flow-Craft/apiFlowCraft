@@ -245,6 +245,16 @@ namespace ApiNet8.Services
             
         }
 
+        public bool TieneEquiposDuplicados(List<int>? idEquipos)
+        {
+            if (idEquipos == null || idEquipos.Count == 0) 
+            {
+                return false; 
+            }
+            var equiposDuplicados = idEquipos.GroupBy(id => id).Any(g => g.Count() > 1); 
+            return equiposDuplicados;
+        }
+
         public void CrearTorneo(TorneoDTO torneoDTO)
         {
             try
@@ -256,6 +266,12 @@ namespace ApiNet8.Services
                 if (ExisteTorneo(torneo.Nombre))
                 {
                     throw new Exception("Ya existe un torneo con ese nombre.");
+                }
+
+                bool tieneDuplicados = TieneEquiposDuplicados(torneoDTO.IdEquipos);
+                if (tieneDuplicados)
+                {
+                    throw new Exception("No pueden haber equipos duplicados en el torneo.");
                 }
 
                 // obtener arbitro y planillero
@@ -547,6 +563,12 @@ namespace ApiNet8.Services
                     {
                         torneo.Nombre = torneoDTO.Nombre;
                     }
+                }
+
+                bool tieneDuplicados = TieneEquiposDuplicados(torneoDTO.IdEquipos);
+                if (tieneDuplicados)
+                {
+                    throw new Exception("No pueden haber equipos duplicados en el torneo.");
                 }
 
                 // obtener arbitro y planillero               
