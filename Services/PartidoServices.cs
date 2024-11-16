@@ -17,6 +17,7 @@ using ApiNet8.Migrations;
 using Estadisticas = ApiNet8.Models.Partidos.Estadisticas;
 using TipoAccionPartido = ApiNet8.Models.Partidos.TipoAccionPartido;
 using ApiNet8.Models.Torneos;
+using static ApiNet8.Utils.Enums;
 
 namespace ApiNet8.Services
 {
@@ -924,6 +925,8 @@ namespace ApiNet8.Services
                                 .Include(p => p.Partidos).ThenInclude(a => a.Visitante)
                                 .Where(t => t.Torneo.Id == idTorneo && t.FasePartido == partidoFase.FasePartido + 1).FirstOrDefault();
 
+                            Torneo torneoPartido = partidoFase.Torneo;
+
                             // verificar si el partido es la final
                             if (partidoFase2 != null)
                             {
@@ -961,7 +964,27 @@ namespace ApiNet8.Services
                                         break;
                                     }
                                 }
-                            }                           
+                            }
+                            else
+                            {
+                                // si entro aca es porque es la final y asigno estado finalizado al torneo
+                                TorneoHistorial? ultimoHistorialTorneo = torneoPartido.TorneoHistoriales.Where(f => f.FechaFin == null).FirstOrDefault();
+                                if (ultimoHistorialTorneo != null)
+                                {
+                                    ultimoHistorialTorneo.FechaFin = DateTime.Now;
+                                    _db.TorneoHistorial.Update(ultimoHistorialTorneo);
+                                }
+                                TorneoHistorial nuevoHistorialTorneo = new TorneoHistorial
+                                {
+                                    FechaInicio = DateTime.Now,
+                                    DetalleCambioEstado = "Se finaliza torneo",
+                                    UsuarioEditor = currentUser?.Id,
+                                    TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(2) // asigno estado finalizado
+                                };
+
+                                torneoPartido.TorneoHistoriales.Add(nuevoHistorialTorneo);
+                                _db.Torneo.Update(torneoPartido);
+                            }
                         }
 
                         _db.HistorialEvento.Add(nuevoHistorial);
