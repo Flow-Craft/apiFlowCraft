@@ -21,5 +21,7 @@ namespace ApiNet8.Models.DTO
         public List<Equipo> Equipos { get; set; }
         public Instalacion Instalacion { get; set; }
         public int? idEquipoInscriptoUsuario { get; set; }
+        public int? idArbitro {  get; set; }
+        public int? idPlanillero { get; set; }
     }
 }

@@ -87,7 +87,7 @@ namespace ApiNet8.Services
 
         public TorneoResponseDTO? GetTorneoByIdCompleto(int idTorneo)
         {
-            Torneo torneo = GetTorneoById(idTorneo);
+            Torneo? torneo = GetTorneoById(idTorneo);
 
             if (torneo == null)
             {
@@ -119,6 +119,7 @@ namespace ApiNet8.Services
                .Include(p => p.Partidos).ThenInclude(e => e.Local).ThenInclude(e => e.Equipo).ThenInclude(c => c.Categoria)
                .Include(p => p.Partidos).ThenInclude(e => e.Visitante).ThenInclude(e => e.Equipo).ThenInclude(c => c.Categoria)
                .Include(p => p.Partidos).ThenInclude(e => e.Usuarios)
+               .Include(p => p.Partidos).ThenInclude(e => e.Instalacion)
                .OrderBy(f => f.FechaCreacion)
                .Where(t => t.Torneo.Id == torneo.Id).ToList();
 
@@ -141,6 +142,24 @@ namespace ApiNet8.Services
                     response.Equipos.Add(partido.Visitante.Equipo);
                 }
             }
+
+            // obtener instalacion
+            response.Instalacion = response.Partidos.FirstOrDefault()!.Instalacion;
+
+            // obtengo los usuairos de un partido y busco el arbitro y planillero, todos los partidos de un torneo tienen los mismos
+            // lista de IDs de los usuarios de un partido
+            List<int> usuarioIdsPartido = response.Partidos.FirstOrDefault()!.Usuarios!.Select(u => u.Id).ToList();
+
+            // Filtra los usuarios por perfil de árbitro y verifica que el Id esté en la lista de usuarios del partido
+            UsuarioDTO? arbitroDTO = _usuarioServices.GetUsuarioByPerfil(Enums.Perfiles.Arbitro.ToString())
+                            .FirstOrDefault(u => usuarioIdsPartido.Contains(u.Id));
+
+            // Filtra los usuarios por perfil de planillero y verifica que el Id esté en la lista de usuarios del partido
+            UsuarioDTO? planilleroDTO = _usuarioServices.GetUsuarioByPerfil(Enums.Perfiles.Planillero.ToString())
+                            .FirstOrDefault(u => usuarioIdsPartido.Contains(u.Id));
+
+            response.idArbitro = arbitroDTO?.Id;
+            response.idPlanillero = planilleroDTO?.Id;
 
             return response;
         }
@@ -201,6 +220,21 @@ namespace ApiNet8.Services
                 }
 
                 torneoResponseDTO.Instalacion = torneoResponseDTO.Partidos.FirstOrDefault()!.Instalacion;
+
+                // obtengo los usuairos de un partido y busco el arbitro y planillero, todos los partidos de un torneo tienen los mismos
+                // lista de IDs de los usuarios de un partido
+                List<int> usuarioIdsPartido = torneoResponseDTO.Partidos.FirstOrDefault()!.Usuarios!.Select(u => u.Id).ToList();
+
+                // Filtra los usuarios por perfil de árbitro y verifica que el Id esté en la lista de usuarios del partido
+                UsuarioDTO? arbitroDTO = _usuarioServices.GetUsuarioByPerfil(Enums.Perfiles.Arbitro.ToString())
+                                .FirstOrDefault(u => usuarioIdsPartido.Contains(u.Id));
+
+                // Filtra los usuarios por perfil de planillero y verifica que el Id esté en la lista de usuarios del partido
+                UsuarioDTO? planilleroDTO = _usuarioServices.GetUsuarioByPerfil(Enums.Perfiles.Planillero.ToString())
+                                .FirstOrDefault(u => usuarioIdsPartido.Contains(u.Id));
+
+                torneoResponseDTO.idArbitro = arbitroDTO?.Id;
+                torneoResponseDTO.idPlanillero = planilleroDTO?.Id;
 
                 response.Add(torneoResponseDTO);
 
