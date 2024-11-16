@@ -42,13 +42,14 @@ namespace ApiNet8.Services
                 if (VerificarInstalacionDisponibleReserva(reservaDTO))
                 {
                     var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
-                    
+                    int currentUserId = currentUser != null ? currentUser.Id : 0;
+
                     using (var transaction = _db.Database.BeginTransaction())
                     {
                         reserva.FechaModificacion = DateTime.Now;
                         reserva.HoraInicio = (DateTime)reservaDTO.HoraInicio;
                         reserva.HoraFin = (DateTime)reservaDTO.HoraFin;
-                        reserva.UsuarioEditor = currentUser.Id;
+                        reserva.UsuarioEditor = reservaDTO.UsuarioId != null ? (int)reservaDTO.UsuarioId : currentUserId;
                         reserva.Instalacion = _instalacionServices.GetInstalacionById((int)reservaDTO.InstalacionId);
                         if (reservaDTO.UsuarioId != null) { reserva.Usuario = _usuarioServices.GetUsuarioById((int)reservaDTO.UsuarioId); }
 

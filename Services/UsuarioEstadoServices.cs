@@ -78,7 +78,7 @@ namespace ApiNet8.Services
 
                 UsuarioEstado estUs = _mapper.Map<UsuarioEstado>(usuarioEstado);
                 estUs.FechaCreacion = DateTime.Now;
-                estUs.UsuarioEditor = currentUser.Id;
+                estUs.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
                 _db.Add(estUs);
                 _db.SaveChanges();
                 return estUs;
