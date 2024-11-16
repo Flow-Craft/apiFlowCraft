@@ -348,7 +348,8 @@ namespace ApiNet8.Services
                             TipoEvento = _tipoEventoServices.GetTipoEventoById(1),
                             Titulo = $"Partido de torneo {torneo.Nombre} Nro: {i + 1} Fase: {faseActual}",
                             Banner = torneo.Banner,
-
+                            CupoMaximo = 100,
+                            Descripcion = $"Partido de torneo {torneo.Nombre} Nro: {i + 1} Fase: {faseActual}"
                         };
 
                         partidoFase.Partidos.Add(partido);
