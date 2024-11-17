@@ -11,6 +11,7 @@
         public int? IdDisciplina { get; set; }
         public bool? Estadistica { get; set; }
         public bool? Partido { get; set; }
+        public int? EsPartido { get; set; }
 
     }
 }

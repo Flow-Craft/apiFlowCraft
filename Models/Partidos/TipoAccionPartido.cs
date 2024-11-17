@@ -14,6 +14,7 @@ namespace ApiNet8.Models.Partidos
         public DateTime? FechaModificacion { get; set; }
         public DateTime? FechaBaja { get; set; }
         public int UsuarioEditor {  get; set; }
+        public int EsPartido { get; set; }
 
         // Relaciones
         public IList<TipoAccionHistorial> TipoAccionHistoriales { get; set; }

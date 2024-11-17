@@ -18,13 +18,15 @@ namespace ApiNet8.Services
         private readonly IMapper _mapper;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IDisciplinasYLeccionesServices _disciplinasYLeccionesServices;
+        private readonly IUsuarioServices _usuarioServices;
 
-        public TipoAccionPartidoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices)
+        public TipoAccionPartidoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, IUsuarioServices usuarioServices)
         {
             this._db = db;
             _mapper = mapper;
             _httpContextAccessor = httpContextAccessor;
             _disciplinasYLeccionesServices = disciplinasYLeccionesServices;
+            _usuarioServices = usuarioServices;
         }
 
         public List<TipoAccionPartido> GetTiposAccionPartido()
@@ -35,38 +37,71 @@ namespace ApiNet8.Services
 
         public List<TipoAccionPartido> GetTiposAccionPaneles(TipoAccionPartidoDTO tipAc)
         {
-            List<TipoAccionPartido> acciones = new List<TipoAccionPartido>();
+            try
+            {
+                List<TipoAccionPartido> acciones = new List<TipoAccionPartido>();
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
-            if (tipAc.IdDisciplina == 1)
-            {
-                if (tipAc.Estadistica == true)
+                if (currentUser == null)
                 {
-                    if (tipAc.Partido == true)
-                    {
-                        acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && a.NombreTipoAccion != "Cambio Jugador").ToList();
-                    }
-                    else {
-                        acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && a.NombreTipoAccion != "Tarjeta Amarilla" && a.NombreTipoAccion != "Tarjeta Roja" && a.NombreTipoAccion != "Cambio Jugador").ToList();
-                    }
+                    throw new Exception("CurrentUser es nulo, no se puede encontrar el usuario");
+                }
+
+                UsuarioDTO? usuario = _usuarioServices.GetPerfilUsuario(currentUser.Id);
+                if (usuario == null)
+                {
+                    throw new Exception("No se encuentra usuario");
+                }
+
+                //if (tipAc.IdDisciplina == 4)
+                //{
+                //    if (tipAc.Estadistica == true)
+                //    {
+                //        if (tipAc.Partido == true)
+                //        {
+                //            acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && a.NombreTipoAccion != "Cambio Jugador").ToList();
+                //        }
+                //        else
+                //        {
+                //            acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && a.NombreTipoAccion != "Tarjeta Amarilla" && a.NombreTipoAccion != "Tarjeta Roja" && a.NombreTipoAccion != "Cambio Jugador").ToList();
+                //        }
+                //    }
+                //    else
+                //    {
+                //        acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && (a.NombreTipoAccion == "Tarjeta Amarilla" || a.NombreTipoAccion == "Tarjeta Roja" || a.NombreTipoAccion == "Falta" || a.NombreTipoAccion == "Gol" || a.NombreTipoAccion == "Cambio Jugador")).ToList();
+                //    }
+                //}
+
+                if (usuario.Perfil == Enums.Perfiles.Arbitro.ToString() || usuario.Perfil == Enums.Perfiles.Admin.ToString())
+                {
+                    acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && (a.EsPartido == 0 || a.EsPartido == 1)).ToList();
                 }
                 else
                 {
-                    acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && (a.NombreTipoAccion == "Tarjeta Amarilla" || a.NombreTipoAccion == "Tarjeta Roja" || a.NombreTipoAccion == "Falta" || a.NombreTipoAccion == "Gol" || a.NombreTipoAccion == "Cambio Jugador")).ToList();
-                } 
+                    acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && (a.EsPartido == 0 || a.EsPartido == 2)).ToList();
+                }
+
+                //if
+                //if (tipAc.IdDisciplina == 2)
+                //{
+                //    if (tipAc.Estadistica == true)
+                //    {
+                //        acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && a.NombreTipoAccion != "Tarjeta Amarilla" && a.NombreTipoAccion != "Tarjeta Roja" && a.NombreTipoAccion != "Cambio Jugador" && a.NombreTipoAccion != "Punto").ToList();
+
+                //    }
+                //    else
+                //    {
+                //        acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && (a.NombreTipoAccion == "Tarjeta Amarilla" || a.NombreTipoAccion == "Tarjeta Roja" ||  a.NombreTipoAccion == "Punto" || a.NombreTipoAccion == "Cambio Jugador")).ToList();
+                //    }
+                //}
+                return acciones;
             }
-            if (tipAc.IdDisciplina == 2)
+            catch (Exception)
             {
-                if (tipAc.Estadistica == true)
-                {
-                    acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && a.NombreTipoAccion != "Tarjeta Amarilla" && a.NombreTipoAccion != "Tarjeta Roja" && a.NombreTipoAccion != "Cambio Jugador" && a.NombreTipoAccion != "Punto").ToList();
-                    
-                }
-                else
-                {
-                    acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && (a.NombreTipoAccion == "Tarjeta Amarilla" || a.NombreTipoAccion == "Tarjeta Roja" ||  a.NombreTipoAccion == "Punto" || a.NombreTipoAccion == "Cambio Jugador")).ToList();
-                }
+
+                throw;
             }
-            return acciones;
+            
         }
         public List<TipoAccionPartido> GetTiposAccionVoley(bool leccion)
         {
@@ -184,6 +219,7 @@ namespace ApiNet8.Services
                 tipoAccionPartido.ModificaTarjetasExpulsion = tipoAccionPartidoDTO.ModificaTarjetasExpulsion ?? tipoAccionPartido.ModificaTarjetasExpulsion;
                 tipoAccionPartido.secuencial = tipoAccionPartidoDTO.secuencial ?? tipoAccionPartido.secuencial;
                 tipoAccionPartido.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
+                tipoAccionPartido.EsPartido = tipoAccionPartidoDTO.EsPartido ?? tipoAccionPartido.EsPartido;
 
                 if (tipoAccionPartidoDTO.IdDisciplina != null)
                 {
