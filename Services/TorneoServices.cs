@@ -150,6 +150,8 @@ namespace ApiNet8.Services
             // lista de IDs de los usuarios de un partido
             List<int> usuarioIdsPartido = response.Partidos.FirstOrDefault()!.Usuarios!.Select(u => u.Id).ToList();
 
+            // en cada partido agregar el user planillero y arbitro
+
             // Filtra los usuarios por perfil de árbitro y verifica que el Id esté en la lista de usuarios del partido
             UsuarioDTO? arbitroDTO = _usuarioServices.GetUsuarioByPerfil(Enums.Perfiles.Arbitro.ToString())
                             .FirstOrDefault(u => usuarioIdsPartido.Contains(u.Id));
@@ -315,14 +317,14 @@ namespace ApiNet8.Services
                 }
 
                 // arbitro  
-                Usuario? arbitro = _usuarioServices.GetUsuarioById(torneoDTO.Arbitro);
+                Usuario arbitro = _usuarioServices.GetUsuarioById(torneoDTO.Arbitro);
                 if (arbitro == null)
                 {
                     throw new Exception("No existe arbitro selecccionado");
                 }
 
                 // agregar planillero
-                Usuario? planillero = _usuarioServices.GetUsuarioById(torneoDTO.Planillero);
+                Usuario planillero = _usuarioServices.GetUsuarioById(torneoDTO.Planillero);
                 if (planillero == null)
                 {
                     throw new Exception("No existe planillero selecccionado");
@@ -422,8 +424,14 @@ namespace ApiNet8.Services
                     fases[i].Llave = new List<PartidoFase> { fases[i - 1] };
                 }
 
+                List<Partido> partidosTorneo = new List<Partido>();
+                foreach (var item in fases)
+                {
+                    partidosTorneo.AddRange(item.Partidos);
+                }
+
                 // Asignar equipos a los partidos de la primera fase
-                if (torneoDTO.IdEquipos.Count > 0)
+                if (torneoDTO?.IdEquipos?.Count > 0)
                 {
                     var equipos = torneoDTO.IdEquipos.Select(id => _equipoServices.GetEquipoEventoById(id)).ToList();
                     int equipoIndex = 0;
@@ -432,7 +440,7 @@ namespace ApiNet8.Services
                     {
                         if (equipoIndex < equipos.Count)
                         {
-                            Partido part = partidos.Find(p => p.Titulo == partido.Titulo);
+                            Partido part = partidosTorneo.Find(p => p.Titulo == partido.Titulo);
 
                             if (part != null)
                             {
@@ -449,7 +457,7 @@ namespace ApiNet8.Services
                         }
                         if (equipoIndex < equipos.Count)
                         {
-                            Partido part = partidos.Find(p => p.Titulo == partido.Titulo);
+                            Partido part = partidosTorneo.Find(p => p.Titulo == partido.Titulo);
 
                             if (part != null)
                             {
@@ -470,83 +478,83 @@ namespace ApiNet8.Services
                         }
                     }
                 }
-               
 
-                // por cada partido crear evento
-                foreach (var item in partidos)
+                foreach (var fase in fases)
                 {
-                    // verificar que no este reservada la instalacion
-                    bool instalacionDisponible = _reservasServices.VerificarInstalacionDisponible((DateTime)item.FechaInicio, (DateTime)item.FechaFinEvento, instalacion, (Evento)item);
-
-                    if (!instalacionDisponible)
+                    foreach (var item in fase.Partidos)
                     {
-                        throw new Exception("La instalacion no esta disponible en ese dia y horario para el partido " + item.Titulo);
-                    }
+                        // verificar que no este reservada la instalacion
+                        bool instalacionDisponible = _reservasServices.VerificarInstalacionDisponible((DateTime)item.FechaInicio, (DateTime)item.FechaFinEvento, instalacion, (Evento)item);
 
-                    // se crea reserva
-                    int idUsuario = currentUser != null ? currentUser.Id : 1;
-                    Usuario usuario = _db.Usuario.Where(u => u.Id == idUsuario).FirstOrDefault();
-
-                    Reserva reserva = new Reserva
-                    {
-                        FechaReserva = DateTime.Now,
-                        HoraInicio = (DateTime)item.FechaInicio,
-                        HoraFin = (DateTime)item.FechaFinEvento,
-                        FechaCreacion = DateTime.Now,
-                        UsuarioEditor = currentUser != null ? currentUser.Id : 0,
-                        Usuario = usuario,
-                        Instalacion = instalacion
-                    };
-                    _db.Reserva.Add(reserva);
-
-                    // crear historial y asignarlo al evento
-                    HistorialEvento historialEvento = new HistorialEvento
-                    {
-                        FechaInicio = DateTime.Now,
-                        DetalleCambioEstado = "Se crea evento tipo " + item.TipoEvento.NombreTipoEvento,
-                        UsuarioEditor = currentUser != null ? currentUser.Id : 0,
-                        EstadoEvento = _eventoEstadoService.GetEventoEstadoById(1) // asigno estado creado
-                    };
-                    item.HistorialEventoList = new List<HistorialEvento>();
-                    item.HistorialEventoList.Add(historialEvento);
-                    _db.HistorialEvento.Add(historialEvento);
-
-                    // Obtener los jugadores de ambos equipos y agregarlos al partido
-                    item.Usuarios = new List<Usuario>();
-
-                    // Agregar jugadores del equipo local
-                    if (item.Local != null)
-                    {
-                        List<Usuario> jugadoresLocal = item.Local.Equipo.EquipoUsuarios.Select(eu => eu.Usuario).ToList();
-                        foreach (var usu in jugadoresLocal)
+                        if (!instalacionDisponible)
                         {
-                            item.Usuarios.Add(usu);
+                            throw new Exception("La instalacion no esta disponible en ese dia y horario para el partido " + item.Titulo);
                         }
-                    }
 
-                    // Agregar jugadores del equipo visitante
-                    if (item.Visitante != null)
-                    {
-                        List<Usuario> jugadoresVisitante = item.Visitante.Equipo.EquipoUsuarios.Select(eu => eu.Usuario).ToList();
-                        foreach (var usu in jugadoresVisitante)
+                        // se crea reserva
+                        int idUsuario = currentUser != null ? currentUser.Id : 1;
+                        Usuario usuario = _db.Usuario.Where(u => u.Id == idUsuario).FirstOrDefault();
+
+                        Reserva reserva = new Reserva
                         {
-                            item.Usuarios.Add(usu);
+                            FechaReserva = DateTime.Now,
+                            HoraInicio = (DateTime)item.FechaInicio,
+                            HoraFin = (DateTime)item.FechaFinEvento,
+                            FechaCreacion = DateTime.Now,
+                            UsuarioEditor = currentUser != null ? currentUser.Id : 0,
+                            Usuario = usuario,
+                            Instalacion = instalacion
+                        };
+                        _db.Reserva.Add(reserva);
+
+                        // crear historial y asignarlo al evento
+                        HistorialEvento historialEvento = new HistorialEvento
+                        {
+                            FechaInicio = DateTime.Now,
+                            DetalleCambioEstado = "Se crea evento tipo " + item.TipoEvento.NombreTipoEvento,
+                            UsuarioEditor = currentUser != null ? currentUser.Id : 0,
+                            EstadoEvento = _eventoEstadoService.GetEventoEstadoById(1) // asigno estado creado
+                        };
+                        item.HistorialEventoList = new List<HistorialEvento>();
+                        item.HistorialEventoList.Add(historialEvento);
+                        _db.HistorialEvento.Add(historialEvento);
+
+                        // Obtener los jugadores de ambos equipos y agregarlos al partido
+                        item.Usuarios = new List<Usuario>();
+
+                        // Agregar jugadores del equipo local
+                        if (item.Local != null)
+                        {
+                            List<Usuario> jugadoresLocal = item.Local.Equipo.EquipoUsuarios.Select(eu => eu.Usuario).ToList();
+                            foreach (var usu in jugadoresLocal)
+                            {
+                                item.Usuarios.Add(usu);
+                            }
                         }
+
+                        // Agregar jugadores del equipo visitante
+                        if (item.Visitante != null)
+                        {
+                            List<Usuario> jugadoresVisitante = item.Visitante.Equipo.EquipoUsuarios.Select(eu => eu.Usuario).ToList();
+                            foreach (var usu in jugadoresVisitante)
+                            {
+                                item.Usuarios.Add(usu);
+                            }
+                        }
+
+                        //// agregar arbitro y planillero
+                        //item.Usuarios.Add(arbitro);
+                        //item.Usuarios.Add(planillero);
+
+                        _db.Partido.Add(item);
                     }
-
-                    // agregar arbitro y planillero
-                    item.Usuarios.Add(arbitro);
-                    item.Usuarios.Add(planillero);
-
-                    _db.Partido.Add(item);
-
-                }
+                }                
 
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     _db.Torneo.Add(torneo);
                     _db.PartidoFase.AddRange(fases);
-                    _db.SaveChanges();                   
+                    _db.SaveChanges();
                     transaction.Commit();
                 }
             }
