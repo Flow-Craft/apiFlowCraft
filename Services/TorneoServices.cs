@@ -764,8 +764,19 @@ namespace ApiNet8.Services
                     }
                     ultimoHistorial.FechaFin = DateTime.Now;
                     _db.TorneoHistorial.Update(ultimoHistorial);
-                }                             
-                
+                }
+
+                // crear nuevo historial y asignarlo al torneo
+                TorneoHistorial historialTorneo = new TorneoHistorial
+                {
+                    FechaInicio = DateTime.Now,
+                    DetalleCambioEstado = "Se modifica torneo",
+                    UsuarioEditor = currentUser != null ? currentUser.Id : 0,
+                    TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(1) // asigno estado abierto ya que solo pueden editarse torneos que no han completado las inscripciones
+                };
+                torneo.TorneoHistoriales = torneo.TorneoHistoriales == null ? new List<TorneoHistorial>() : torneo.TorneoHistoriales;
+              
+
                 // Asignar equipos a los partidos de la primera fase
                 if (torneoDTO.IdEquipos != null && torneoDTO.IdEquipos.Count > 0)
                 {
@@ -868,32 +879,35 @@ namespace ApiNet8.Services
                     if (equiposAsignados == torneo.CantEquipos)
                     {                       
                         // crear historial completado y asignarlo al torneo
-                        TorneoHistorial historialTorneoCompletado = new TorneoHistorial
+                        historialTorneo = new TorneoHistorial
                         {
                             FechaInicio = DateTime.Now,
                             DetalleCambioEstado = "Se modifica torneo",
                             UsuarioEditor = currentUser != null ? currentUser.Id : 0,
                             TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(5) // asigno estado completado
                         };
-                        torneo.TorneoHistoriales = torneo.TorneoHistoriales == null ? new List<TorneoHistorial>() : torneo.TorneoHistoriales;
-                        torneo.TorneoHistoriales.Add(historialTorneoCompletado);
-                        _db.TorneoHistorial.Add(historialTorneoCompletado);
+                        //torneo.TorneoHistoriales = torneo.TorneoHistoriales == null ? new List<TorneoHistorial>() : torneo.TorneoHistoriales;
+                        //torneo.TorneoHistoriales.Add(historialTorneoCompletado);
+                        //_db.TorneoHistorial.Add(historialTorneoCompletado);
                     }
-                    else
-                    {
-                        // crear nuevo historial y asignarlo al torneo
-                        TorneoHistorial historialTorneo = new TorneoHistorial
-                        {
-                            FechaInicio = DateTime.Now,
-                            DetalleCambioEstado = "Se modifica torneo",
-                            UsuarioEditor = currentUser != null ? currentUser.Id : 0,
-                            TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(1) // asigno estado abierto ya que solo pueden editarse torneos que no han completado las inscripciones
-                        };
-                        torneo.TorneoHistoriales = torneo.TorneoHistoriales == null ? new List<TorneoHistorial>() : torneo.TorneoHistoriales;
-                        torneo.TorneoHistoriales.Add(historialTorneo);
-                        _db.TorneoHistorial.Add(historialTorneo);
-                    }
+                    //else
+                    //{
+                    //    // crear nuevo historial y asignarlo al torneo
+                    //    TorneoHistorial historialTorneo = new TorneoHistorial
+                    //    {
+                    //        FechaInicio = DateTime.Now,
+                    //        DetalleCambioEstado = "Se modifica torneo",
+                    //        UsuarioEditor = currentUser != null ? currentUser.Id : 0,
+                    //        TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(1) // asigno estado abierto ya que solo pueden editarse torneos que no han completado las inscripciones
+                    //    };
+                    //    torneo.TorneoHistoriales = torneo.TorneoHistoriales == null ? new List<TorneoHistorial>() : torneo.TorneoHistoriales;
+                    //    torneo.TorneoHistoriales.Add(historialTorneo);
+                    //    _db.TorneoHistorial.Add(historialTorneo);
+                    //}
                 }
+
+                torneo.TorneoHistoriales.Add(historialTorneo);
+                _db.TorneoHistorial.Add(historialTorneo);
 
                 // Por cada partido editar evento, se hace aqui para recorrer y actualizar cada partido con _db
                 foreach (var item in partidosTorneo)
