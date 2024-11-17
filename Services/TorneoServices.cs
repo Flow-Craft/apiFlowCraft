@@ -310,25 +310,25 @@ namespace ApiNet8.Services
                     throw new Exception("No pueden haber equipos duplicados en el torneo.");
                 }
 
-                // obtener arbitro y planillero
-                if (torneoDTO.Arbitro < 1 || torneoDTO.Planillero <1)
-                {
-                    throw new Exception("Debe agregar un arbitro y un planillero.");
-                }
+                //// obtener arbitro y planillero
+                //if (torneoDTO.Arbitro < 1 || torneoDTO.Planillero <1)
+                //{
+                //    throw new Exception("Debe agregar un arbitro y un planillero.");
+                //}
 
-                // arbitro  
-                Usuario arbitro = _usuarioServices.GetUsuarioById(torneoDTO.Arbitro);
-                if (arbitro == null)
-                {
-                    throw new Exception("No existe arbitro selecccionado");
-                }
+                //// arbitro  
+                //Usuario arbitro = _usuarioServices.GetUsuarioById(torneoDTO.Arbitro);
+                //if (arbitro == null)
+                //{
+                //    throw new Exception("No existe arbitro selecccionado");
+                //}
 
-                // agregar planillero
-                Usuario planillero = _usuarioServices.GetUsuarioById(torneoDTO.Planillero);
-                if (planillero == null)
-                {
-                    throw new Exception("No existe planillero selecccionado");
-                }
+                //// agregar planillero
+                //Usuario planillero = _usuarioServices.GetUsuarioById(torneoDTO.Planillero);
+                //if (planillero == null)
+                //{
+                //    throw new Exception("No existe planillero selecccionado");
+                //}
 
                 // Asignar disciplinas
                 Disciplina? d = _disciplinasYLeccionesServices.GetDisciplinaById(torneoDTO.IdDisciplina);
