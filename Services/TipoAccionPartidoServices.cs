@@ -116,12 +116,11 @@ namespace ApiNet8.Services
             }
         }
 
-        public bool ExisteTipoAccionPartido(string nombre)
+        public bool ExisteTipoAccionPartido(string nombre, int idDisciplina)
         {
-            TipoAccionPartido? tipoAccionPartido = _db.TipoAccionPartido.Where(n => n.NombreTipoAccion.Equals(nombre) && n.FechaBaja == null).FirstOrDefault();
+            TipoAccionPartido? tipoAccionPartido = _db.TipoAccionPartido.Include(d=>d.Disciplina).Where(n => n.NombreTipoAccion.Equals(nombre) && n.FechaBaja == null && n.Disciplina.Id == idDisciplina).FirstOrDefault();
 
             return tipoAccionPartido != null ? true : false;
-
         }
 
         public void CrearTipoAccionPartido(TipoAccionPartidoDTO tipoAccionPartidoDTO)
@@ -133,7 +132,7 @@ namespace ApiNet8.Services
 
                 TipoAccionPartido tipoAccionPartido = _mapper.Map<TipoAccionPartido>(tipoAccionPartidoDTO);
 
-                if (ExisteTipoAccionPartido(tipoAccionPartido.NombreTipoAccion))
+                if (ExisteTipoAccionPartido(tipoAccionPartido.NombreTipoAccion, (int)tipoAccionPartidoDTO.IdDisciplina))
                 {
                     throw new Exception("Ya existe un tipo de accion de partido con ese nombre.");
                 }
@@ -196,7 +195,7 @@ namespace ApiNet8.Services
 
                 if (tipoAccionPartidoDTO.NombreTipoAccion != null)
                 {
-                    bool existe = _db.TipoAccionPartido.Any(le => le.NombreTipoAccion == tipoAccionPartidoDTO.NombreTipoAccion && le.Id != tipoAccionPartido.Id && le.FechaBaja == null);
+                    bool existe = _db.TipoAccionPartido.Include(d=>d.Disciplina).Any(le => le.NombreTipoAccion == tipoAccionPartidoDTO.NombreTipoAccion && le.Id != tipoAccionPartido.Id && le.FechaBaja == null && le.Disciplina.Id == tipoAccionPartidoDTO.IdDisciplina);
 
                     if (existe)
                     {

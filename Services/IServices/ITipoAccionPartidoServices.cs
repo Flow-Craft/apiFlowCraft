@@ -11,7 +11,7 @@ namespace ApiNet8.Services.IServices
         void CrearTipoAccionPartido(TipoAccionPartidoDTO tipoAccionPartidoDTO);
         void ActualizarTipoAccionPartido(TipoAccionPartidoDTO tipoAccionPartidoDTO);
         void EliminarTipoAccionPartido(TipoAccionPartidoDTO tipoAccionPartidoDTO);
-        bool ExisteTipoAccionPartido(string nombre);
+        bool ExisteTipoAccionPartido(string nombre, int idDisciplina);
         List<TipoAccionPartido> GetTiposAccionPartidoActivos();
     }
 }
