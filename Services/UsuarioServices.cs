@@ -1158,7 +1158,7 @@ namespace ApiNet8.Services
                     // se crea nuevo historial con estado desactivado
                     UsuarioHistorial nuevoHistorial = new UsuarioHistorial
                     {
-                        DetalleCambioEstado = bloquearUsuarioDTO.Razon,
+                        DetalleCambioEstado =  $"Se bloquea usuario {bloquearUsuarioDTO.Razon}",
                         FechaInicio = DateTime.Now,
                         UsuarioEditor = currentUser?.Id,
                         UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(2) // asigno estado Bloqueado
@@ -1214,7 +1214,7 @@ namespace ApiNet8.Services
                     // se crea nuevo historial con estado desactivado
                     UsuarioHistorial nuevoHistorial = new UsuarioHistorial
                     {
-                        DetalleCambioEstado = bloquearUsuarioDTO.Razon,
+                        DetalleCambioEstado = $"Se desbloquea usuario {bloquearUsuarioDTO.Razon}",
                         FechaInicio = DateTime.Now,
                         UsuarioEditor = currentUser?.Id,
                         UsuarioEstado = _usuarioEstadoServices.GetUsuarioEstadoById(1) // asigno estado ACTIVO
