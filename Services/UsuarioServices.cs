@@ -126,6 +126,24 @@ namespace ApiNet8.Services
         {
             try
             {
+                if (usuario.Dni == null || usuario.Email == null)
+                {
+                    throw new Exception("Debe ingresar un dni y un mail.");
+                }
+
+                // verificar si ya esxiste usuario con dni y mail
+                UsuarioRegistroDTO usuarioRegistroDTO = new UsuarioRegistroDTO
+                {
+                    Dni = (int)usuario.Dni,
+                    Email = usuario.Email
+                };
+
+                bool existeUsuario = ExisteUsuario(usuarioRegistroDTO);
+                if (existeUsuario)
+                {
+                    throw new Exception("Ya existe un usuario con ese email o dni");
+                }
+
                 //mapper de usuariodto a usuario
                 Usuario user = _mapper.Map<Usuario>(usuario);
 
@@ -183,12 +201,24 @@ namespace ApiNet8.Services
 
         public bool ExisteUsuario(UsuarioRegistroDTO usuario)
         {
-            var usuarioBd = _db.Usuario.FirstOrDefault(u => u.Email == usuario.Email || u.Dni == usuario.Dni);
+            // verificar si coincide con algun usuario
+            var usuarioBd = _db.Usuario.Include(h=>h.UsuarioHistoriales).ThenInclude(e=>e.UsuarioEstado).FirstOrDefault(u => u.Email == usuario.Email || u.Dni == usuario.Dni);
+
+            // si ningun usuario coincide devuelvo false
             if (usuarioBd == null)
             {
                 return false;
             }
-            return true;
+
+            // si alguno coincide verifico el estado, si es desactivado devuelvo false sino true
+            // obtener ultimo historial para verificar estado 
+            UsuarioHistorial? ultimoHistorial = usuarioBd.UsuarioHistoriales.Where(f=>f.FechaFin == null).OrderByDescending(f=>f.FechaFin).FirstOrDefault();
+            if (ultimoHistorial != null && ultimoHistorial.UsuarioEstado.DescripcionEstado != Enums.EstadoUsuario.Desactivado.ToString())
+            {
+                return true;
+            }
+            
+            return false;
         }
 
         public async Task<UsuarioLoginResponseDTO> Login(UsuarioLoginDTO usuarioLoginDTO)
