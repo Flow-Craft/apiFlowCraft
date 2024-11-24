@@ -349,17 +349,35 @@ namespace ApiNet8.Services
                 // buscar instalacion
                 Instalacion instalacion = _instalacionServices.GetInstalacionById(torneoDTO.IdInstalacion);
 
-                // Crear historial y asignarlo al torneo
-                TorneoHistorial historialTorneo = new TorneoHistorial
+                if (torneoDTO.IdEquipos != null && torneoDTO.CantEquipos == torneoDTO.IdEquipos.Count)
                 {
-                    FechaInicio = DateTime.Now,
-                    DetalleCambioEstado = "Se crea torneo",
-                    UsuarioEditor = currentUser != null ? currentUser.Id : 0,
-                    TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(1) // Asigno estado abierto
-                };
-                _db.TorneoHistorial.Add(historialTorneo);
+                    // Crear historial y asignarlo al torneo
+                    TorneoHistorial historialTorneo = new TorneoHistorial
+                    {
+                        FechaInicio = DateTime.Now,
+                        DetalleCambioEstado = "Se crea torneo completado",
+                        UsuarioEditor = currentUser != null ? currentUser.Id : 0,
+                        TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(5) // Asigno estado completado
+                    };
+                    _db.TorneoHistorial.Add(historialTorneo);
 
-                torneo.TorneoHistoriales = new List<TorneoHistorial> { historialTorneo };
+                    torneo.TorneoHistoriales = new List<TorneoHistorial> { historialTorneo };
+                }
+                else
+                {
+                    // Crear historial y asignarlo al torneo
+                    TorneoHistorial historialTorneo = new TorneoHistorial
+                    {
+                        FechaInicio = DateTime.Now,
+                        DetalleCambioEstado = "Se crea torneo",
+                        UsuarioEditor = currentUser != null ? currentUser.Id : 0,
+                        TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(1) // Asigno estado abierto
+                    };
+                    _db.TorneoHistorial.Add(historialTorneo);
+
+                    torneo.TorneoHistoriales = new List<TorneoHistorial> { historialTorneo };
+                }
+              
 
                 // Crear partidos y fases
                 int cantidadEquipos = torneoDTO.CantEquipos;
