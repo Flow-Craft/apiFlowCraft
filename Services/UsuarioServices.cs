@@ -83,7 +83,7 @@ namespace ApiNet8.Services
             try
             {
                 return _db.Usuario
-                    .Include(u => u.UsuarioHistoriales)
+                    .Include(u => u.UsuarioHistoriales).ThenInclude(e=>e.UsuarioEstado)
                     .Where(u => u.Id == id)
                     .FirstOrDefault();
             }
@@ -1129,7 +1129,7 @@ namespace ApiNet8.Services
         {
             try
             {
-                Usuario usuarioABloquear = GetUsuarioById(bloquearUsuarioDTO.Id);
+                Usuario? usuarioABloquear = GetUsuarioById(bloquearUsuarioDTO.Id);
 
                 if (usuarioABloquear == null)
                 {
@@ -1144,7 +1144,13 @@ namespace ApiNet8.Services
                     if (usuarioABloquear.UsuarioHistoriales.Count != 0 && usuarioABloquear.UsuarioHistoriales.Any(a => a.FechaFin == null))
                     {
                         // obtengo ultimo historial y lo doy de baja
-                        UsuarioHistorial historialAnterior = usuarioABloquear.UsuarioHistoriales.FirstOrDefault(u => u.FechaFin == null);
+                        UsuarioHistorial historialAnterior = usuarioABloquear.UsuarioHistoriales!.FirstOrDefault(u => u.FechaFin == null)!;
+
+                        if (historialAnterior.UsuarioEstado.NombreEstado != Enums.EstadoUsuario.Activo.ToString())
+                        {
+                            throw new Exception("Solo se pueden bloquear usuarios activos");
+                        }
+
                         historialAnterior.FechaFin = DateTime.Now;
                         _db.UsuarioHistorial.Update(historialAnterior);
                     }
@@ -1179,7 +1185,7 @@ namespace ApiNet8.Services
         {
             try
             {
-                Usuario usuarioABloquear = GetUsuarioById(bloquearUsuarioDTO.Id);
+                Usuario? usuarioABloquear = GetUsuarioById(bloquearUsuarioDTO.Id);
 
                 if (usuarioABloquear == null)
                 {
@@ -1194,7 +1200,13 @@ namespace ApiNet8.Services
                     if (usuarioABloquear.UsuarioHistoriales.Count != 0 && usuarioABloquear.UsuarioHistoriales.Any(a => a.FechaFin == null))
                     {
                         // obtengo ultimo historial y lo doy de baja
-                        UsuarioHistorial historialAnterior = usuarioABloquear.UsuarioHistoriales.FirstOrDefault(u => u.FechaFin == null);
+                        UsuarioHistorial historialAnterior = usuarioABloquear.UsuarioHistoriales.FirstOrDefault(u => u.FechaFin == null)!;
+
+                        if (historialAnterior.UsuarioEstado.NombreEstado != Enums.EstadoUsuario.Bloqueado.ToString())
+                        {
+                            throw new Exception("Solo se puede desbloquear un usuario en estado bloqueado");
+                        }
+
                         historialAnterior.FechaFin = DateTime.Now;
                         _db.UsuarioHistorial.Update(historialAnterior);
                     }
