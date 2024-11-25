@@ -1,4 +1,5 @@
 ﻿using ApiNet8.Models;
+using ApiNet8.Models.Club;
 using ApiNet8.Models.Partidos;
 using ApiNet8.Services;
 using ApiNet8.Services.IServices;
@@ -21,15 +22,15 @@ namespace ApiNet8.Controllers
             this._backupServices = backupServices;
         }
 
-        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
         public async Task<IActionResult> SubirBackup(IFormFile file, string tipo)
         {
             try
             {
-                //// seteo jwt en header de respuesta
-                //var TOKEN = HttpContext.Items[JWT].ToString();
-                //Response.Headers.Append(JWT, TOKEN);
+                // seteo jwt en header de respuesta
+                var TOKEN = HttpContext.Items[JWT].ToString();
+                Response.Headers.Append(JWT, TOKEN);
 
                 await _backupServices.SubirPDF(file,tipo);
 
@@ -47,17 +48,17 @@ namespace ApiNet8.Controllers
             }
         }
 
-        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult DescargarBackup(string fileName)
+        public async Task<IActionResult> DescargarBackup([FromQuery] int id)
         {
             try
             {
-                //// seteo jwt en header de respuesta
-                //var TOKEN = HttpContext.Items[JWT].ToString();
-                //Response.Headers.Append(JWT, TOKEN);
+                // seteo jwt en header de respuesta
+                var TOKEN = HttpContext.Items[JWT].ToString();
+                Response.Headers.Append(JWT, TOKEN);
 
-                var (fileBytes, name, error) = _backupServices.DescargarBackup(fileName);
+                var (fileBytes, name, error) = await _backupServices.DescargarBackup(id);
 
                 if (error != null)
                     return NotFound(error);
@@ -73,28 +74,21 @@ namespace ApiNet8.Controllers
                     errors = new List<string> { e.Message }
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
-            }
-           
+            }           
         }
 
-        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult VerificarArchivo(string fileName)
+        public IActionResult ObtenerBackups()
         {
             try
             {
-                // seteo jwt en header de respuesta
-                var TOKEN = HttpContext.Items[JWT].ToString();
-                Response.Headers.Append(JWT, TOKEN);
+                //// seteo jwt en header de respuesta
+                //var TOKEN = HttpContext.Items[JWT].ToString();
+                //Response.Headers.Append(JWT, TOKEN);
 
-                bool archivoExiste = _backupServices.VerificarArchivoExiste(fileName);
-
-                var response = new
-                {
-                    Existe = archivoExiste
-                };
-
-                return Ok(response);
+                List<Backup> backups = _backupServices.GetBackups();
+                return Ok(backups);
             }
             catch (Exception e)
             {
@@ -106,7 +100,8 @@ namespace ApiNet8.Controllers
                 };
                 return StatusCode((int)respuestaAPI.status, respuestaAPI);
             }
-
         }
+
+
     }
 }
