@@ -23,6 +23,8 @@ namespace ApiNet8.Data
         public DbSet<ClubHistorial> ClubHistorial { get; set; }
         public DbSet<ParametrosClub> ParametrosClub { get; set; }
         public DbSet<PerfilClub> PerfilClub { get; set; }
+        public DbSet<Backup> Backup { get; set; }
+
 
         public DbSet<Asistencia> Asistencia { get; set; }
         public DbSet<EstadoEvento> EstadoEvento { get; set; }
