@@ -38,7 +38,7 @@ namespace ApiNet8.Services
                     per.NombrePerfil = perfil.NombrePerfil ?? per.NombrePerfil;
                     per.DescripcionPerfil = perfil.DescripcionPerfil ?? per.DescripcionPerfil;
                     per.FechaModificacion = DateTime.Now;
-                    per.UsuarioEditor = currentUser.Id;
+                    per.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
                     _db.Update(per);
                     _db.SaveChanges();
                     transaction.Commit();

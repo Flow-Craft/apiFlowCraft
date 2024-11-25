@@ -256,8 +256,8 @@ namespace ApiNet8.Services
                 if (evento.TipoEvento.NombreTipoEvento == Enums.TipoEvento.Partido.ToString())
                 {                 
                     // crear equipoPartido
-                    Equipo equipoLocal = _equipoServices.GetEquipoEventoById(eventoDTO.EquipoLocal);
-                    Equipo equipoVisitante = _equipoServices.GetEquipoEventoById(eventoDTO.EquipoVisitante);
+                    Equipo equipoLocal = _equipoServices.GetEquipoEventoById((int)eventoDTO.EquipoLocal!);
+                    Equipo equipoVisitante = _equipoServices.GetEquipoEventoById((int)eventoDTO.EquipoVisitante!);
 
                     EquipoPartido local = null;
                     EquipoPartido visitante = null;
@@ -550,10 +550,10 @@ namespace ApiNet8.Services
                         planillero = _usuarioServices.GetUsuarioById(planilleroDTO.Id);
                     }
 
-                    if (eventoDTO.EquipoLocal > 0)
+                    if (eventoDTO.EquipoLocal != null && eventoDTO.EquipoLocal > 0)
                     {
                         // obtengo equipo partido y cambio la relacion a equipo
-                        equipoLocal = _equipoServices.GetEquipoEventoById(eventoDTO.EquipoLocal);
+                        equipoLocal = _equipoServices.GetEquipoEventoById((int)eventoDTO.EquipoLocal);
                         partido.Local.Equipo = equipoLocal;
                         _db.EquipoPartido.Update(partido.Local);
 
@@ -574,10 +574,10 @@ namespace ApiNet8.Services
                         }
                     }
 
-                    if (eventoDTO.EquipoVisitante > 0)
+                    if (eventoDTO.EquipoVisitante != null && eventoDTO.EquipoVisitante > 0)
                     {
                         // obtengo equipo partido y cambio la relacion a equipo
-                        equipoVisitante = _equipoServices.GetEquipoEventoById(eventoDTO.EquipoVisitante);
+                        equipoVisitante = _equipoServices.GetEquipoEventoById((int)eventoDTO.EquipoVisitante);
                         partido.Visitante.Equipo = equipoVisitante;
                         _db.EquipoPartido.Update(partido.Visitante);
 
@@ -618,7 +618,7 @@ namespace ApiNet8.Services
 
                         // cambiar arbitro
                         Usuario? arbitroNuevo = _usuarioServices.GetUsuarioById(eventoDTO.Arbitro);
-                        if (arbitro == null)
+                        if (arbitroNuevo == null)
                         {
                             throw new Exception("No existe arbitro seleccionado");
                         }
@@ -639,7 +639,7 @@ namespace ApiNet8.Services
 
                         // cambiar planillero
                         Usuario? planilleroNuevo = _usuarioServices.GetUsuarioById(eventoDTO.Planillero);
-                        if (planillero == null)
+                        if (planilleroNuevo == null)
                         {
                             throw new Exception("No existe planillero seleccionado");
                         }
