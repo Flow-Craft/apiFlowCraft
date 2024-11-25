@@ -21,19 +21,19 @@ namespace ApiNet8.Controllers
             this._backupServices = backupServices;
         }
 
-        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpPost]
-        public async Task<IActionResult> SubirBackup(IFormFile file)
+        public async Task<IActionResult> SubirBackup(IFormFile file, string tipo)
         {
             try
             {
-                // seteo jwt en header de respuesta
-                var TOKEN = HttpContext.Items[JWT].ToString();
-                Response.Headers.Append(JWT, TOKEN);
+                //// seteo jwt en header de respuesta
+                //var TOKEN = HttpContext.Items[JWT].ToString();
+                //Response.Headers.Append(JWT, TOKEN);
 
-                string fullPath = await _backupServices.SubirPDF(file);
+                await _backupServices.SubirPDF(file,tipo);
 
-                return Ok(new { Message = "Archivo subido exitosamente", FilePath = fullPath });
+                return Ok();
             }
             catch (Exception e)
             {
@@ -47,15 +47,15 @@ namespace ApiNet8.Controllers
             }
         }
 
-        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult DescargarBackup(string fileName)
         {
             try
             {
-                // seteo jwt en header de respuesta
-                var TOKEN = HttpContext.Items[JWT].ToString();
-                Response.Headers.Append(JWT, TOKEN);
+                //// seteo jwt en header de respuesta
+                //var TOKEN = HttpContext.Items[JWT].ToString();
+                //Response.Headers.Append(JWT, TOKEN);
 
                 var (fileBytes, name, error) = _backupServices.DescargarBackup(fileName);
 
