@@ -77,15 +77,15 @@ namespace ApiNet8.Controllers
             }           
         }
 
-        //[ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
+        [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
         public IActionResult ObtenerBackups()
         {
             try
             {
-                //// seteo jwt en header de respuesta
-                //var TOKEN = HttpContext.Items[JWT].ToString();
-                //Response.Headers.Append(JWT, TOKEN);
+                // seteo jwt en header de respuesta
+                var TOKEN = HttpContext.Items[JWT].ToString();
+                Response.Headers.Append(JWT, TOKEN);
 
                 List<Backup> backups = _backupServices.GetBackups();
                 return Ok(backups);
