@@ -185,7 +185,6 @@ namespace ApiNet8.Services
                 .ThenInclude(c => c.Categoria)
                 .Include(d => d.Leccion)
                 .ThenInclude(c => c.Disciplina)
-                .Include(d => d.Usuario)
                 .Where(l => l.Leccion.Disciplina.Id == idDisciplina && l.Leccion.Categoria.Id <= idCategoria && l.FechaBaja == null)
                 .ToList();
 
@@ -206,16 +205,18 @@ namespace ApiNet8.Services
                 {
                     foreach (var insc in inscripciones)
                     {
-                        var asistio = _db.AsistenciaLeccion.Where(a=> a.Usuario.Id==insc.Usuario.Id && a.Leccion.Disciplina.Id == insc.Leccion.Disciplina.Id && a.Leccion.Categoria.Id== insc.Leccion.Categoria.Id && a.FechaBaja==null)
+                        var asistio = _db.AsistenciaLeccion.Where(a=> a.Usuario.Id==insc.UsuarioId && a.Leccion.Disciplina.Id == insc.Leccion.Disciplina.Id && a.Leccion.Categoria.Id== insc.Leccion.Categoria.Id && a.FechaBaja==null)
                         .Any(a => a.FechaCreacion == leccion.FechaCreacion);
 
                         Usuario prof = _usuarioServices.GetUsuarioById(leccion.Leccion.idProfesor);
 
+                        Usuario alumno = _usuarioServices.GetUsuarioById(insc.UsuarioId);
+
                         lecciones.Add(new ReporteLeccionDTO
                         {
                             FechaLeccion = leccion.FechaCreacion,
-                            DniAlumno = insc.Usuario.Dni,
-                            NomAlumno = insc.Usuario.Apellido + ", " + insc.Usuario.Nombre,
+                            DniAlumno = alumno.Dni,
+                            NomAlumno = alumno.Apellido + ", " + alumno.Nombre,
                             NomProfesor = prof.Apellido + ", " + prof.Nombre,
                             Asistencia = asistio ? "Sí" : "No"
                         });
@@ -417,7 +418,6 @@ namespace ApiNet8.Services
                 Include(e => e.Leccion).
                 ThenInclude(e => e.LeccionHistoriales).
                 ThenInclude(e => e.LeccionEstado).
-                Include(u => u.Usuario).
                 Where(i => i.Leccion.Id == id).ToList();
 
             return inscripciones;
@@ -426,7 +426,6 @@ namespace ApiNet8.Services
         public List<InscripcionUsuario> GetInscripcionesLeccionVigentes(int id)
         {
             List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.
-                Include(u => u.Usuario).
                 Include(e => e.Leccion).
                 ThenInclude(e => e.LeccionHistoriales).
                 ThenInclude(e => e.LeccionEstado).
@@ -447,8 +446,7 @@ namespace ApiNet8.Services
                 Include(e => e.Leccion).
                 ThenInclude(e => e.LeccionHistoriales).
                 ThenInclude(e => e.LeccionEstado).
-                Include(u => u.Usuario).
-                Where(u => u.Usuario.Id == currentUser.Id).ToList();
+                Where(u => u.UsuarioId == currentUser.Id).ToList();
             return inscripciones;
         }
 
@@ -465,8 +463,7 @@ namespace ApiNet8.Services
                 Include(e => e.Leccion).
                 ThenInclude(e => e.LeccionHistoriales).
                 ThenInclude(e => e.LeccionEstado).
-                Include(u => u.Usuario).
-                Where(u => u.Usuario.Id == currentUser.Id && u.FechaBaja == null).ToList();
+                Where(u => u.UsuarioId == currentUser.Id && u.FechaBaja == null).ToList();
             return inscripciones;
         }
 
@@ -497,7 +494,7 @@ namespace ApiNet8.Services
                 }
 
                 // verificar si ya esta inscripto
-                List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(u => u.Usuario.Id == inscripcion.IdUsuario && u.Leccion.Id == inscripcion.IdLeccion && u.FechaBaja == null).ToList();
+                List<InscripcionUsuario> inscripciones = _db.InscripcionUsuario.Include(e => e.Leccion).Where(u => u.UsuarioId == inscripcion.IdUsuario && u.Leccion.Id == inscripcion.IdLeccion && u.FechaBaja == null).ToList();
                 if (inscripciones.Count() > 0)
                 {
                     throw new Exception("El usuario ya esta inscripto para esta lección.");
@@ -542,14 +539,14 @@ namespace ApiNet8.Services
                     throw new Exception("No puede inscribirse porque no tiene perfil de socio");
                 }
 
-                InscripcionUsuario? inscripcionLeccion = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(f => f.Leccion.Id == inscripcion.IdLeccion && f.Usuario.Id == currentUser.Id).FirstOrDefault();
+                InscripcionUsuario? inscripcionLeccion = _db.InscripcionUsuario.Include(e => e.Leccion).Where(f => f.Leccion.Id == inscripcion.IdLeccion && f.UsuarioId == currentUser.Id).FirstOrDefault();
                 if (inscripcionLeccion == null)
                 {
                     inscripcionLeccion = new InscripcionUsuario
                     {
                         Leccion = leccion,
-                        Usuario = usuario,
                         FechaCreacion = DateTime.Now,
+                        UsuarioId = usuario.Id
                     };
                     _db.InscripcionUsuario.Add(inscripcionLeccion);
                 }
@@ -635,7 +632,7 @@ namespace ApiNet8.Services
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
                 // busco la inscripcion y la doy de baja
-                InscripcionUsuario? inscripcionLeccion = _db.InscripcionUsuario.Include(e => e.Leccion).Include(u => u.Usuario).Where(f => f.Leccion.Id==inscripcion.IdLeccion && f.Usuario.Id== currentUser.Id && f.FechaBaja==null).FirstOrDefault();
+                InscripcionUsuario? inscripcionLeccion = _db.InscripcionUsuario.Include(e => e.Leccion).Where(f => f.Leccion.Id==inscripcion.IdLeccion && f.UsuarioId == currentUser.Id && f.FechaBaja==null).FirstOrDefault();
 
                 inscripcionLeccion.FechaBaja = DateTime.Now;
 

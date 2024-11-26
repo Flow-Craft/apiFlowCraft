@@ -72,7 +72,7 @@ builder.Services.AddSession(options =>
     options.IdleTimeout = TimeSpan.FromMinutes(10);
     options.Cookie.HttpOnly = true; // Asegurar que las cookies solo se accedan vía backend
     options.Cookie.SameSite = SameSiteMode.None; // Permitir compartir cookies entre dominios
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always; // Always para usar con front, para debuggear usar none
+    options.Cookie.SecurePolicy = CookieSecurePolicy.None; // Always para usar con front, para debuggear usar none
 });
 
 builder.Services.AddHttpContextAccessor();

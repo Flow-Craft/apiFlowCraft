@@ -114,15 +114,15 @@ namespace ApiNet8.Data
                 .HasForeignKey(e => e.Id)
                 .OnDelete(DeleteBehavior.Restrict); // Desactivar eliminación en cascada
 
-            modelBuilder.Entity<InscripcionUsuario>()
-               .HasOne(e => e.Usuario)
-               .WithMany()
-               .HasForeignKey(e => e.Id)
-               .OnDelete(DeleteBehavior.Restrict); // Desactivar eliminación en cascada
+            //modelBuilder.Entity<InscripcionUsuario>()
+            //   .HasOne(e => e.Usuario)
+            //   .WithMany()
+            //   .HasForeignKey(e => e.Id)
+            //   .OnDelete(DeleteBehavior.Restrict); // Desactivar eliminación en cascada}
+
+
 
             // cargar data inicial
-            //modelBuilder.Entity<Partidos>().HasData(
-            //    new Partidos { Id = 1, EquipoA = "Independiente", EquipoB = "Boca", Name = "Fecha 1 copa de la liga", Resultado = "2-0" });
 
             modelBuilder.Entity<Disciplina>().HasData(
                 new Disciplina { Id = 1, Nombre = "Futbol", Descripcion = "Juego entre dos equipos de once jugadores cada uno, cuyo objetivo es hacer entrar en la portería contraria un balón que no puede ser tocado con las manos ni con los brazos, salvo por el portero en su área de meta.", CantJugadores = 11, PeriodosMax = 2, TarjetasAdvertencia = 2, TarjetasExpulsion = 1, CantJugadoresEnBanca = 11, FechaCreacion = DateTime.Now, FechaModificacion = null, FechaBaja = null, UsuarioEditor = 1 },
