@@ -499,6 +499,7 @@ namespace ApiNet8.Services
                                 jugBanca = _db.EquipoUsuario.Where(p => p.Id == accion.IdJugadorEnBanca).FirstOrDefault().NumCamiseta;
                             }
                             
+                            // verificar si el equipo usuario esta relacionado al partido
 
                             AccionPartido accionPartido = new AccionPartido()
                             {
@@ -514,7 +515,7 @@ namespace ApiNet8.Services
                                 NroJugadorCambio = jugBanca
                             };
 
-                            if (tipAcc.NombreTipoAccion == "Gol")
+                            if (tipAcc.NombreTipoAccion == "Gol" || tipAcc.NombreTipoAccion == "Punto" || tipAcc.NombreTipoAccion == "Tanto" || tipAcc.NombreTipoAccion == "Canasta")
                             {
                                 if (accion.EquipoLocal == true)
                                 {
