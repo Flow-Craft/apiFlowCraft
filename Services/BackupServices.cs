@@ -42,7 +42,7 @@ namespace ApiNet8.Services
 
                 // asignar numero de version
                 int newVersion = 1;
-                var lastBackup = await _db.Backup.OrderByDescending(b => b.Version).FirstOrDefaultAsync();
+                var lastBackup = await _db.Backup.Where(b=>b.Tipo == tipo).OrderByDescending(b => b.Version).FirstOrDefaultAsync();
 
                 if (lastBackup != null)
                 {
