@@ -870,7 +870,7 @@ namespace ApiNet8.Services
                     }
 
                     // envio mail al usuario con el codigo
-                    _emailService.SendEmail(mail,usuario.Nombre + usuario.Apellido, "Código de verificación", "Tu código de verificación es: " + codigoVerificacion.Codigo + " y expirará en 10 minutos.") ;
+                    _emailService.SendEmail(mail,usuario.Nombre + usuario.Apellido, "Código de verificación", "Tu código de verificación es: " + codigoVerificacion.Codigo + " y expirará en 10 minutos.");
                     return true;
                 }
 
