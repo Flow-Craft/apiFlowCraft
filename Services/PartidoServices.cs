@@ -498,8 +498,7 @@ namespace ApiNet8.Services
                             {
                                 jugBanca = _db.EquipoUsuario.Where(p => p.Id == accion.IdJugadorEnBanca).FirstOrDefault().NumCamiseta;
                             }
-                            
-                            // verificar si el equipo usuario esta relacionado al partido
+                                                     
 
                             AccionPartido accionPartido = new AccionPartido()
                             {
@@ -535,19 +534,38 @@ namespace ApiNet8.Services
                             if (tipAcc.ModificaTarjetasAdvertencia == true)
                             {
 
-                                List<AccionPartido> acciones = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Partido.Id == part.Id && a.TipoAccionPartido.NombreTipoAccion == "Tarjeta Amarilla").ToList();
-                                if (acciones.Count+1 == part.Disciplina.TarjetasAdvertencia)
+                                List<AccionPartido> acciones = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Partido.Id == part.Id && a.TipoAccionPartido.NombreTipoAccion == "Tarjeta Amarilla" && a.FechaBaja == null && a.NroJugador == accionPartido.NroJugador).ToList();
+                                if (acciones.Count+1 >= part.Disciplina.TarjetasAdvertencia)
 
                                 {
                                     accion.TotalTarjetas = true;
                                     part = ExpulsionJugador(part, accion);
+                                    
+                                    // creo una accion de tarjeta roja 
+                                    AccionPartido expulsion = new AccionPartido()
+                                    {
+                                        NroJugador = accionPartido.NroJugador,
+                                        Minuto = accionPartido.Minuto,
+                                        Descripcion = _tipoAccionPartidoServices.GetTipoAccionPartidoById(4).NombreTipoAccion,
+                                        FechaCreacion = accionPartido.FechaCreacion,
+                                        UsuarioEditor = accionPartido.UsuarioEditor,
+                                        Periodo = accionPartido.Periodo,
+                                        TipoAccionPartido = _tipoAccionPartidoServices.GetTipoAccionPartidoById(4), // tarjeta roja
+                                        EquipoLocal = accionPartido.EquipoLocal, 
+                                        Partido = part, 
+                                        NroJugadorCambio = accionPartido.NroJugadorCambio
+                                    };
+
+                                        _db.AccionPartido.Add(expulsion);
                                 }
+
+                               
                             }
 
                             if (tipAcc.ModificaTarjetasExpulsion == true)
                             {
 
-                                List<AccionPartido> acciones = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Partido.Id == part.Id && a.TipoAccionPartido.NombreTipoAccion == "Tarjeta Roja").ToList();
+                                List<AccionPartido> acciones = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Partido.Id == part.Id && a.TipoAccionPartido.NombreTipoAccion == "Tarjeta Roja" && a.NroJugador == accion.IdJugador).ToList();
                                 if (acciones.Count+1 == part.Disciplina.TarjetasExpulsion)
 
                                 {
@@ -590,10 +608,16 @@ namespace ApiNet8.Services
                     using (var transaction = _db.Database.BeginTransaction())
                     {
 
-                        AccionPartido accionPartido = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Id == accion.Id).FirstOrDefault();
+                        AccionPartido? accionPartido = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Id == accion.Id).FirstOrDefault();
+
+                        if (accionPartido == null)
+                        {
+                            throw new Exception("No se encontro la accion que desea eliminar");
+                        }
+
                         Partido part = GetPartidoById(accion.IdPartido);
                         accionPartido.FechaBaja = DateTime.Now;
-                        accionPartido.UsuarioEditor = currentUser.Id;
+                        accionPartido.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
 
                         if (accionPartido.TipoAccionPartido.NombreTipoAccion == "Gol")
                         {
@@ -621,7 +645,7 @@ namespace ApiNet8.Services
                             List<AccionPartido> acciones = _db.AccionPartido.Include(p => p.TipoAccionPartido).Where(a => a.Partido.Id == part.Id && a.TipoAccionPartido.ModificaTarjetasAdvertencia == true && a.FechaBaja==null).ToList();
                             if (acciones.Count == part.Disciplina.TarjetasAdvertencia)
                             {
-                                part = IncorporarJugador(part, accionPartido.NroJugador.ToString(), accionPartido.EquipoLocal);
+                                part = IncorporarJugador(part, accionPartido.NroJugador.ToString(), accionPartido.EquipoLocal);                               
                             }
                         }
 
