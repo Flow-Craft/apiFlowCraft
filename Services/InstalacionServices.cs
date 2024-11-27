@@ -65,7 +65,7 @@ namespace ApiNet8.Services
                     {
                         FechaInicio = DateTime.Now,
                         DetalleCambioEstado = "Se actualiza instalacion",
-                        UsuarioEditor = currentUser?.Id,
+                        UsuarioEditor = currentUser != null ? currentUser.Id : 0,
                         InstalacionEstado = _instalacionEstadoServices.GetInstalacionEstadoById(instalacionDTO.EstadoId) // asigno estado ACTIVO
                     };
 
@@ -96,7 +96,7 @@ namespace ApiNet8.Services
                     {
                         FechaInicio = DateTime.Now,
                         DetalleCambioEstado = "Alta Instalacion",
-                        UsuarioEditor = currentUser?.Id,
+                        UsuarioEditor = currentUser != null ? currentUser.Id : 0,
                         InstalacionEstado = _instalacionEstadoServices.GetInstalacionEstadoById(1) // asigno estado ACTIVO
                     };
 
@@ -148,7 +148,7 @@ namespace ApiNet8.Services
                     {
                         DetalleCambioEstado = "Se elimina instalacion",
                         FechaInicio = DateTime.Now,
-                        UsuarioEditor = currentUser?.Id,
+                        UsuarioEditor = currentUser != null ? currentUser.Id : 0,
                         InstalacionEstado = _instalacionEstadoServices.GetInstalacionEstadoById(2) // asigno estado DESACTIVADO
                     };
 
