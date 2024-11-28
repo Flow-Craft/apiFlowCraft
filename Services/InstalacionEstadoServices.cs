@@ -39,7 +39,7 @@ namespace ApiNet8.Services
                     instEst.NombreEstado = instalacionEstadoDTO.NombreEstado ?? instEst.NombreEstado;
                     instEst.DescripcionEstado = instalacionEstadoDTO.DescripcionEstado ?? instEst.DescripcionEstado;
                     instEst.FechaModificacion = DateTime.Now;
-                    instEst.UsuarioEditor = currentUser.Id;
+                    instEst.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
                     _db.Update(instEst);
                     _db.SaveChanges();
                     transaction.Commit();
@@ -66,7 +66,7 @@ namespace ApiNet8.Services
                 //mapper de usuariodto a usuario
                 InstalacionEstado estInst = _mapper.Map<InstalacionEstado>(instalacionEstadoDTO);
                 estInst.FechaCreacion = DateTime.Now;
-                estInst.UsuarioEditor = currentUser.Id;
+                estInst.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
                 _db.Add(estInst);
                 _db.SaveChanges();
             }
@@ -86,7 +86,7 @@ namespace ApiNet8.Services
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     instEstado.FechaBaja = DateTime.Now;
-                    instEstado.UsuarioEditor = currentUser.Id;
+                    instEstado.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
                     _db.Update(instEstado);
                     _db.SaveChanges();
                     transaction.Commit();

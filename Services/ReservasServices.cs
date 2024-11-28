@@ -49,7 +49,7 @@ namespace ApiNet8.Services
                         reserva.FechaModificacion = DateTime.Now;
                         reserva.HoraInicio = (DateTime)reservaDTO.HoraInicio;
                         reserva.HoraFin = (DateTime)reservaDTO.HoraFin;
-                        reserva.UsuarioEditor = reservaDTO.UsuarioId != null ? (int)reservaDTO.UsuarioId : currentUserId;
+                        reserva.UsuarioEditor = currentUserId;
                         reserva.Instalacion = _instalacionServices.GetInstalacionById((int)reservaDTO.InstalacionId);
                         if (reservaDTO.UsuarioId != null) { reserva.Usuario = _usuarioServices.GetUsuarioById((int)reservaDTO.UsuarioId); }
 
@@ -95,7 +95,7 @@ namespace ApiNet8.Services
                             FechaCreacion = DateTime.Now,
                             HoraInicio = (DateTime)reservaDTO.HoraInicio,
                             HoraFin = (DateTime)reservaDTO.HoraFin,
-                            UsuarioEditor = currentUser.Id,
+                            UsuarioEditor = currentUser != null ? currentUser.Id : 0,
                             Usuario = usu,
                             Instalacion = _instalacionServices.GetInstalacionById((int)reservaDTO.InstalacionId)
                         };
@@ -132,7 +132,7 @@ namespace ApiNet8.Services
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     reserva.FechaBaja=DateTime.Now;
-                    reserva.UsuarioEditor = currentUser.Id;
+                    reserva.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
                     _db.Reserva.Update(reserva);
                     _db.SaveChanges();
                     transaction.Commit();

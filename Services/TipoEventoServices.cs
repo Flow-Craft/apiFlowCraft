@@ -63,7 +63,7 @@ namespace ApiNet8.Services
 
                 if (ExisteTipoEvento(tipoEvento.NombreTipoEvento))
                 {
-                    throw new Exception("Ya existe un estado de leccion con ese nombre.");
+                    throw new Exception("Ya existe un tipo evento con ese nombre.");
                 }
 
                 tipoEvento.FechaCreacion = DateTime.Now;
