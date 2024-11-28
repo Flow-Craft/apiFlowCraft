@@ -217,7 +217,7 @@ namespace ApiNet8.Services
                 tipoAccionPartido.NombreTipoAccion = tipoAccionPartidoDTO.NombreTipoAccion ?? tipoAccionPartido.NombreTipoAccion;
                 tipoAccionPartido.ModificaTarjetasAdvertencia = tipoAccionPartidoDTO.ModificaTarjetasAdvertencia ?? tipoAccionPartido.ModificaTarjetasAdvertencia;
                 tipoAccionPartido.ModificaTarjetasExpulsion = tipoAccionPartidoDTO.ModificaTarjetasExpulsion ?? tipoAccionPartido.ModificaTarjetasExpulsion;
-                tipoAccionPartido.secuencial = tipoAccionPartidoDTO.secuencial ?? tipoAccionPartido.secuencial;
+                //tipoAccionPartido.secuencial = tipoAccionPartidoDTO.secuencial ?? tipoAccionPartido.secuencial;
                 tipoAccionPartido.UsuarioEditor = currentUser != null ? currentUser.Id : 0;
                 tipoAccionPartido.EsPartido = tipoAccionPartidoDTO.EsPartido ?? tipoAccionPartido.EsPartido;
 
