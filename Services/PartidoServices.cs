@@ -597,6 +597,7 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
         public void BajaAccionPartido(AccionPartidoDTO accion)//LISTO
         {
             try
@@ -674,6 +675,7 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
         public Partido CambioJugador(Partido part, AccionPartidoDTO accion, bool baja)//LISTO
         {
             string jugador;
@@ -705,6 +707,7 @@ namespace ApiNet8.Services
             
             return part;
         }
+
         public Partido ExpulsionJugador(Partido part, AccionPartidoDTO accion)//listo
         {
             string jugador = _db.EquipoUsuario.Where(p => p.Id == accion.IdJugador).FirstOrDefault().NumCamiseta.ToString();
@@ -722,6 +725,7 @@ namespace ApiNet8.Services
 
             return part;
         }
+
         public Partido IncorporarJugador(Partido part, string jugador, bool local)//listo
         {
             if (local == true)
@@ -735,6 +739,7 @@ namespace ApiNet8.Services
 
             return part;
         }
+
         public void IniciarTiempo(int partidoId)//listo
         {
             try
@@ -789,6 +794,7 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
         public void FinalizarTiempo(int partidoId)//LISTO
         {
             try
@@ -864,6 +870,7 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
         public void FinalizarPartido(int partidoId)//LISTO
         {
             try
@@ -1049,6 +1056,7 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
         public List<AccionPartido> GetAccionPartidoByPartidoTipoAccion(AccionPartidoDTO accion)//listo
         {
             try
@@ -1079,6 +1087,7 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         } 
+
         public Partido GetPartidoById(int Id)//LISTO
         {
             try
@@ -1105,7 +1114,7 @@ namespace ApiNet8.Services
                 part.Categoria = evento.Categoria;
                 part.TipoEvento = evento.TipoEvento;
                 part.Instalacion = evento.Instalacion;
-
+                
                 List<HistorialEvento> EventoHistorial = new List<HistorialEvento>()
                 { evento.HistorialEventoList.Where(f => f.FechaFin == null).FirstOrDefault()};
 
@@ -1123,22 +1132,24 @@ namespace ApiNet8.Services
         {
             Partido partido = GetPartidoById(idPartido);
 
-            // obtener perfil de cada usuario
-            List<int> idsUsuarios = partido.Usuarios?.Select(u => u.Id).ToList() ?? new List<int>();
-            List<UsuarioDTO> usuariosPerfil = new List<UsuarioDTO>();
+            // obtener planillero y arbitro
+            UsuarioDTO? arbitro = partido.idArbitro != null ? _usuarioServices.GetPerfilUsuario((int)partido.idArbitro) : null;
+            UsuarioDTO? planillero = partido.idPlanillero != null ? _usuarioServices.GetPerfilUsuario((int)partido.idPlanillero) : null;
 
-            foreach (var item in idsUsuarios)
+            List<UsuarioDTO> usuarios = new List<UsuarioDTO>();
+
+            if (arbitro != null)
             {
-                UsuarioDTO? usuarioPerfil = _usuarioServices.GetPerfilUsuario(item);
-                if (usuarioPerfil != null)
-                {
-                    usuariosPerfil.Add(usuarioPerfil);
-                }
+                usuarios.Add(arbitro);
             }
 
-            usuariosPerfil = usuariosPerfil.Where(a=> a.Perfil == Enums.Perfiles.Arbitro.ToString() || a.Perfil==Enums.Perfiles.Planillero.ToString()).ToList();
+            if (planillero!=null)
+            {
+                usuarios.Add(planillero);
+            }
 
-            return usuariosPerfil;
+            return usuarios;
+          
         }
 
         public AccionPartido GetAccionPartidoById(int Id)//listo
@@ -1154,6 +1165,7 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
         public List<Partido> GetPartidos()//LISTO
         {
             try
@@ -1175,6 +1187,7 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
         public bool EsArbitro()//LISTO
         {
             try
@@ -1186,7 +1199,7 @@ namespace ApiNet8.Services
                     throw new Exception("Current user es null");
                 }
 
-                PerfilUsuario arbitro = _db.PerfilUsuario.Where(pu => pu.FechaBaja == null && pu.Usuario.Id == currentUser.Id && (pu.Perfil.Id == 6 || pu.Perfil.Id == 1)).FirstOrDefault();
+                PerfilUsuario? arbitro = _db.PerfilUsuario.Where(pu => pu.FechaBaja == null && pu.Usuario.Id == currentUser.Id && (pu.Perfil.Id == 6 || pu.Perfil.Id == 1)).FirstOrDefault();
 
                 if (arbitro != null)
                 {
@@ -1209,13 +1222,19 @@ namespace ApiNet8.Services
             try
             {
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
-                
-                Partido partido = GetPartidoById(asignacion.PartidoId);
-                bool seEncuentra = partido.Usuarios.Any(a => a.Id == currentUser.Id);
 
-                if (seEncuentra)
+                if (currentUser == null) 
                 {
-                    PerfilUsuario usuario = _db.PerfilUsuario.Include(l => l.Perfil).Where(a => a.Usuario.Id == currentUser.Id && a.FechaBaja==null).FirstOrDefault();
+                    throw new Exception("CurrentUser es null");
+                }
+
+                Partido partido = GetPartidoById(asignacion.PartidoId);
+                bool seEncuentra = partido.idArbitro == currentUser.Id || partido.idPlanillero == currentUser.Id ? true : false;
+
+                PerfilUsuario? usuario = _db.PerfilUsuario.Include(l => l.Perfil).Where(a => a.Usuario.Id == currentUser.Id && a.FechaBaja == null).FirstOrDefault();
+
+                if (seEncuentra && usuario != null)
+                {
                     if (usuario.Perfil.Id == 1)//admin
                     {
                         asignacion.Planillero = true;
@@ -1249,16 +1268,22 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
         public List<Partido> GetPartidosAsignados()//LISTO
         {
             try
             {
                 var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
 
+                if (currentUser == null)
+                {
+                    throw new Exception("CurrentUser es null");
+                }
+
                 if (EsArbitro() == true){
                     List<Partido> partidos = GetPartidos();
 
-                    List<Partido> partidosActivos = partidos.Where(p => p.Usuarios.Any(u => u.Id == currentUser.Id)).ToList();
+                    List<Partido> partidosActivos = partidos.Where(p => p.idArbitro == currentUser.Id).ToList();
 
                     return partidosActivos;
                 }
@@ -1273,6 +1298,7 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
         public List<EquipoUsuario> GetEquipoLocal(int partidoId)//LISTO
         {
             try
@@ -1285,6 +1311,7 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
         public List<EquipoUsuario> GetEquipoVisitante(int partidoId)//LISTO
         {
             try
@@ -1297,6 +1324,7 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
         public void IniciarPartido(PartidoDTO partidoDTO)//LISTO
         {
             try
@@ -1416,6 +1444,7 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
         public void SuspenderPartido(PartidoDTO partidoDTO)//LISTO
         {
             try

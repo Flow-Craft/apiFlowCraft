@@ -14,6 +14,7 @@ using ApiNet8.Migrations;
 using XAct.Events;
 using XAct;
 using System.Text.Json;
+using XSystem.Security.Cryptography;
 
 namespace ApiNet8.Services
 {
@@ -329,6 +330,7 @@ namespace ApiNet8.Services
                         if (arbitro != null)
                         {
                             partido.Usuarios.Add(arbitro);
+                            partido.idArbitro = eventoDTO.Arbitro;
                         }
                     }
 
@@ -339,6 +341,7 @@ namespace ApiNet8.Services
                         if (planillero != null)
                         {
                             partido.Usuarios.Add(planillero);
+                            partido.idPlanillero = eventoDTO.Planillero;
                         }
                     }
 
@@ -527,35 +530,43 @@ namespace ApiNet8.Services
 
                     // lista de IDs de los usuarios del partido
                     List<int> usuarioIdsPartido = partido.Usuarios.Select(u => u.Id).ToList();
+                                    
+                    Usuario? arbitroActual = null;
+                    Usuario? planilleroActual = null;
 
-                    // Filtra los usuarios por perfil de árbitro y verifica que el Id esté en la lista de usuarios del partido
-                    UsuarioDTO? arbitroDTO = _usuarioServices.GetUsuarioByPerfil(Enums.Perfiles.Arbitro.ToString())
-                                    .FirstOrDefault(u => usuarioIdsPartido.Contains(u.Id));
-
-                    // Filtra los usuarios por perfil de planillero y verifica que el Id esté en la lista de usuarios del partido
-                    UsuarioDTO? planilleroDTO = _usuarioServices.GetUsuarioByPerfil(Enums.Perfiles.Planillero.ToString())
-                                    .FirstOrDefault(u => usuarioIdsPartido.Contains(u.Id));
-                    
-                    Usuario? arbitro = new Usuario();
-                    Usuario? planillero = new Usuario();
-
-                    // obtengo arbitro y planilleros actuales si existen
-                    if (arbitroDTO != null)
+                    if (partido.idArbitro != null)
                     {
-                        arbitro = _usuarioServices.GetUsuarioById(arbitroDTO.Id);
+                        arbitroActual = _usuarioServices.GetUsuarioById((int)partido.idArbitro);
                     }
 
-                    if (planilleroDTO != null)
+                    if (partido.idPlanillero != null)
                     {
-                        planillero = _usuarioServices.GetUsuarioById(planilleroDTO.Id);
+                        planilleroActual = _usuarioServices.GetUsuarioById((int)partido.idPlanillero);
                     }
 
                     if (eventoDTO.EquipoLocal != null && eventoDTO.EquipoLocal > 0)
                     {
                         // obtengo equipo partido y cambio la relacion a equipo
                         equipoLocal = _equipoServices.GetEquipoEventoById((int)eventoDTO.EquipoLocal);
-                        partido.Local.Equipo = equipoLocal;
-                        _db.EquipoPartido.Update(partido.Local);
+
+                        if (partido.Local == null)
+                        {
+                            EquipoPartido equipoPartidoLocal = new EquipoPartido
+                            {
+                                FechaCreacion = DateTime.Now,
+                                Equipo = equipoLocal,
+                                JugadoresEnBanca = new List<string>(),
+                                JugadoresEnCancha = new List<string>()
+                            };
+                            _db.EquipoPartido.Add(equipoPartidoLocal);
+                            partido.Local = equipoPartidoLocal;
+                        }
+                        else
+                        {
+                            partido.Local.Equipo = equipoLocal;
+                            _db.EquipoPartido.Update(partido.Local);
+                        }                        
+
 
                         // eliminar los usuarios de equipo local que estaban
                         if (partido.Visitante != null)
@@ -578,8 +589,23 @@ namespace ApiNet8.Services
                     {
                         // obtengo equipo partido y cambio la relacion a equipo
                         equipoVisitante = _equipoServices.GetEquipoEventoById((int)eventoDTO.EquipoVisitante);
-                        partido.Visitante.Equipo = equipoVisitante;
-                        _db.EquipoPartido.Update(partido.Visitante);
+                        if (partido.Visitante == null)
+                        {
+                            EquipoPartido equipoPartidoVisitante = new EquipoPartido
+                            {
+                                FechaCreacion = DateTime.Now,
+                                Equipo = equipoVisitante,
+                                JugadoresEnBanca = new List<string>(),
+                                JugadoresEnCancha = new List<string>()
+                            };
+                            _db.EquipoPartido.Add(equipoPartidoVisitante);
+                            partido.Visitante = equipoPartidoVisitante;
+                        }
+                        else
+                        {
+                            partido.Visitante.Equipo = equipoVisitante;
+                            _db.EquipoPartido.Update(partido.Visitante);
+                        }                        
 
                         // eliminar los usuarios de equipo visitante que estaban
                         if (partido.Local != null)
@@ -597,23 +623,13 @@ namespace ApiNet8.Services
                             partido.Usuarios.Add(usuario);
                         }
                     }
-                   
-                    //if (arbitro != null)
-                    //{
-                    //    partido.Usuarios.Add(arbitro);
-                    //}
-
-                    //if (planillero != null)
-                    //{
-                    //    partido.Usuarios.Add(planillero);
-                    //}
-
+                 
                     if (eventoDTO.Arbitro > 0)
                     {
                         // quitar arbitro anterior
-                        if (arbitro != null)
+                        if (arbitroActual != null)
                         {
-                            partido.Usuarios.Remove(arbitro);
+                            partido.Usuarios.Remove(arbitroActual);
                         }
 
                         // cambiar arbitro
@@ -625,6 +641,7 @@ namespace ApiNet8.Services
                         else
                         {
                             partido.Usuarios.Add(arbitroNuevo);
+                            partido.idArbitro = arbitroNuevo.Id;
                         }
                     }
 
@@ -632,9 +649,9 @@ namespace ApiNet8.Services
                     {
 
                         // quitar planillero anterior
-                        if (planillero != null)
+                        if (planilleroActual != null)
                         {
-                            partido.Usuarios.Remove(planillero);
+                            partido.Usuarios.Remove(planilleroActual);
                         }
 
                         // cambiar planillero
@@ -644,6 +661,7 @@ namespace ApiNet8.Services
                             throw new Exception("No existe planillero seleccionado");
                         }
                         partido.Usuarios.Add(planilleroNuevo);
+                        partido.idPlanillero = planilleroNuevo.Id;
                     }
 
                     _db.Partido.Update(partido);
