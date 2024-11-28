@@ -74,8 +74,8 @@
 
         public enum Disciplinas
         {
-            Futbol = 1,
-            Voleyball = 2,           
+            Futbol= 1,
+            Voleyball = 2,              
         }
 
         public enum EstadoTorneo

@@ -1157,7 +1157,7 @@ namespace ApiNet8.Services
                     document.Add(graficoImage);
                 }
 
-                if (disciplina.Nombre == Enums.Disciplinas.Futbol.ToString())
+                if (disciplina.Nombre == Enums.Disciplinas.Futbol.ToString() + " 11" || disciplina.Nombre == Enums.Disciplinas.Futbol.ToString() + " 5")
                 {
                     // Tabla de estadisticas
                     Table table = new Table(new float[] { 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
