@@ -825,7 +825,7 @@ namespace ApiNet8.Services
                 // verificar estado evento
                 if (evento?.HistorialEventoList?.Where(f => f.FechaFin == null)?.OrderByDescending(f => f.FechaInicio)?.FirstOrDefault()?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Creado.ToString())
                 {
-                    throw new Exception("Las inscripciones al evento estan cerradas: el evento esta en curso o ha finalizado.");
+                    throw new Exception("Las inscripciones al evento estan cerradas: el evento ha finalizado.");
                 }
 
                 // verificar si ya esta inscripto
@@ -921,7 +921,7 @@ namespace ApiNet8.Services
                 // verificar estado evento
                 if (evento?.HistorialEventoList?.Where(f => f.FechaFin == null)?.OrderByDescending(f => f.FechaInicio)?.FirstOrDefault()?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Creado.ToString())
                 {
-                    throw new Exception("Las inscripciones al evento estan cerradas: el evento esta en curso o ha finalizado.");
+                    throw new Exception("Las inscripciones al evento estan cerradas: el evento ha finalizado.");
                 }
 
                 // verificar si ya esta inscripto
@@ -998,7 +998,7 @@ namespace ApiNet8.Services
 
                 if (evento?.HistorialEventoList?.Where(f => f.FechaFin == null)?.OrderByDescending(f => f.FechaInicio)?.FirstOrDefault()?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Creado.ToString())
                 {
-                    throw new Exception("Las inscripciones al evento estan cerradas: el evento esta en curso o ha finalizado.");
+                    throw new Exception("Las inscripciones al evento estan cerradas: el evento ha finalizado.");
                 }
 
                 // busco la inscripcion y la doy de baja
@@ -1059,7 +1059,7 @@ namespace ApiNet8.Services
 
                 if (evento?.HistorialEventoList?.Where(f => f.FechaFin == null)?.OrderByDescending(f => f.FechaInicio)?.FirstOrDefault()?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Creado.ToString())
                 {
-                    throw new Exception("Las inscripciones al evento estan cerradas: el evento esta en curso o ha finalizado.");
+                    throw new Exception("Las inscripciones al evento estan cerradas: el evento ha finalizado.");
                 }
 
                 // busco la inscripcion y la doy de baja
