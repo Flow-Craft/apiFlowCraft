@@ -802,7 +802,7 @@ namespace ApiNet8.Services
 
         public List<Inscripcion> GetInscripcionesEvento(int id)
         {
-            List<Inscripcion> inscripciones = _db.Inscripcion.Include(e=>e.Evento).Where(i=>i.Evento.Id == id).ToList();
+            List<Inscripcion> inscripciones = _db.Inscripcion.Include(e=>e.Evento).Where(i=>i.Evento.Id == id && i.FechaBaja == null).ToList();
             return inscripciones;
         }
 
@@ -888,7 +888,7 @@ namespace ApiNet8.Services
 
                 // verificar si el evento esta lleno
                 int cantInscripciones = GetInscripcionesEvento(inscripcion.IdEvento).Count();
-                if (evento.CupoMaximo == cantInscripciones + 1)
+                if (evento.CupoMaximo >= cantInscripciones + 1)
                 {
                     evento.EventoLleno = true;
                     _db.Evento.Update(evento);
@@ -943,6 +943,12 @@ namespace ApiNet8.Services
                     throw new Exception("Las inscripciones al evento estan cerradas: el evento ha finalizado.");
                 }
 
+                // verificar fecha fin evento, en caso de que paso la fecha pero no finalizao el evento
+                if (DateTime.Now > evento.FechaFinEvento)
+                {
+                    throw new Exception("Ya paso la fecha de finalizacion del evento");
+                }
+
                 // verificar si ya esta inscripto
                 List<Inscripcion> inscripciones = _db.Inscripcion.Include(e => e.Evento).Include(u => u.Usuario).Where(u => u.Usuario.Id == currentUser.Id && u.Evento.Id == IdEvento && u.FechaBaja == null).ToList();
                 if (inscripciones.Count() > 0)
@@ -984,7 +990,7 @@ namespace ApiNet8.Services
 
                 // verificar si el evento esta lleno
                 int cantInscripciones = GetInscripcionesEvento(IdEvento).Count();
-                if (evento.CupoMaximo == cantInscripciones + 1)
+                if (evento.CupoMaximo >= cantInscripciones + 1)
                 {
                     evento.EventoLleno = true;
                     _db.Evento.Update(evento);
