@@ -60,14 +60,47 @@ namespace ApiNet8.Services
             foreach (var item in eventos)
             {
                 // obtengo ultimo historial
-                HistorialEvento? eventoHistorial = item.HistorialEventoList.Where(f => f.FechaFin == null).OrderByDescending(f => f.FechaInicio).FirstOrDefault();
+                HistorialEvento? eventoHistorial = item.HistorialEventoList!.Where(f => f.FechaFin == null).OrderByDescending(f => f.FechaInicio).FirstOrDefault();
+
+                // verificar fecha de evento, si ya paso se setea en estado finalizado
+                bool eventoFinalizado = false;
+                if (DateTime.Now > item.FechaFinEvento && eventoHistorial != null && (eventoHistorial?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Cancelado.ToString() && eventoHistorial?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Finalizado.ToString()))
+                {
+                    // obtengo ultimo historial y lo doy de baja
+                    eventoHistorial!.FechaFin = DateTime.Now;
+                    _db.HistorialEvento.Update(eventoHistorial);
+
+                    // creo nuevo historial finalizado
+                    HistorialEvento historialEvento = new HistorialEvento
+                    {
+                        FechaInicio = DateTime.Now,
+                        DetalleCambioEstado = "Se finaliza evento por fecha de fin",
+                        UsuarioEditor = 0,
+                        EstadoEvento = _eventoEstadoService.GetEventoEstadoById(3) // asigno estado finalizado
+                    };                    
+                    item.HistorialEventoList!.Add(historialEvento);
+                   
+                    eventoFinalizado = true;
+
+                    using (var transaction = _db.Database.BeginTransaction())
+                    {
+                        _db.HistorialEvento.Add(historialEvento);
+                        _db.Evento.Update(item);
+                        _db.SaveChanges();
+                        transaction.Commit();
+                    }
+                }
 
                 bool activo = false;
 
-                if (eventoHistorial != null && (eventoHistorial?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Cancelado.ToString() && eventoHistorial?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Finalizado.ToString()))
+                if (!eventoFinalizado)
                 {
-                    activo = true;
+                    if (eventoHistorial != null && (eventoHistorial?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Cancelado.ToString() && eventoHistorial?.EstadoEvento.NombreEstado != Enums.EstadoEvento.Finalizado.ToString()))
+                    {
+                        activo = true;
+                    }
                 }
+               
 
                 EventoResponseDTO eventoResponse = new EventoResponseDTO
                 {
