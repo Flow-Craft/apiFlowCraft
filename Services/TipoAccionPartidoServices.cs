@@ -53,25 +53,7 @@ namespace ApiNet8.Services
                     throw new Exception("No se encuentra usuario");
                 }
 
-                //if (tipAc.IdDisciplina == 4)
-                //{
-                //    if (tipAc.Estadistica == true)
-                //    {
-                //        if (tipAc.Partido == true)
-                //        {
-                //            acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && a.NombreTipoAccion != "Cambio Jugador").ToList();
-                //        }
-                //        else
-                //        {
-                //            acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && a.NombreTipoAccion != "Tarjeta Amarilla" && a.NombreTipoAccion != "Tarjeta Roja" && a.NombreTipoAccion != "Cambio Jugador").ToList();
-                //        }
-                //    }
-                //    else
-                //    {
-                //        acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && (a.NombreTipoAccion == "Tarjeta Amarilla" || a.NombreTipoAccion == "Tarjeta Roja" || a.NombreTipoAccion == "Falta" || a.NombreTipoAccion == "Gol" || a.NombreTipoAccion == "Cambio Jugador")).ToList();
-                //    }
-                //}
-
+          
                 if (usuario.Perfil == Enums.Perfiles.Arbitro.ToString() || usuario.Perfil == Enums.Perfiles.Admin.ToString())
                 {
                     acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && (a.EsPartido == 0 || a.EsPartido == 1)).ToList();
@@ -80,20 +62,7 @@ namespace ApiNet8.Services
                 {
                     acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && (a.EsPartido == 0 || a.EsPartido == 2)).ToList();
                 }
-
-                //if
-                //if (tipAc.IdDisciplina == 2)
-                //{
-                //    if (tipAc.Estadistica == true)
-                //    {
-                //        acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && a.NombreTipoAccion != "Tarjeta Amarilla" && a.NombreTipoAccion != "Tarjeta Roja" && a.NombreTipoAccion != "Cambio Jugador" && a.NombreTipoAccion != "Punto").ToList();
-
-                //    }
-                //    else
-                //    {
-                //        acciones = _db.TipoAccionPartido.Include(d => d.Disciplina).Where(a => a.FechaBaja == null && a.Disciplina.Id == tipAc.IdDisciplina && (a.NombreTipoAccion == "Tarjeta Amarilla" || a.NombreTipoAccion == "Tarjeta Roja" ||  a.NombreTipoAccion == "Punto" || a.NombreTipoAccion == "Cambio Jugador")).ToList();
-                //    }
-                //}
+                             
                 return acciones;
             }
             catch (Exception)

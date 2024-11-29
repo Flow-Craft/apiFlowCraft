@@ -270,6 +270,7 @@ namespace ApiNet8.Services
                 throw new Exception(e.Message, e);
             }
         }
+
         public List<Estadisticas> GetEstadisticasByDiscUsuPer(EstadisticaDTO estadisticaDTO)//listo
         {
             try
@@ -1111,6 +1112,11 @@ namespace ApiNet8.Services
                     Include(c => c.Categoria).
                     Include(u => u.Usuarios).
                     Where(i => i.Id == Id).FirstOrDefault();
+
+                if (part == null)
+                {
+                    throw new Exception("No existe el partido");
+                }
 
                 part.Id = ((Evento)part).Id;
                 part.Disciplina = evento.Disciplina;
