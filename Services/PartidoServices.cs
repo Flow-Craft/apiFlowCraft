@@ -1267,7 +1267,8 @@ namespace ApiNet8.Services
                 }
                 else
                 {
-                    throw new Exception("No se encuentra el usuario asignado de ninguna forma al partido");
+                    asignacion.Planillero = false;
+                    asignacion.Arbitro = false;
                 }
                 
                 return asignacion;

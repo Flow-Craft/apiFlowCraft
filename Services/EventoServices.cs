@@ -217,11 +217,20 @@ namespace ApiNet8.Services
                 Instalacion instalacion = _instalacionServices.GetInstalacionById(eventoDTO.IdInstalacion);
 
                 // verificar que no este reservada
-                bool instalacionDisponible = _reservasServices.VerificarInstalacionDisponible((DateTime)eventoDTO.FechaInicio, (DateTime)eventoDTO.FechaFinEvento, instalacion, evento);
+                bool instalacionDisponible = _reservasServices.VerificarInstalacionDisponible((DateTime)eventoDTO.FechaInicio!, (DateTime)eventoDTO.FechaFinEvento!, instalacion, evento);
 
                 if (!instalacionDisponible)
                 {
                     throw new Exception("La instalacion no esta disponible en ese dia y horario.");
+                }
+
+                DateTime fechaInicioEvento = eventoDTO.FechaInicio != null ? (DateTime)eventoDTO.FechaInicio : (DateTime)evento.FechaInicio;
+                DateTime fechaFinEvento = eventoDTO.FechaFinEvento != null ? (DateTime)eventoDTO.FechaFinEvento : (DateTime)evento.FechaFinEvento;
+
+
+                if (fechaInicioEvento.TimeOfDay > instalacion.HoraCierre.ToTimeSpan() || fechaFinEvento.TimeOfDay > instalacion.HoraCierre.ToTimeSpan())
+                {
+                    throw new Exception("La instalacion esta cerrada en los horarios elegidos");
                 }
 
                 // asignar instalacion
@@ -424,11 +433,21 @@ namespace ApiNet8.Services
                     evento.TipoEvento = _tipoEventoServices.GetTipoEventoById(eventoDTO.IdTipoEvento);
                 }
 
+
                 // cambia fecha o instalacion
                 if ((eventoDTO.IdInstalacion > 0 && evento.Instalacion.Id != eventoDTO.IdInstalacion) || (eventoDTO.FechaInicio != null && eventoDTO.FechaInicio!=evento.FechaInicio) || (eventoDTO.FechaFinEvento != null && eventoDTO.FechaFinEvento != evento.FechaFinEvento))
                 {
                     // buscar instalacion
                     Instalacion instalacion = eventoDTO.IdInstalacion > 0 ? _instalacionServices.GetInstalacionById(eventoDTO.IdInstalacion) : _instalacionServices.GetInstalacionById(evento.Instalacion.Id);
+
+                    DateTime fechaInicioEvento = eventoDTO.FechaInicio != null ? (DateTime)eventoDTO.FechaInicio : (DateTime)evento.FechaInicio;
+                    DateTime fechaFinEvento = eventoDTO.FechaFinEvento != null ? (DateTime)eventoDTO.FechaFinEvento : (DateTime)evento.FechaFinEvento;
+
+
+                    if (fechaInicioEvento.TimeOfDay > instalacion.HoraCierre.ToTimeSpan() || fechaFinEvento.TimeOfDay > instalacion.HoraCierre.ToTimeSpan())
+                    {
+                        throw new Exception("La instalacion esta cerrada en los horarios elegidos");
+                    }
 
                     // verificar que no este reservada
                     DateTime fechaInicioReserva = eventoDTO.FechaInicio != null ? (DateTime)eventoDTO.FechaInicio : (DateTime)evento.FechaInicio;
