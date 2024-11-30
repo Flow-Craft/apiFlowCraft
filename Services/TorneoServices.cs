@@ -1269,9 +1269,9 @@ namespace ApiNet8.Services
 
                 // verificar que estado de torneo sea abierto
                 TorneoHistorial ultimohistorial = torneo.TorneoHistoriales.Where(f => f.FechaFin == null).FirstOrDefault()!;
-                if (ultimohistorial.TorneoEstado.NombreEstado != Enums.EstadoTorneo.EnCurso.ToString())
+                if (ultimohistorial.TorneoEstado.NombreEstado != Enums.EstadoTorneo.Abierto.ToString() && ultimohistorial.TorneoEstado.NombreEstado != Enums.EstadoTorneo.Completado.ToString())
                 {
-                    throw new Exception("Estan cerradas las inscripciones al torneo porque ya comenzo");
+                    throw new Exception("Estan cerradas las inscripciones.");
                 }               
 
                 // busco el equipo
@@ -1321,7 +1321,7 @@ namespace ApiNet8.Services
                 }
 
                 // si el torneo estaba completo, ahora pasa a abierto nuevamente
-                if (ultimohistorial.TorneoEstado.NombreEstado != Enums.EstadoTorneo.Completado.ToString())
+                if (ultimohistorial.TorneoEstado.NombreEstado == Enums.EstadoTorneo.Completado.ToString())
                 {
                     ultimohistorial.FechaFin = DateTime.Now;
                     _db.TorneoHistorial.Update(ultimohistorial);
