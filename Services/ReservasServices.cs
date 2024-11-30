@@ -190,7 +190,7 @@ namespace ApiNet8.Services
         {
             // se obtienen las reservas activas
             List<Reserva> reservas = GetReservas();
-            reservas = reservas.Where(i=>i.Instalacion.Id == instalacion.Id && i.FechaBaja == null && i.HoraInicio > DateTime.Now).ToList();
+            reservas = reservas.Where(i=>i.Instalacion.Id == instalacion.Id && i.FechaBaja == null && (i.HoraInicio > DateTime.Now || i.HoraFin > DateTime.Now)).ToList();
 
             return reservas;
         }

@@ -373,7 +373,7 @@ namespace ApiNet8.Controllers
 
         [ServiceFilter(typeof(ValidateJwtAndRefreshFilter))]
         [HttpGet]
-        public IActionResult PartidoEsDeTorneo([FromQuery]string tituloPartido)
+        public IActionResult PartidoEsDeTorneo([FromQuery]int tituloPartido)
         {
             // seteo jwt en header de respuesta
             var TOKEN = HttpContext.Items[JWT].ToString();

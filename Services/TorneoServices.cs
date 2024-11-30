@@ -308,27 +308,7 @@ namespace ApiNet8.Services
                 if (tieneDuplicados)
                 {
                     throw new Exception("No pueden haber equipos duplicados en el torneo.");
-                }
-
-                //// obtener arbitro y planillero
-                //if (torneoDTO.Arbitro < 1 || torneoDTO.Planillero <1)
-                //{
-                //    throw new Exception("Debe agregar un arbitro y un planillero.");
-                //}
-
-                //// arbitro  
-                //Usuario arbitro = _usuarioServices.GetUsuarioById(torneoDTO.Arbitro);
-                //if (arbitro == null)
-                //{
-                //    throw new Exception("No existe arbitro selecccionado");
-                //}
-
-                //// agregar planillero
-                //Usuario planillero = _usuarioServices.GetUsuarioById(torneoDTO.Planillero);
-                //if (planillero == null)
-                //{
-                //    throw new Exception("No existe planillero selecccionado");
-                //}
+                }             
 
                 // Asignar disciplinas
                 Disciplina? d = _disciplinasYLeccionesServices.GetDisciplinaById(torneoDTO.IdDisciplina);
@@ -559,10 +539,6 @@ namespace ApiNet8.Services
                                 item.Usuarios.Add(usu);
                             }
                         }
-
-                        //// agregar arbitro y planillero
-                        //item.Usuarios.Add(arbitro);
-                        //item.Usuarios.Add(planillero);
 
                         _db.Partido.Add(item);
                     }
@@ -1144,6 +1120,9 @@ namespace ApiNet8.Services
         {
             try
             {
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
                 // obtener torneo
                 Torneo? torneo = GetTorneoById(idTorneo);
                 if (torneo == null)
@@ -1221,6 +1200,47 @@ namespace ApiNet8.Services
                     _db.Partido.Update(partidoLibre);
                 }
 
+                // buscar estado de torneo y verificar si esta lleno
+
+                // Obtener cantidad equipos inscriptos
+                int cantInscriptos = 0;
+                foreach (var item in partidosFase1)
+                {
+                    if (item.Local != null && item.Local.Equipo != null)
+                    {
+                        cantInscriptos++;
+                    }
+
+                    if (item.Visitante != null && item.Visitante.Equipo != null)
+                    {
+                        cantInscriptos++;
+                    }
+                }
+
+                TorneoHistorial? ultimoHistorialTorneo = torneo.TorneoHistoriales.Where(f => f.FechaFin == null).OrderByDescending(f => f.FechaInicio).FirstOrDefault();
+
+                if (cantInscriptos + 1 >= torneo.CantEquipos && ultimoHistorialTorneo?.TorneoEstado.NombreEstado != Enums.EstadoTorneo.Completado.ToString() )
+                {
+                    // si el torneo esta lleno cambio estado a completado
+
+                    if (ultimoHistorialTorneo != null)
+                    {
+                        ultimoHistorialTorneo.FechaFin = DateTime.Now;
+                        _db.TorneoHistorial.Update(ultimoHistorialTorneo);
+                    }
+                    TorneoHistorial nuevoHistorialTorneo = new TorneoHistorial
+                    {
+                        FechaInicio = DateTime.Now,
+                        DetalleCambioEstado = "Torneo completado, inscripciones llenas",
+                        UsuarioEditor = currentUser?.Id,
+                        TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(5) // asigno estado completado
+                    };
+
+                    _db.TorneoHistorial.Add(nuevoHistorialTorneo);
+                    torneo.TorneoHistoriales.Add(nuevoHistorialTorneo);
+                    _db.Torneo.Update(torneo);
+                }
+
                 using (var transaction = _db.Database.BeginTransaction())
                 {
                     _db.SaveChanges();
@@ -1237,6 +1257,9 @@ namespace ApiNet8.Services
         {
             try
             {
+                // Obtener el usuario actual desde la sesión
+                var currentUser = _httpContextAccessor?.HttpContext?.Session.GetObjectFromJson<CurrentUser>("CurrentUser");
+
                 // obtener torneo
                 Torneo? torneo = GetTorneoById(idTorneo);
                 if (torneo == null)
@@ -1246,9 +1269,9 @@ namespace ApiNet8.Services
 
                 // verificar que estado de torneo sea abierto
                 TorneoHistorial ultimohistorial = torneo.TorneoHistoriales.Where(f => f.FechaFin == null).FirstOrDefault()!;
-                if (ultimohistorial.TorneoEstado.NombreEstado != Enums.EstadoTorneo.Abierto.ToString())
+                if (ultimohistorial.TorneoEstado.NombreEstado != Enums.EstadoTorneo.EnCurso.ToString())
                 {
-                    throw new Exception("Estan cerradas las inscripciones al torneo");
+                    throw new Exception("Estan cerradas las inscripciones al torneo porque ya comenzo");
                 }               
 
                 // busco el equipo
@@ -1295,6 +1318,26 @@ namespace ApiNet8.Services
                     partidoConEquipo.Visitante = null;
 
                     _db.EquipoPartido.Update(equipoPartido);
+                }
+
+                // si el torneo estaba completo, ahora pasa a abierto nuevamente
+                if (ultimohistorial.TorneoEstado.NombreEstado != Enums.EstadoTorneo.Completado.ToString())
+                {
+                    ultimohistorial.FechaFin = DateTime.Now;
+                    _db.TorneoHistorial.Update(ultimohistorial);
+
+                    TorneoHistorial nuevoHistorialTorneo = new TorneoHistorial
+                    {
+                        FechaInicio = DateTime.Now,
+                        DetalleCambioEstado = "Torneo abierto, se libera cupo",
+                        UsuarioEditor = currentUser?.Id,
+                        TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(1) // asigno estado abierto
+                    };
+
+                    _db.TorneoHistorial.Add(nuevoHistorialTorneo);
+                    torneo.TorneoHistoriales.Add(nuevoHistorialTorneo);
+                    _db.Torneo.Update(torneo);
+
                 }
 
                 using (var transaction = _db.Database.BeginTransaction())

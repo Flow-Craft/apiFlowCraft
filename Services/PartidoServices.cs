@@ -18,6 +18,7 @@ using Estadisticas = ApiNet8.Models.Partidos.Estadisticas;
 using TipoAccionPartido = ApiNet8.Models.Partidos.TipoAccionPartido;
 using ApiNet8.Models.Torneos;
 using static ApiNet8.Utils.Enums;
+using OxyPlot;
 
 namespace ApiNet8.Services
 {
@@ -945,12 +946,12 @@ namespace ApiNet8.Services
                         part.FechaFin = DateTime.Now;
 
                         // verificar si partido pertenece a un torneo
-                        if (EsDeTorneo(part.Titulo) && part.Ganador != null)
+                        if (EsDeTorneo(part.Id) && part.Ganador != null)
                         {
                             // Buscar el PartidoFase al que pertenece y el torneo
                             PartidoFase partidoFase = _db.PartidoFase
                                 .Include(pf => pf.Partidos)
-                                .Include(t=>t.Torneo)
+                                .Include(t => t.Torneo).ThenInclude(th => th.TorneoHistoriales).ThenInclude(e => e.TorneoEstado)
                                 .FirstOrDefault(pf => pf.Partidos.Any(p => p.Titulo == part.Titulo))!;
 
                             int idTorneo = partidoFase.Torneo.Id;
@@ -1004,7 +1005,7 @@ namespace ApiNet8.Services
                             else
                             {
                                 // si entro aca es porque es la final y asigno estado finalizado al torneo
-                                TorneoHistorial? ultimoHistorialTorneo = torneoPartido.TorneoHistoriales.Where(f => f.FechaFin == null).FirstOrDefault();
+                                TorneoHistorial? ultimoHistorialTorneo = torneoPartido.TorneoHistoriales.Where(f => f.FechaFin == null).OrderByDescending(f=>f.FechaInicio).FirstOrDefault();
                                 if (ultimoHistorialTorneo != null)
                                 {
                                     ultimoHistorialTorneo.FechaFin = DateTime.Now;
@@ -1017,7 +1018,7 @@ namespace ApiNet8.Services
                                     UsuarioEditor = currentUser?.Id,
                                     TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(2) // asigno estado finalizado
                                 };
-
+                                _db.TorneoHistorial.Add(nuevoHistorialTorneo);
                                 torneoPartido.TorneoHistoriales.Add(nuevoHistorialTorneo);
                                 _db.Torneo.Update(torneoPartido);
                             }
@@ -1043,10 +1044,10 @@ namespace ApiNet8.Services
             }
         }
 
-        public bool EsDeTorneo(string partido)
+        public bool EsDeTorneo(int partido)
         {
             return _db.PartidoFase
-                .Any(p => p.Partidos.Any(i => i.Titulo == partido));
+                .Any(p => p.Partidos.Any(i => i.Id == partido));
         }
 
         public List<AccionPartido> GetAccionPartidoByPartido(int IdPartido)//listo
@@ -1404,17 +1405,18 @@ namespace ApiNet8.Services
                     part.HistorialEventoList.Add(nuevoHistorial);
 
                     // verificar si partido pertenece a torneo
-                    bool perteneceATorneo = EsDeTorneo(part.Titulo);
+                    bool perteneceATorneo = EsDeTorneo(partidoDTO.Id);
 
                     if (perteneceATorneo)
                     {
                         // obtener torneo al que pertenece y verificar estado de torneo
-                        PartidoFase partidoFase = _db.PartidoFase.Include(t=>t.Torneo).ThenInclude(h=>h.TorneoHistoriales).ThenInclude(e=>e.TorneoEstado).FirstOrDefault(p => p.Partidos.Any(i => i.Titulo == part.Titulo))!;
+                        PartidoFase partidoFase = _db.PartidoFase.Include(t=>t.Torneo).ThenInclude(h=>h.TorneoHistoriales).ThenInclude(e=>e.TorneoEstado).FirstOrDefault(p => p.Partidos.Any(i => i.Id == part.Id))!;
                         Torneo torneoPartido = partidoFase.Torneo;
 
                         string estadoTorneo = "";
 
-                        TorneoHistorial? ultimoHistorialTorneo = torneoPartido.TorneoHistoriales.Where(f => f.FechaFin == null).FirstOrDefault();
+                        TorneoHistorial? ultimoHistorialTorneo = torneoPartido.TorneoHistoriales.Where(f => f.FechaFin == null).OrderByDescending(f=>f.FechaInicio).FirstOrDefault();
+
                         if (ultimoHistorialTorneo != null)
                         {
                             estadoTorneo = ultimoHistorialTorneo.TorneoEstado.NombreEstado;
@@ -1422,6 +1424,9 @@ namespace ApiNet8.Services
                             // si el torneo no esta en curso lo inicio
                             if (estadoTorneo != Enums.EstadoTorneo.EnCurso.ToString())
                             {
+                                ultimoHistorialTorneo.FechaFin = DateTime.Now;
+                                _db.TorneoHistorial.Update(ultimoHistorialTorneo);
+
                                 TorneoHistorial nuevoHistorialTorneo = new TorneoHistorial
                                 {
                                     FechaInicio = DateTime.Now,
@@ -1430,8 +1435,8 @@ namespace ApiNet8.Services
                                     TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(4) // asigno estado en curso
                                 };
 
-                                torneoPartido.TorneoHistoriales.Add(nuevoHistorialTorneo);
                                 _db.TorneoHistorial.Add(nuevoHistorialTorneo);
+                                torneoPartido.TorneoHistoriales.Add(nuevoHistorialTorneo);
                                 _db.Torneo.Update(torneoPartido);
                             }
                         }                        

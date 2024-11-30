@@ -15,6 +15,7 @@ using XAct.Events;
 using XAct;
 using System.Text.Json;
 using XSystem.Security.Cryptography;
+using ApiNet8.Models.Torneos;
 
 namespace ApiNet8.Services
 {
@@ -31,10 +32,11 @@ namespace ApiNet8.Services
         private readonly ITipoEventoServices _tipoEventoServices;
         private readonly IUsuarioServices _usuarioServices;
         private readonly IEquipoServices _equipoServices;
-        private readonly IEmailService _emailService;
+        private readonly IEmailService _emailService;    
+        private readonly ITorneoEstadoServices _torneoEstadoServices;
         private readonly ILogger<EventoServices> _logger;
 
-        public EventoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ICategoriaServices categoriaServices, IInstalacionServices instalacionServices, IReservasServices reservasServices, IEventoEstadoService eventoEstadoService, ITipoEventoServices tipoEventoServices, IUsuarioServices usuarioServices, IEquipoServices equipoServices, ILogger<EventoServices> logger, IEmailService emailService)
+        public EventoServices(ApplicationDbContext db, IMapper mapper, IHttpContextAccessor httpContextAccessor, IDisciplinasYLeccionesServices disciplinasYLeccionesServices, ICategoriaServices categoriaServices, IInstalacionServices instalacionServices, IReservasServices reservasServices, IEventoEstadoService eventoEstadoService, ITipoEventoServices tipoEventoServices, IUsuarioServices usuarioServices, IEquipoServices equipoServices, ILogger<EventoServices> logger, IEmailService emailService, ITorneoEstadoServices torneosEstadoServices)
         {
             this._db = db;
             _mapper = mapper;
@@ -49,6 +51,7 @@ namespace ApiNet8.Services
             _equipoServices = equipoServices;
             _logger = logger;
             _emailService = emailService;
+            _torneoEstadoServices = torneosEstadoServices;
         }
 
         public List<EventoResponseDTO> GetEventos()
@@ -559,7 +562,7 @@ namespace ApiNet8.Services
                     {
                         throw new Exception("No existe partido seleccionado");
                     }
-
+                    partido.Id = evento.Id;
                     partido.Titulo = eventoDTO.Titulo ?? evento.Titulo;
                     partido.Descripcion = eventoDTO.Descripcion ?? evento.Descripcion;
                     partido.Banner = eventoDTO.Banner ?? evento.Banner;
@@ -595,9 +598,11 @@ namespace ApiNet8.Services
                     {
                         planilleroActual = _usuarioServices.GetUsuarioById((int)partido.idPlanillero);
                     }
-
+                    int local = 0;
                     if (eventoDTO.EquipoLocal != null && eventoDTO.EquipoLocal > 0)
                     {
+                        local = 1;
+
                         // obtengo equipo partido y cambio la relacion a equipo
                         equipoLocal = _equipoServices.GetEquipoEventoById((int)eventoDTO.EquipoLocal);
 
@@ -636,9 +641,11 @@ namespace ApiNet8.Services
                             partido.Usuarios.Add(usuario);
                         }
                     }
-
+                    int visitante = 0;
                     if (eventoDTO.EquipoVisitante != null && eventoDTO.EquipoVisitante > 0)
                     {
+                        visitante = 1;
+
                         // obtengo equipo partido y cambio la relacion a equipo
                         equipoVisitante = _equipoServices.GetEquipoEventoById((int)eventoDTO.EquipoVisitante);
                         if (partido.Visitante == null)
@@ -716,6 +723,83 @@ namespace ApiNet8.Services
                         partido.idPlanillero = planilleroNuevo.Id;
                     }
 
+                    // verifico si el partido es de torneo, si el cupo esta lleno, lo paso a completado
+                    bool esDeTorneo = EsDeTorneo(partido.Id);
+
+                    if (esDeTorneo)
+                    {
+                        int cantNuevosInscriptos = local + visitante;
+
+                        // obtener torneo;
+                        // Buscar el PartidoFase al que pertenece y el torneo
+                        PartidoFase partidoFase = _db.PartidoFase
+                            .Include(pf => pf.Partidos)
+                            .Include(t => t.Torneo).ThenInclude(th=>th.TorneoHistoriales).ThenInclude(e=>e.TorneoEstado)
+                            .FirstOrDefault(pf => pf.Partidos.Any(p => p.Titulo == evento.Titulo))!;
+
+                        Torneo torneo = partidoFase.Torneo;
+
+                        // Obtener cantidad equipos inscriptos
+                        int cantInscriptos = 0;
+                        foreach (var item in partidoFase.Partidos)
+                        {
+                            if (item.Local != null && item.Local.Equipo != null)
+                            {
+                                cantInscriptos++;
+                            }
+
+                            if (item.Visitante != null && item.Visitante.Equipo != null)
+                            {
+                                cantInscriptos++;
+                            }
+                        }
+
+                        TorneoHistorial? ultimoHistorialTorneo = torneo.TorneoHistoriales.Where(f => f.FechaFin == null).OrderByDescending(f => f.FechaInicio).FirstOrDefault();
+
+                        if (cantInscriptos + cantNuevosInscriptos >= torneo.CantEquipos && ultimoHistorialTorneo?.TorneoEstado.NombreEstado != Enums.EstadoTorneo.Completado.ToString() && ultimoHistorialTorneo?.TorneoEstado.NombreEstado != Enums.EstadoTorneo.EnCurso.ToString())
+                        {
+                            // si el torneo esta lleno cambio estado a completado
+
+                            if (ultimoHistorialTorneo != null)
+                            {
+                                ultimoHistorialTorneo.FechaFin = DateTime.Now;
+                                _db.TorneoHistorial.Update(ultimoHistorialTorneo);
+                            }
+                            TorneoHistorial nuevoHistorialTorneo = new TorneoHistorial
+                            {
+                                FechaInicio = DateTime.Now,
+                                DetalleCambioEstado = "Torneo completado, inscripciones llenas",
+                                UsuarioEditor = currentUser?.Id,
+                                TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(5) // asigno estado completado
+                            };
+
+                            _db.TorneoHistorial.Add(nuevoHistorialTorneo);
+                            torneo.TorneoHistoriales.Add(nuevoHistorialTorneo);
+                            _db.Torneo.Update(torneo);
+                        }
+                        else
+                        // si el torneo esta incompleto cambio estado a abierto
+                        if (cantInscriptos + cantNuevosInscriptos < torneo.CantEquipos && ultimoHistorialTorneo?.TorneoEstado.NombreEstado != Enums.EstadoTorneo.Abierto.ToString())
+                        {
+                            if (ultimoHistorialTorneo != null)
+                            {
+                                ultimoHistorialTorneo.FechaFin = DateTime.Now;
+                                _db.TorneoHistorial.Update(ultimoHistorialTorneo);
+                            }
+                            TorneoHistorial nuevoHistorialTorneo = new TorneoHistorial
+                            {
+                                FechaInicio = DateTime.Now,
+                                DetalleCambioEstado = "Torneo abierto, se libera cupo",
+                                UsuarioEditor = currentUser?.Id,
+                                TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(1) // asigno estado abierto
+                            };
+
+                            _db.TorneoHistorial.Add(nuevoHistorialTorneo);
+                            torneo.TorneoHistoriales.Add(nuevoHistorialTorneo);
+                            _db.Torneo.Update(torneo);
+                        }
+                    }
+
                     _db.Partido.Update(partido);
                 }
                 else
@@ -738,6 +822,12 @@ namespace ApiNet8.Services
                 _logger.LogError(e, "Error al editar el evento" + eventoJson);
                 throw new Exception(e.Message, e);
             }
+        }
+
+        public bool EsDeTorneo(int partido)
+        {
+            return _db.PartidoFase
+                .Any(p => p.Partidos.Any(i => i.Id == partido));
         }
 
         public void EliminarEvento(EventoDTO eventoDTO)
