@@ -481,6 +481,14 @@ namespace ApiNet8.Services
                 {
                     foreach (var item in fase.Partidos)
                     {
+                        DateTime fechaInicioEvento = (DateTime)item.FechaInicio;
+                        DateTime fechaFinEvento = (DateTime)item.FechaFinEvento;
+
+                        if (fechaInicioEvento.TimeOfDay > instalacion.HoraCierre.ToTimeSpan() || fechaFinEvento.TimeOfDay > instalacion.HoraCierre.ToTimeSpan())
+                        {
+                            throw new Exception("La instalacion esta cerrada en los horarios elegidos para el partido: " + item.Titulo);
+                        }
+
                         // verificar que no este reservada la instalacion
                         bool instalacionDisponible = _reservasServices.VerificarInstalacionDisponible((DateTime)item.FechaInicio, (DateTime)item.FechaFinEvento, instalacion, (Evento)item);
 
@@ -700,6 +708,12 @@ namespace ApiNet8.Services
                             DateTime fechaInicioReserva = fechaInicio;
                             DateTime fechaFinReserva = fechaInicioReserva.AddHours(2);
 
+                            if (fechaInicioReserva.TimeOfDay > instalacion.HoraCierre.ToTimeSpan() || fechaFinReserva.TimeOfDay > instalacion.HoraCierre.ToTimeSpan())
+                            {
+                                throw new Exception("La instalacion esta cerrada en los horarios elegidos para el partido: " + part.Titulo);
+                            }
+
+
                             bool instalacionDisponible = _reservasServices.VerificarInstalacionDisponible(fechaInicioReserva, fechaFinReserva, instalacion, (Evento)part);
 
                             if (!instalacionDisponible)
@@ -879,25 +893,8 @@ namespace ApiNet8.Services
                             DetalleCambioEstado = "Se modifica torneo",
                             UsuarioEditor = currentUser != null ? currentUser.Id : 0,
                             TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(5) // asigno estado completado
-                        };
-                        //torneo.TorneoHistoriales = torneo.TorneoHistoriales == null ? new List<TorneoHistorial>() : torneo.TorneoHistoriales;
-                        //torneo.TorneoHistoriales.Add(historialTorneoCompletado);
-                        //_db.TorneoHistorial.Add(historialTorneoCompletado);
-                    }
-                    //else
-                    //{
-                    //    // crear nuevo historial y asignarlo al torneo
-                    //    TorneoHistorial historialTorneo = new TorneoHistorial
-                    //    {
-                    //        FechaInicio = DateTime.Now,
-                    //        DetalleCambioEstado = "Se modifica torneo",
-                    //        UsuarioEditor = currentUser != null ? currentUser.Id : 0,
-                    //        TorneoEstado = _torneoEstadoServices.GetTorneoEstadoById(1) // asigno estado abierto ya que solo pueden editarse torneos que no han completado las inscripciones
-                    //    };
-                    //    torneo.TorneoHistoriales = torneo.TorneoHistoriales == null ? new List<TorneoHistorial>() : torneo.TorneoHistoriales;
-                    //    torneo.TorneoHistoriales.Add(historialTorneo);
-                    //    _db.TorneoHistorial.Add(historialTorneo);
-                    //}
+                        };                       
+                    }                   
                 }
 
                 torneo.TorneoHistoriales.Add(historialTorneo);
