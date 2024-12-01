@@ -96,12 +96,12 @@ namespace ApiNet8.Services
         {
             try
             {
-                Estadisticas? est = _db.Estadisticas.
+                Estadisticas? est = _db.Estadisticas.                    
                     Include(p => p.Equipo).
                     ThenInclude(eq => eq.EquipoUsuarios).
                     ThenInclude(u => u.Usuario).
                     Include(p => p.Partido).
-                    Include(p => p.TipoAccionPartido).
+                    Include(p => p.TipoAccionPartido).ThenInclude(d=>d.Disciplina).
                     Where(a => a.Id == Id).FirstOrDefault();
 
                 int idEvento = (est?.Partido as Evento)?.Id ?? 0;

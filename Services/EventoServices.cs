@@ -1113,7 +1113,7 @@ namespace ApiNet8.Services
 
                 // verificar si el evento esta lleno
                 int cantInscripciones = GetInscripcionesEvento(IdEvento).Count();
-                if (evento.CupoMaximo >= cantInscripciones + 1)
+                if (cantInscripciones + 1 >= evento.CupoMaximo)
                 {
                     evento.EventoLleno = true;
                     _db.Evento.Update(evento);

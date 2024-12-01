@@ -555,7 +555,7 @@ namespace ApiNet8.Services
                     document.Add(graficoImage);
                 }
 
-                if (disciplina.Nombre == Enums.Disciplinas.Futbol.ToString())
+                if (disciplina.Nombre == Enums.Disciplinas.Futbol.ToString() + " 11" || disciplina.Nombre == Enums.Disciplinas.Futbol.ToString() + " 5")
                 {
                     // Tabla de estadisticas
                     Table table = new Table(new float[] { 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
@@ -605,16 +605,22 @@ namespace ApiNet8.Services
                     {
                         var partido = grupo.Key;
 
-                        int pasesCorrectos = grupo.Where(e => e?.TipoAccionPartido?.Id == 6).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 6).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int goles = grupo.Where(e => e?.TipoAccionPartido?.Id == 1).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 1).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int rematesFuera = grupo.Where(e => e?.TipoAccionPartido?.Id == 9).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 9).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int rematesAPuerta = grupo.Where(e => e?.TipoAccionPartido?.Id == 8).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 8).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int asistencias = grupo.Where(e => e?.TipoAccionPartido?.Id == 7).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 7).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int amarillas = grupo.Where(e => e?.TipoAccionPartido?.Id == 3).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 3).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int rojas = grupo.Where(e => e?.TipoAccionPartido?.Id == 4).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 4).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int faltas = grupo.Where(e => e?.TipoAccionPartido?.Id == 2).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 2).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int rematesAtajados = grupo.Where(e => e?.TipoAccionPartido?.Id == 11).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 11).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int golesRecibidos = grupo.Where(e => e?.TipoAccionPartido?.Id == 12).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 12).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int pasesCorrectos = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Pase").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Pase" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int goles = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Gol").FirstOrDefault() != null
+    ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Gol"
+                       && (e?.TipoAccionPartido?.Disciplina.Nombre == "Futbol 5"
+                           || e?.TipoAccionPartido?.Disciplina.Nombre == "Futbol 11"))
+            .FirstOrDefault()!.PuntajeTipoAccion
+    : 0;
+
+                        int rematesFuera = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate afuera").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate afuera" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rematesAPuerta = grupo.Where(e=> e?.TipoAccionPartido?.NombreTipoAccion == "Remate a puerta").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate a puerta" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int asistencias = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Asistencia").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Asistencia" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int amarillas = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Tarjeta Amarilla").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Tarjeta Amarilla" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rojas = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Tarjeta Roja").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Tarjeta Roja" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int faltas = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Falta").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Falta" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rematesAtajados = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate atajado").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate atajado" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int golesRecibidos = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate recibido").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate recibido" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
 
                         // actualizar totales
                         totalPasesCorrectos += pasesCorrectos;
@@ -859,7 +865,7 @@ namespace ApiNet8.Services
                     document.Add(graficoImage);
                 }
 
-                if (disciplina.Nombre == Enums.Disciplinas.Futbol.ToString())
+                if (disciplina.Nombre == Enums.Disciplinas.Futbol.ToString() + " 11" || disciplina.Nombre == Enums.Disciplinas.Futbol.ToString() + " 5")
                 {
                     // Tabla de estadisticas
                     Table table = new Table(new float[] { 4, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1 });
@@ -884,14 +890,15 @@ namespace ApiNet8.Services
                         IdDisciplina = idDisciplina,
                         FechaDesde = periodoInicio,
                         FechaHasta = periodoFin,
-                        DNIUsuario = usuario.Dni
+                        DNIUsuario = usuario.Dni,
+                        IdLeccion = leccion.Id
                     };
                     List<Estadisticas> estadisticas = _partidoServices.GetEstadisticasByDiscUsuPer(estadisticasDTO);
                     List<ReporteEstadisticaDTO> tablaEstadisticas = new List<ReporteEstadisticaDTO>();
 
                     // Obtener las estadísticas agrupadas por partido
                     var estadisticasAgrupadas = estadisticas
-                        .GroupBy(e => e.Partido?.Titulo)
+                        .GroupBy(e => e.AsistenciaLeccionId)
                         .Where(grupo => grupo.Key != null); // Ignorar acciones sin tipo
 
                     int totalPasesCorrectos = 0;
@@ -907,18 +914,26 @@ namespace ApiNet8.Services
 
                     foreach (var grupo in estadisticasAgrupadas)
                     {
-                        var partido = grupo.Key;
 
-                        int pasesCorrectos = grupo.Where(e => e?.TipoAccionPartido?.Id == 6).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 6).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int goles = grupo.Where(e => e?.TipoAccionPartido?.Id == 1).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 1).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int rematesFuera = grupo.Where(e => e?.TipoAccionPartido?.Id == 9).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 9).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int rematesAPuerta = grupo.Where(e => e?.TipoAccionPartido?.Id == 8).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 8).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int asistencias = grupo.Where(e => e?.TipoAccionPartido?.Id == 7).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 7).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int amarillas = grupo.Where(e => e?.TipoAccionPartido?.Id == 3).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 3).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int rojas = grupo.Where(e => e?.TipoAccionPartido?.Id == 4).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 4).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int faltas = grupo.Where(e => e?.TipoAccionPartido?.Id == 2).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 2).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int rematesAtajados = grupo.Where(e => e?.TipoAccionPartido?.Id == 11).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 11).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int golesRecibidos = grupo.Where(e => e?.TipoAccionPartido?.Id == 12).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 12).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        var nombreLeccion = "Asistencia: " + grupo.Key + " "+ leccion.Nombre;
+
+                        int pasesCorrectos = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Pase").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Pase" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int goles = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Gol").FirstOrDefault() != null
+    ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Gol"
+                       && (e?.TipoAccionPartido?.Disciplina.Nombre == "Futbol 5"
+                           || e?.TipoAccionPartido?.Disciplina.Nombre == "Futbol 11"))
+            .FirstOrDefault()!.PuntajeTipoAccion
+    : 0;
+
+                        int rematesFuera = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate afuera").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate afuera" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rematesAPuerta = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate a puerta").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate a puerta" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int asistencias = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Asistencia").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Asistencia" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int amarillas = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Tarjeta Amarilla").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Tarjeta Amarilla" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rojas = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Tarjeta Roja").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Tarjeta Roja" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int faltas = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Falta").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Falta" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rematesAtajados = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate atajado").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate atajado" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int golesRecibidos = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate recibido").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate recibido" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+
 
                         // actualizar totales
                         totalPasesCorrectos += pasesCorrectos;
@@ -935,7 +950,7 @@ namespace ApiNet8.Services
                         // Crear un nuevo ReporteEstadisticaDTO y asignar valores
                         ReporteEstadisticaDTO reporte = new ReporteEstadisticaDTO
                         {
-                            Partido = partido,
+                            Partido = nombreLeccion,
                             PasesCorrectos = pasesCorrectos,
                             Goles = goles,
                             RematesAPuerta = rematesAPuerta,
@@ -986,7 +1001,7 @@ namespace ApiNet8.Services
                     document.Add(table);
 
                     // Uso de la imagen convertida en tu PDF
-                    byte[] graficoBytes = GenerarGraficoEstadisticasVoley(tablaEstadisticas);
+                    byte[] graficoBytes = GenerarGraficoEstadisticasFutbol(tablaEstadisticas);
                     ImageData graficoImageData = ImageDataFactory.Create(graficoBytes);
                     Image graficoImage = new Image(graficoImageData);
                     // Ajustar tamaño del gráfico y añadir separación del contenido anterior
@@ -1206,16 +1221,23 @@ namespace ApiNet8.Services
                     {
                         var jugador = grupo.Key;
 
-                        int pasesCorrectos = grupo.Where(e => e?.TipoAccionPartido?.Id == 6).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 6).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int goles = grupo.Where(e => e?.TipoAccionPartido?.Id == 1).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 1).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int rematesFuera = grupo.Where(e => e?.TipoAccionPartido?.Id == 9).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 9).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int rematesAPuerta = grupo.Where(e => e?.TipoAccionPartido?.Id == 8).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 8).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int asistencias = grupo.Where(e => e?.TipoAccionPartido?.Id == 7).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 7).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int amarillas = grupo.Where(e => e?.TipoAccionPartido?.Id == 3).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 3).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int rojas = grupo.Where(e => e?.TipoAccionPartido?.Id == 4).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 4).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int faltas = grupo.Where(e => e?.TipoAccionPartido?.Id == 2).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 2).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int rematesAtajados = grupo.Where(e => e?.TipoAccionPartido?.Id == 11).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 11).FirstOrDefault()!.PuntajeTipoAccion : 0;
-                        int golesRecibidos = grupo.Where(e => e?.TipoAccionPartido?.Id == 12).FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.Id == 12).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int pasesCorrectos = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Pase").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Pase" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int goles = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Gol").FirstOrDefault() != null
+    ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Gol"
+                       && (e?.TipoAccionPartido?.Disciplina.Nombre == "Futbol 5"
+                           || e?.TipoAccionPartido?.Disciplina.Nombre == "Futbol 11"))
+            .FirstOrDefault()!.PuntajeTipoAccion
+    : 0;
+
+                        int rematesFuera = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate afuera").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate afuera" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rematesAPuerta = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate a puerta").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate a puerta" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int asistencias = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Asistencia").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Asistencia" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int amarillas = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Tarjeta Amarilla").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Tarjeta Amarilla" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rojas = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Tarjeta Roja").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Tarjeta Roja" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int faltas = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Falta").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Falta" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int rematesAtajados = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate atajado").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate atajado" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+                        int golesRecibidos = grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate recibido").FirstOrDefault() != null ? grupo.Where(e => e?.TipoAccionPartido?.NombreTipoAccion == "Remate recibido" && e?.TipoAccionPartido?.Disciplina.Nombre.Contains("Futbol") == true).FirstOrDefault()!.PuntajeTipoAccion : 0;
+
 
                         // actualizar totales
                         totalPasesCorrectos += pasesCorrectos;
