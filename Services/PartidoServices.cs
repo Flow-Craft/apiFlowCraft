@@ -228,7 +228,7 @@ namespace ApiNet8.Services
             {
                 Estadisticas? estadistica = new Estadisticas();
 
-                estadistica = _db.Estadisticas.Where(p => p.MarcaEstadistica == estadisticaDTO.MarcaEstadistica && p.Equipo.Id == estadisticaDTO.IdEquipo && p.TipoAccionPartido.Id == estadisticaDTO.IdTipoAccion && p.Partido.Id == estadisticaDTO.IdPartido && p.AsistenciaLeccionId == estadisticaDTO.IdAsistencia && p.NroJugador == estadisticaDTO.NroJugador && p.FechaBaja == null).FirstOrDefault();
+                estadistica = _db.Estadisticas.Include(ta=>ta.TipoAccionPartido).Where(p => p.Equipo.Id == estadisticaDTO.IdEquipo && p.TipoAccionPartido.Id == estadisticaDTO.IdTipoAccion && p.Partido.Id == estadisticaDTO.IdPartido && p.AsistenciaLeccionId == estadisticaDTO.IdAsistencia && p.NroJugador == estadisticaDTO.NroJugador && p.FechaBaja == null).FirstOrDefault();
 
 
                 //if (estadisticaDTO.Secuencial == false)  // si es false es voley, sino futbol
